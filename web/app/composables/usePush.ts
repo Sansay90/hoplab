@@ -51,8 +51,8 @@ export const usePush = createSharedComposable(() => {
     }
     const { sub } = await current()
     if (!sub || Notification.permission !== 'granted') return
+    state.value = 'on'                               // подписка у браузера есть; сервису — освежить, если ответит
     await subscribe()
-    state.value = 'on'
   }
 
   async function enable() {

@@ -250,9 +250,10 @@ export function gravityStable(entries: Fact[], top: number | null = null) {
   const gravity = gravityOf(entries)
   const last = gravity[gravity.length - 1]
   if (!last || gravity.length < 2) return null
-  if (top != null && last.value! > top - DROP_SG) return null
+  if (top != null && last.value! > top - DROP_SG + 1e-9) return null
   let oldest = last
-  for (let i = gravity.length - 2; i >= 0 && Math.abs(gravity[i]!.value! - last.value!) <= STABLE_SG; i--) oldest = gravity[i]!
+  // допуск: 1,012 − 1,011 в double чуть больше 0,001
+  for (let i = gravity.length - 2; i >= 0 && Math.abs(gravity[i]!.value! - last.value!) <= STABLE_SG + 1e-9; i--) oldest = gravity[i]!
   const days = (last.at - oldest.at) / DAY
   return days >= STABLE_DAYS ? { value: last.value!, since: oldest.at, at: last.at, days } : null
 }
@@ -262,7 +263,7 @@ export function gravityStable(entries: Fact[], top: number | null = null) {
  *  (reminders.py, slowdown). */
 function slowdown(measures: Fact[], top: number | null, target: number) {
   const last = measures[measures.length - 1]
-  if (top == null || !last || measures.length < 2 || last.value! > top - (top - target) / 2) return null
+  if (top == null || !last || measures.length < 2 || last.value! > top - (top - target) / 2 + 1e-9) return null
   const prev = measures.slice(0, -1).findLast(e => last.at - e.at >= SLOW_SPAN)
   if (!prev) return null
   return (prev.value! - last.value!) / ((last.at - prev.at) / DAY) < SLOW_SG ? last : null

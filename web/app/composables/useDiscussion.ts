@@ -17,6 +17,16 @@ function bumpComments(rid: string, delta: number) {
   patchRecipe(rid, r => ({ comments: Math.max(0, r.comments + delta) }), m => ({ comments: Math.max(0, m.comments + delta) }))
 }
 
+const voting = new Map<string, number>()
+
+/** Номер нажатия голоса по ключу (рецепт или комментарий) → «это нажатие ещё последнее?»: ответ на прежнее, пришедший
+ *  позже, не перезаписывает свежее состояние. */
+function lastVote(key: string) {
+  const n = (voting.get(key) ?? 0) + 1
+  voting.set(key, n)
+  return () => voting.get(key) === n
+}
+
 /** Голос за рецепт: «нравится» / «не нравится», повторное нажатие снимает. Счётчики меняются сразу, сервис их уточняет;
  *  отказал — возвращаются с тостом. Гостю — панель входа. */
 export function useRecipeVote() {
@@ -28,10 +38,13 @@ export function useRecipeVote() {
   async function vote(rid: string, current: VoteState, pressed: 1 | -1) {
     if (!auth.user) return drawer.show('login')
     const next = nextVote(current, pressed)
+    const latest = lastVote(`recipe:${rid}`)
     setRecipeVotes(rid, next)
     try {
-      setRecipeVotes(rid, await $api('/api/recipes/{rid}/vote', { method: 'PUT', path: { rid }, body: { value: next.vote } }))
+      const saved = await $api('/api/recipes/{rid}/vote', { method: 'PUT', path: { rid }, body: { value: next.vote } })
+      if (latest()) setRecipeVotes(rid, saved)
     } catch (e) {
+      if (!latest()) return
       setRecipeVotes(rid, current)
       showError(e)
     }
@@ -75,10 +88,13 @@ export function useComments(rid: MaybeRefOrGetter<string>) {
   async function vote(c: Comment, pressed: 1 | -1) {
     if (!auth.user) return drawer.show('login')
     const next = nextVote(c, pressed)
+    const latest = lastVote(`comment:${c.id}`)
     replace({ ...c, ...next })
     try {
-      replace({ ...c, ...await $api('/api/comments/{cid}/vote', { method: 'PUT', path: { cid: c.id }, body: { value: next.vote } }) })
+      const saved = await $api('/api/comments/{cid}/vote', { method: 'PUT', path: { cid: c.id }, body: { value: next.vote } })
+      if (latest()) replace({ ...c, ...saved })
     } catch (e) {
+      if (!latest()) return
       replace(c)
       showError(e)
     }

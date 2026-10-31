@@ -130,10 +130,10 @@ def stable(entries, top=None):
     if len(gravity) < 2:
         return None
     last = oldest = gravity[-1]
-    if top is not None and last.value > top - DROP_SG:
+    if top is not None and last.value > top - DROP_SG + 1e-9:
         return None
     for e in reversed(gravity[:-1]):
-        if abs(e.value - last.value) > STABLE_SG:
+        if abs(e.value - last.value) > STABLE_SG + 1e-9:          # допуск: 1,012 − 1,011 в double чуть больше 0,001
             break
         oldest = e
     return (last.at, last.value) if last.at - oldest.at >= STABLE_SPAN else None
@@ -145,7 +145,7 @@ def slowdown(measures, top, target):
     if top is None or len(measures) < 2:
         return None
     last = measures[-1]
-    if last.value > top - (top - target) / 2:
+    if last.value > top - (top - target) / 2 + 1e-9:
         return None
     prev = next((e for e in reversed(measures[:-1]) if last.at - e.at >= SLOW_SPAN), None)
     if prev is None:

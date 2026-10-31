@@ -891,5 +891,53 @@
         "stuck": false
       }
     }
+  },
+  {
+    "name": "в SG соседние значения: 1,012 → 1,011 — в пределах ошибки, «похоже» есть",
+    "plan": {
+      "og": 1.048,
+      "fermentation": [
+        {
+          "name": "Основное",
+          "temp": 18,
+          "days": 14
+        }
+      ]
+    },
+    "start": 1790000000,
+    "now": 1790867600,
+    "entries": [
+      {
+        "kind": "gravity",
+        "at": 1790432000,
+        "value": 1.03
+      },
+      {
+        "kind": "gravity",
+        "at": 1790691200,
+        "value": 1.012
+      },
+      {
+        "kind": "gravity",
+        "at": 1790864000,
+        "value": 1.011
+      }
+    ],
+    "expected": {
+      "current": 0,
+      "stages": [
+        {
+          "from": 1790000000.0,
+          "to": 1791209600.0,
+          "target": null
+        }
+      ],
+      "advice": null,
+      "calm": {
+        "value": 1.011,
+        "at": 1790864000.0,
+        "stuck": false
+      }
+    }
   }
 ]

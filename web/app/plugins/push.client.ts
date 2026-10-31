@@ -10,7 +10,8 @@ export default defineNuxtPlugin({
     const push = usePush()
     // адрес сервиса — параметром: кнопки в уведомлении шлют команды прямо ему
     navigator.serviceWorker.register(`${base}sw.js?api=${encodeURIComponent($apiBase)}`, { scope: base })
-      .then(() => watch(() => auth.user?.id, id => id && push.sync(), { immediate: true }))
+      .then(() => watch(() => auth.user?.id, id => id && push.sync().catch(e => console.warn('подписка не освежилась:', e)),
+        { immediate: true }))
       .catch(e => console.warn('уведомления недоступны:', e))
   },
 })

@@ -41,7 +41,8 @@ export const useBreweryStore = defineStore('brewery', () => {
   }))
 
   // стартовая температура текущего нагрева — для полосы прогресса
-  watch(() => [phase.value.heating, phase.value.step] as const, ([heating]) => {
+  // источники — по отдельности: геттер с массивом давал новый массив на каждый снимок и сбрасывал начало нагрева
+  watch([() => phase.value.heating, () => phase.value.step], ([heating]) => {
     heatStart.value = heating ? snapshot.value?.temp ?? null : null
   })
 
@@ -72,7 +73,9 @@ export const useBreweryStore = defineStore('brewery', () => {
   }
 
   async function loadEvents() {
-    events.value = await $api('/api/events')
+    const loaded = await $api('/api/events')
+    const newest = loaded[0]?.at ?? -Infinity             // пришедшее по потоку, пока список был в пути, — сохраняем
+    events.value = [...events.value.filter(e => e.at > newest), ...loaded].slice(0, EVENTS_MAX)
   }
 
   /** Догнать сервис после (пере)подключения: то, что могло случиться без нас. */
