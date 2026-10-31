@@ -18,3 +18,12 @@ def test_without_volume_no_targets(brewer, recipe):
     rid = brewer.ok("POST", "/recipes", {**recipe, "targets": {"og": 1.05}})["id"]
     assert brewer.ok("GET", f"/recipes/{rid}")["targets"] == {"og": None, "fg": None, "ibu": None, "ebc": None,
                                                               "abv": None}
+
+
+def test_recipe_numbers_bounded(brewer, recipe):
+    """Отрицательный объём и масса — отказ; крошечный объём — показатели не посчитать, а не падение."""
+    batch = recipe.get("batch") or {}
+    assert brewer.post("/recipes", {**recipe, "batch": {**batch, "volume": -1}})[0] == 422
+    assert brewer.post("/recipes", {**recipe, "fermentables": [{"name": "Пилснер", "amount": -5}]})[0] == 422
+    rid = brewer.ok("POST", "/recipes", {**recipe, "batch": {**batch, "volume": 1e-300}})["id"]
+    assert brewer.ok("GET", f"/recipes/{rid}")["targets"]["og"] is None

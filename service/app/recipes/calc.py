@@ -146,6 +146,9 @@ def calc_recipe(r):
     mcu = sum(mcu_of(f, litres) for f in fermentables)
     if mcu > 0:
         out["ebc"] = ebc_from_mcu(mcu)
+    for k in ("og", "fg", "abv", "ibu", "ebc"):              # крошечный объём даёт бесконечность — не посчитать
+        if out[k] is not None and not math.isfinite(out[k]):
+            out[k] = None
     return out
 
 

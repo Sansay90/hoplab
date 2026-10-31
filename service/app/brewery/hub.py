@@ -125,15 +125,6 @@ class Hub:
             raise AgentOffline()
         return await link.command(name, args)
 
-    async def notify(self, device_id, msg):
-        """Сообщение агенту без ответа (program, forget). Агента нет — не страшно: подключаясь, он спросит сам."""
-        link = self.links.get(device_id)
-        if link is not None:
-            try:
-                await link.ws.send_json(msg)
-            except Exception:
-                pass
-
     # ── соединение агента ─────────────────────────────────────────────────────
     async def serve(self, ws: WebSocket):
         token = (ws.headers.get("authorization") or "").removeprefix("Bearer ").strip()
@@ -213,8 +204,10 @@ class Hub:
                                  msg.get("step"), msg.get("status"))
         elif kind == "brewStarted":
             bid = msg["id"]
+            owner = await asyncio.to_thread(self.journal.brew_owner, bid)
+            # варка новая — или партия этого же пользователя, ещё не на другой пивоварне: чужую не подхватываем
             if bid not in self._foreign.setdefault(d, set()) and \
-                    await asyncio.to_thread(self.journal.brew_device, bid) in (None, d):
+                    (owner is None or (owner[1] == link.agent.user_id and owner[0] in (None, d))):
                 self._brews.setdefault(d, set()).add(bid)
                 self.journal.start_brew(d, link.agent.user_id, bid, msg.get("name") or "Варка",
                                         msg.get("recipeId"), msg.get("recipe"), msg["at"])

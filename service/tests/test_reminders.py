@@ -120,12 +120,39 @@ def test_stage_by_fact_shifts_the_rest(service, brewer, three_stages, pushes):
 def test_cold_crash_starts_the_cold_stage(service, brewer, three_stages, pushes):
     t0 = time.time() - 14 * DAY
     bid = pitched(brewer, three_stages, t0)
-    brewer.ok("POST", f"/brews/{bid}/entries", {"kind": "cold_crash", "at": t0 + 9 * DAY})   # на день раньше
     tick = service.state.reminders.tick
     assert tick(at(t0 + 7 * DAY + 600)) == 1                                    # дображивание — по плану
+    brewer.ok("POST", f"/brews/{bid}/entries", {"kind": "cold_crash", "at": t0 + 9 * DAY})   # на день раньше
     assert tick(at(t0 + 10 * DAY + 600)) == 0                                   # холодное уже начато
     assert tick(at(t0 + 12 * DAY + 600)) == 1                                   # конец — от факта, 9 + 3
     assert brewer.ok("GET", "/notifications")[0]["title"] == "Брожение по плану закончено"
+
+
+def test_jump_ahead_silences_skipped_stage(service, brewer, three_stages, pushes):
+    """Холодное начато, не дождавшись дображивания, — «Пора: Дображивание» не зовёт назад."""
+    t0 = time.time() - 14 * DAY
+    bid = pitched(brewer, three_stages, t0)
+    brewer.ok("POST", f"/brews/{bid}/entries", {"kind": "cold_crash", "at": t0 + 6 * DAY})
+    assert service.state.reminders.tick(at(t0 + 7 * DAY + 600)) == 0
+
+
+def test_recorded_dry_hop_is_silent(service, brewer, ferment_recipe, pushes):
+    """Заложил раньше дня по плану и записал — напоминание о сухом не приходит."""
+    t0 = time.time() - 14 * DAY
+    bid = pitched(brewer, ferment_recipe, t0)
+    brewer.ok("POST", f"/brews/{bid}/entries", {"kind": "dry_hop", "text": "Citra 100 г, Simcoe 50 г",
+                                                 "at": t0 + 2 * DAY})
+    assert service.state.reminders.tick(at(t0 + 3 * DAY + 600)) == 0
+
+
+def test_backdated_measure_still_notifies(service, brewer, three_stages, pushes):
+    """Замер внесли через 13 ч после того, как сняли, — «брожение закончилось» всё равно приходит."""
+    t0 = time.time() - 6 * DAY - 13 * 3600
+    bid = pitched(brewer, three_stages, t0)
+    for day, sg in ((2, 1.030), (4, 1.012), (6, 1.0115)):
+        brewer.ok("POST", f"/brews/{bid}/entries", {"kind": "gravity", "value": sg, "at": t0 + day * DAY})
+    assert service.state.reminders.tick() == 1
+    assert brewer.ok("GET", "/notifications")[0]["title"] == "Похоже, брожение закончилось"
 
 
 def test_stable_gravity(service, brewer, three_stages, pushes):

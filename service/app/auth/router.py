@@ -7,7 +7,7 @@ from ..mail import reset_letter, verify_letter
 from ..recipes.photos import TYPES
 from ..schemas import Ok
 from . import profile, sessions, users
-from .dependencies import SESSION_COOKIE, CurrentUser
+from .dependencies import SESSION_COOKIE, CurrentUser, set_session_cookie
 from .schemas import Credentials, EmailIn, Me, NameIn, RegisterIn, ResetIn, TokenIn
 
 router = APIRouter(prefix="/auth", tags=["вход"])
@@ -41,9 +41,7 @@ def site_url(request, settings):
 
 
 def start_session(request, response, user):
-    token = sessions.start(user.id, request.headers.get("user-agent"))
-    response.set_cookie(SESSION_COOKIE, token, max_age=sessions.SESSION_DAYS * 86400, httponly=True, samesite="lax",
-                        secure=request.url.scheme == "https", path="/")
+    set_session_cookie(request, response, sessions.start(user.id, request.headers.get("user-agent")))
 
 
 def send_verify(base, mailer, user):
@@ -57,7 +55,7 @@ def register(body: RegisterIn, request: Request, response: Response, settings: S
              limits: LimitsDep):
     throttle((limits.signups_by_ip, client_ip(request)))
     base = site_url(request, settings)                  # до записи: без адреса для ссылки регистрировать нельзя
-    user = users.register(body.email, body.password, body.name, settings.admins)
+    user = users.register(body.email, body.password, body.name, settings.admins, local=not settings.site_url)
     start_session(request, response, user)
     send_verify(base, mailer, user)
     return users.me(user)

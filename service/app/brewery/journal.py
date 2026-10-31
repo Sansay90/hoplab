@@ -147,6 +147,14 @@ class Journal:
         with session() as s:
             return s.exec(select(Brew.device_id).where(Brew.id == bid)).first()
 
+    def brew_owner(self, brew_id):
+        """(id пивоварни или None, id пользователя) варки, None — такой нет."""
+        if (bid := parse_id(brew_id)) is None:
+            return None
+        with session() as s:
+            row = s.exec(select(Brew.device_id, Brew.user_id).where(Brew.id == bid)).first()
+        return tuple(row) if row is not None else None
+
     def history(self, device_id, seconds):
         if device_id is None:
             return []

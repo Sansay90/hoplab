@@ -123,3 +123,13 @@ def test_brewer_page_and_privacy(service, recipe):
     detail = guest.ok("GET", f"/recipes/{public}")
     for shown in (brewer, listed, detail):                                   # почты нет нигде
         assert "secret.person" not in json.dumps(shown, ensure_ascii=False)
+
+
+def test_huge_picture(service):
+    """PNG на 42 Мпкс весит десятки КБ, а в памяти — гигабайт: отказ. Большой JPEG декодируется сразу уменьшенным."""
+    a = service.client()
+    a.signup("big@test.local", name="big_picture")
+    for mode, fmt, status in (("1", "PNG", 415), ("L", "JPEG", 200)):
+        out = io.BytesIO()
+        Image.new(mode, (7000, 6000)).save(out, fmt)
+        assert put_avatar(a, out.getvalue())[0] == status, fmt

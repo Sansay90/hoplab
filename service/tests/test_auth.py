@@ -1,10 +1,16 @@
 """Вход по почте: регистрация, письма со ссылками, новый пароль, выход, лимиты, чужой сайт, данные до входа."""
 import uuid
+from datetime import timedelta
 
-from sqlalchemy import text
+from sqlalchemy import text, update
+from starlette.requests import Request
+from starlette.responses import Response
 
 from app import db
-from app.models import Recipe, User
+from app.auth import sessions
+from app.auth.dependencies import SESSION_COOKIE, optional_user
+from app.config import LOCAL_ORIGIN
+from app.models import Recipe, User, UserSession, utcnow
 
 LEGACY_ID = uuid.UUID("11111111-1111-1111-1111-111111111111")
 
@@ -65,6 +71,36 @@ def test_admin_emails_others_do_not(settings, service_factory):
     add_legacy_owner()
     me = service.client().signup("first@test.local")[1]
     assert me["role"] == "user" and me["id"] != str(LEGACY_ID)      # данные до входа забирает только администратор
+
+
+def test_server_without_admin_emails(settings, service_factory):
+    """В интернете (APP_URL задан) без ADMIN_EMAILS первый зарегистрировавшийся — не администратор."""
+    service = service_factory(settings.model_copy(update={"app_url": "https://brew.example"}))
+    assert service.client().signup("first@test.local")[1]["role"] == "user"
+
+
+def test_cookie_renewed_with_session(service):
+    """Сессию в базе продлили — cookie продлевается тоже, иначе браузер выбросит её через 30 дней после входа."""
+    uid = uuid.UUID(service.client().signup("daily@test.local")[1]["id"])
+    token = sessions.start(uid, "test")
+    with db.session() as s:
+        s.exec(update(UserSession).where(UserSession.user_id == uid)
+               .values(last_seen_at=utcnow() - timedelta(seconds=sessions.SESSION_TOUCH_S + 60)))
+        s.commit()
+    scope = {"type": "http", "method": "GET", "scheme": "https", "server": ("brew.example", 443), "path": "/",
+             "query_string": b"", "headers": [(b"cookie", f"{SESSION_COOKIE}={token}".encode())]}
+    response = Response()
+    assert optional_user(Request(scope), response).id == uid
+    assert f"{SESSION_COOKIE}={token}" in response.headers["set-cookie"]
+    again = Response()
+    assert optional_user(Request(scope), again).id == uid and "set-cookie" not in again.headers   # раз в час
+
+
+def test_home_network_origin():
+    for ok in ("http://localhost:3000", "http://192.168.1.10:3000", "http://10.0.0.5", "http://172.20.1.2:3000"):
+        assert LOCAL_ORIGIN.fullmatch(ok), ok
+    for bad in ("http://192.169.1.10", "http://172.32.0.1", "https://evil.example", "http://192.168.1.10.evil.example"):
+        assert not LOCAL_ORIGIN.fullmatch(bad), bad
 
 
 def test_reset_password(service):

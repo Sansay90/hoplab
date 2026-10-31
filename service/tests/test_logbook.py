@@ -197,3 +197,12 @@ def test_past_day_and_delete(people, published):
     reader.ok("POST", f"/brews/{bid}/entries", {"kind": "note", "text": "Запомнить"})
     reader.ok("DELETE", f"/brews/{bid}")
     assert reader.get(f"/brews/{bid}")[0] == 404 and total(reader, rid) == 0
+
+
+def test_not_a_number_is_rejected(brewer, recipe):
+    """NaN, бесконечность и время за пределами календаря — отказ 400, а не падение."""
+    rid = brewer.ok("POST", "/recipes", recipe)["id"]
+    bid = brewer.ok("POST", "/brews", {"recipeId": rid})["id"]
+    for body in ({"kind": "note", "text": "x", "at": float("nan")}, {"kind": "note", "text": "x", "at": 1e15},
+                 {"kind": "stage", "value": float("inf")}, {"kind": "gravity", "value": float("nan")}):
+        assert brewer.post(f"/brews/{bid}/entries", body)[0] == 400, body

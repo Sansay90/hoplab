@@ -75,6 +75,7 @@ class Controller:
         self._emitted_at = 0.0
         self._last_reading = 0.0
         self._lock = threading.RLock()
+        self._commands = threading.Lock()                   # последовательности команд — по одной, не вперемешку
         self._listeners = []
         self._timer = {"anchor_t": None, "anchor_rem": None, "counting": False}
         self._additions_fired = set()
@@ -288,7 +289,8 @@ class Controller:
             self._event("step", f"Шаг {changed[DP_STEP]}: {name}".strip(), step=changed[DP_STEP])
         if DP_SWITCH in changed and not changed[DP_SWITCH] and prev.get(DP_SWITCH):
             # по окончании программы контроллер сам выключается при таймере 0 (PROTOCOL.md)
-            if prev.get(DP_STEP) and prev.get(DP_TIMER) == 0:
+            # таймер 0 мог прийти одним пакетом с выключением — смотрим текущий, а не прошлый снимок
+            if prev.get(DP_STEP) and changed.get(DP_TIMER, prev.get(DP_TIMER)) == 0:
                 self._fire_flameout(prev[DP_STEP])
                 self._event("end", "Программа завершена")
                 self._finish_brew("finished")
@@ -395,7 +397,7 @@ class Controller:
         return str(self.dev.dps.get(DP_MODEL) or self.model or "") or None
 
     def max_watts(self):
-        return self.max_watts_override or MODEL_MAX_WATTS.get(self._model())
+        return MODEL_MAX_WATTS.get(self._model()) or self.max_watts_override
 
     def snapshot(self):
         with self._lock:
@@ -436,23 +438,29 @@ class Controller:
                 "boilTemp": BOIL_TEMP, "minWatts": MIN_WATTS, "maxWatts": self.max_watts(), "wattsStep": WATTS_STEP}
 
     # ── команды ───────────────────────────────────────────────────────────────
-    def _sequence(self, *batches):
+    def _sequence(self, *batches, ready=None):
         """Пачки команд строго по очереди: следующая — только после эха предыдущей, после включения — пауза.
+        Две последовательности не перемешиваются. ready() перед последней пачкой — None или почему нельзя.
         Future → итог как у Brewery.write; не подтвердилась пачка — дальше не идём."""
         fut = Future()
 
         def run():
+            with self._commands:
+                fut.set_result(steps())
+
+        def steps():
             for i, batch in enumerate(batches):
+                if i == len(batches) - 1 and ready is not None and (why := ready()):
+                    return {"ok": False, "missing": list(map(str, batch)), "error": why}
                 try:
                     res = self.dev.write(batch).result(timeout=STEP_TIMEOUT_S)
                 except Exception as e:
                     res = {"ok": False, "missing": list(map(str, batch)), "error": str(e)}
                 if not res.get("ok"):
-                    fut.set_result(res)
-                    return
+                    return res
                 if DP_SWITCH in batch and i < len(batches) - 1:
                     time.sleep(POWER_ON_SETTLE_S)
-            fut.set_result({"ok": True, "missing": []})
+            return {"ok": True, "missing": []}
 
         threading.Thread(target=run, name="commands", daemon=True).start()
         return fut
@@ -487,8 +495,11 @@ class Controller:
     def cmd_start_recipe(self):
         if not self.device_steps():
             raise ValueError("в пивоварне нет известного рецепта — сначала загрузите рецепт")
-        # старт — только после подтверждённого режима «рецепт», иначе пивоварня запустит ручной режим
-        return self._sequence(*self._power_on_first(), {DP_MODE: 1}, {DP_START: True})
+        # старт — только после подтверждённого режима «рецепт», иначе пивоварня запустит ручной режим; режим
+        # перепроверяем перед самым стартом: после включения пивоварня сама сбрасывает его в ручной
+        return self._sequence(*self._power_on_first(), {DP_MODE: 1}, {DP_START: True},
+                              ready=lambda: None if self.dev.dps.get(DP_MODE) == 1 else
+                              "пивоварня вернулась в ручной режим — запустите рецепт ещё раз")
 
     def cmd_pump(self, on):
         return self.dev.write({DP_PUMP: bool(on)})

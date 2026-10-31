@@ -60,7 +60,8 @@ def get_state(brewery: UserBrewery):
 
 @router.get("/history", response_model=list[tuple[float, float, float | None]], tags=["состояние"],
             summary="Точки графика [unix-время, °C, цель °C]")
-def get_history(brewery: UserBrewery, journal: JournalDep, minutes: int = 360):
+def get_history(brewery: UserBrewery, journal: JournalDep,
+                minutes: Annotated[int, Query(ge=1, le=7 * 24 * 60)] = 360):
     return journal.history(brewery.device_id, minutes * 60)
 
 

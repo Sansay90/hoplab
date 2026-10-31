@@ -9,8 +9,9 @@ from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 SERVICE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))      # brewapp/service
-# без APP_URL сервис стоит у пивовара дома: интерфейсу из dev-сервера на этом же ПК — можно
-LOCAL_ORIGIN = re.compile(r"https?://(localhost|127\.0\.0\.1)(:\d+)?")
+# без APP_URL сервис стоит у пивовара дома: интерфейсу с этого ПК и из домашней сети (--lan) — можно
+LOCAL_ORIGIN = re.compile(r"https?://(localhost|127\.0\.0\.1|10(\.\d{1,3}){3}|192\.168(\.\d{1,3}){2}"
+                          r"|172\.(1[6-9]|2\d|3[01])(\.\d{1,3}){2})(:\d+)?")
 
 
 class Settings(BaseSettings):

@@ -44,7 +44,10 @@ def test_device_and_limits(idle, recorder):
 
 
 def test_max_watts_override(brewery, memory):
-    assert Controller(brewery, memory, max_watts=3000).limits()["maxWatts"] == 3000
+    c = Controller(brewery, memory, max_watts=3000)
+    assert c.limits()["maxWatts"] == 3000                # модели нет в списке — потолок из настроек
+    c.model = "14"
+    assert c.limits()["maxWatts"] == 2500                # известная модель — её потолок, настройка не перекрывает
 
 
 def test_upload_remembers_program(idle, brewery, memory):
@@ -121,6 +124,30 @@ def test_brew_with_addition_and_end(idle, brewery, recorder, memory):
     assert readings[0]["brewId"] is None                 # до запуска программы — температура без варки
     assert {r["brewId"] for r in readings[1:]} == {brew_id}
     assert any(r["temp"] == 100.0 and r["target"] == 100.0 for r in readings)
+
+
+def test_end_in_one_packet(idle, brewery, recorder):
+    start_program(idle, brewery)
+    brewery.push({"144": 2, "6": 1, "10": 1000})
+    brewery.push({"6": 0, "1": False, "104": 0, "144": 0})   # таймер 0 и выключение — одним пакетом
+    assert recorder.of("brewFinished")[-1]["status"] == "finished"
+    assert "end" in recorder.events() and "powerOff" not in recorder.events()
+
+
+def test_start_recipe_rechecks_mode(idle, brewery, monkeypatch):
+    upload(idle)
+    write = brewery.write
+
+    def resetting(dps, expect=None):
+        fut = write(dps, expect)
+        if "101" in map(str, dps):
+            fut.result(timeout=2)
+            brewery.push({"101": 0})                     # пивоварня вернула ручной режим уже после эха
+        return fut
+    monkeypatch.setattr(brewery, "write", resetting)
+    res = idle.cmd_start_recipe().result(timeout=5)
+    assert not res["ok"] and "ручной" in res["error"]
+    assert {"2": True} not in brewery.writes
 
 
 def test_power_off_stops_brew(idle, brewery, recorder):

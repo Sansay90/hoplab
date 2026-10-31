@@ -29,9 +29,11 @@ def normalize_email(email):
     return e
 
 
-def register(email, password, nick=None, admins=frozenset()):
+def register(email, password, nick=None, admins=frozenset(), local=True):
     """Новый пользователь (или владелец данных до входа, если он единственный). admins — почты администраторов
-    (ADMIN_EMAILS); nick — необязателен. Invalid — неверные данные, почта или ник уже заняты."""
+    (ADMIN_EMAILS); nick — необязателен. local — сервис у себя на ПК (без APP_URL): без ADMIN_EMAILS администратор —
+    первый зарегистрировавшийся; в интернете — только почты из ADMIN_EMAILS. Invalid — неверные данные, почта или
+    ник уже заняты."""
     email = normalize_email(email)
     check_password(password)
     nick = check_nick(nick) if nick and nick.strip() else None
@@ -41,7 +43,7 @@ def register(email, password, nick=None, admins=frozenset()):
             raise taken
         users = s.exec(select(User).limit(2)).all()
         legacy = users[0] if len(users) == 1 and users[0].email is None else None
-        if admins and email not in admins:
+        if email not in admins and (admins or not local):
             legacy = None                              # данные до входа забирает только администратор
         if nick and nick_taken(s, nick, legacy.id if legacy else None):
             raise Invalid(TAKEN)
@@ -50,7 +52,7 @@ def register(email, password, nick=None, admins=frozenset()):
         user.name, user.name_key = nick, nick_key(nick) if nick else None
         if admins:
             user.role = ADMIN if email in admins else USER
-        elif legacy is not None or not users:            # установка у себя: владелец — администратор
+        elif local and (legacy is not None or not users):   # установка у себя: владелец — администратор
             user.role = ADMIN
         s.add(user)
         try:

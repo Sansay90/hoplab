@@ -38,7 +38,7 @@ SLOW_SPAN = timedelta(days=1)            # скорость — по двум з
 STUCK_SG = 0.004                         # ≈ 1 °P выше конечной по плану — не «закончилось», а «застряло»
 FRESH = timedelta(hours=20)              # замер свежее — «пора замерить» не нужно
 DAY = timedelta(days=1)
-FACTS = ("pitch", "stage", "cold_crash", "og", "gravity", "fg")   # записи, от которых зависит расписание
+FACTS = ("pitch", "stage", "cold_crash", "og", "gravity", "fg", "dry_hop")   # от них зависит расписание
 GRAVITY = ("gravity", "fg")
 
 
@@ -52,6 +52,23 @@ def target_of(target, plan_og, og):
 def gravity_text(sg):
     """«1,024 (6,0 °P)» — знаков всегда столько же, сколько на сайте (fmtGravity): 6,0, а не 6."""
     return f"{sg:.3f} ({plato_from_sg(sg):.1f} °P)".replace(".", ",")
+
+
+def seen(e, now=None):
+    """С какого момента замер известен: внесённый задним числом напоминает с записи, а не с замера. Расписание на
+    прошлый момент (now раньше записи) — по времени замера."""
+    return max(e.at, e.created_at) if now is None or e.created_at <= now else e.at
+
+
+def hopped(dry_hops, entries):
+    """Записаны ли закладки сухого: запись «сухое охмеление» несёт состав закладки, старые без него — по порядку
+    оставшимся (как в интерфейсе)."""
+    left = sorted((e for e in entries if e.kind == "dry_hop"), key=lambda e: e.at)
+    done = []
+    for dh in dry_hops:
+        k = next((j for j, e in enumerate(left) if e.text == ", ".join(dh["items"])), None)
+        done.append(left.pop(k) if k is not None else None)
+    return [d if d is not None else left.pop(0) if left else None for d in done]
 
 
 def until_of(st):
@@ -254,49 +271,52 @@ def schedule(plan, start, entries=(), now=None):
     hit, calm = f.advice(), f.calm()
     for i, st in enumerate(stages):
         key = f"stage-{i + 1}" if i + 1 < len(stages) else "end"
-        silent = i + 1 < len(stages) and dated[i + 1][2]          # следующий уже начат по факту
+        silent = any(started for _, _, started in dated[i + 1:])  # следующий (или дальше) уже начат по факту
         if until_of(st) == "days":
             if f.stuck_on(i):
                 continue                                          # застряло — дальше по дням не зовём
             out.append((key, dated[i][1], *transition(i), silent))
         elif i == f.current and hit is not None and hit[1] == "stuck":
-            out.append((f"stuck-{i + 1}", hit[2].at, *stuck(hit[2].value), silent))
+            out.append((f"stuck-{i + 1}", seen(hit[2], now), *stuck(hit[2].value), silent))
         elif i == f.current and hit is not None:
             _, why, e = hit
             text = {"target": f"Плотность {gravity_text(e.value)} — цель достигнута",
                     "slow": f"Брожение замедлилось: плотность {gravity_text(e.value)}, цель не наступила",
                     "stable": f"Плотность {gravity_text(e.value)} не меняется двое суток"}[why]
-            out.append((key, e.at, *transition(i, text), silent))
+            out.append((key, seen(e, now), *transition(i, text), silent))
         elif i == f.current and st["days"]:
             measure(dated[i][0] + timedelta(days=st["days"]),
                     f"«{st.get('name') or f'Этап {i + 1}'}» по прикидке подходит к концу — "
                     f"{condition_text(st, f.targets[i])}")
 
-    for n, dh in enumerate(f.plan.get("dryHops") or []):
+    dry_hops = f.plan.get("dryHops") or []
+    for n, (dh, done) in enumerate(zip(dry_hops, hopped(dry_hops, entries), strict=True)):
         items = ", ".join(dh["items"])
         if dh.get("gravity"):
             target = target_of(dh["gravity"], f.plan.get("og"), f.og)
             reached = next((e for e in f.gravity if e.at >= start and e.value <= target + 1e-9), None)
             if reached is not None:
-                out.append((f"dry-g{n}", reached.at, "Сухое охмеление",
-                            f"{items} — плотность {gravity_text(reached.value)}", False))
-            elif dh.get("day"):
+                out.append((f"dry-g{n}", seen(reached, now), "Сухое охмеление",
+                            f"{items} — плотность {gravity_text(reached.value)}", done is not None))
+            elif dh.get("day") and done is None:
                 measure(start + timedelta(days=dh["day"] - 1),
                         f"Сухое охмеление ({items}) — при {gravity_text(target)}")
-        elif dh.get("day"):
-            out.append((f"dry-{dh['day']}", start + timedelta(days=dh["day"] - 1), "Сухое охмеление", items, False))
+        elif dh.get("day"):                                       # уже заложено — отметить молча
+            out.append((f"dry-{dh['day']}", start + timedelta(days=dh["day"] - 1), "Сухое охмеление", items,
+                        done is not None))
 
     # «пора замерить» — одно в сутки брожения, пока нет свежего замера
     if reasons and not any(now - e.at < FRESH for e in f.gravity):
         out.append((f"measure-{int((now - start) / DAY)}", now, "Пора замерить плотность", "; ".join(reasons), False))
 
     if calm is not None and calm[2]:
-        out.append((f"stuck-{f.current + 1}", calm[0], *stuck(calm[1]), False))
+        out.append((f"stuck-{f.current + 1}", seen(f.gravity[-1], now), *stuck(calm[1]), False))
     elif calm is not None:
-        at, sg, _ = calm
+        sg = calm[1]
         nxt = stages[f.current + 1] if f.current + 1 < len(stages) else None
         upcoming = (nxt.get("name") or f"этап {f.current + 2}") if nxt else None
-        out.append(("stable", at, "Похоже, брожение закончилось",
+        # на каждом этапе выдержки — своё: «можно переходить к …», а на последнем — «можно разливать»
+        out.append((f"stable-{f.current + 1}", seen(f.gravity[-1], now), "Похоже, брожение закончилось",
                     f"Плотность {gravity_text(sg)} не меняется двое суток — "
                     + (f"можно переходить к этапу «{upcoming}»" if upcoming else "можно разливать"), False))
     return sorted(out, key=lambda r: r[1])

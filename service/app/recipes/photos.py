@@ -9,6 +9,7 @@ MAX_BYTES = 10 * 1024 * 1024
 PER_RECIPE = 12
 TYPES = ("image/jpeg", "image/png", "image/webp")
 THUMB_SIDE = 480
+MAX_PIXELS = 40_000_000                  # PNG и WebP больше — не берём: разворачиваются в память целиком
 
 
 class Unsupported(AppError):
@@ -37,10 +38,22 @@ def photo_type(data: bytes):
     return None
 
 
+def open_image(data: bytes, side: int):
+    """Картинка, которую уменьшат до side: JPEG декодируется сразу уменьшенным, PNG и WebP разворачиваются целиком —
+    не больше MAX_PIXELS (одноцветный PNG в десятки КБ иначе займёт гигабайт памяти). Unsupported — слишком велика."""
+    im = Image.open(io.BytesIO(data))
+    if im.format == "JPEG":
+        im.draft("RGB", (side, side))
+    elif im.width * im.height > MAX_PIXELS:
+        im.close()
+        raise Unsupported()
+    return im
+
+
 def thumbnail(data: bytes) -> bytes:
     """Превью для списков — JPEG до 480 px; заодно проверка, что картинка открывается (иначе Unsupported)."""
     try:
-        with Image.open(io.BytesIO(data)) as im:
+        with open_image(data, THUMB_SIDE) as im:
             im = ImageOps.exif_transpose(im)
             im.thumbnail((THUMB_SIDE, THUMB_SIDE))
             out = io.BytesIO()

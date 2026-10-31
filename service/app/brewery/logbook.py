@@ -19,6 +19,7 @@
 «сварили N раз»: сваренной считается разлитая и не вылитая партия, от одного пивовара по рецепту — не больше одной
 в день, ручными записями его не накрутить.
 """
+import math
 from datetime import timedelta
 
 from sqlalchemy import exists, func
@@ -149,7 +150,10 @@ def check_at(t, what="дата"):
     """unix-время из запроса → datetime; None — сейчас. Не раньше 2000 года и не в будущем."""
     if t is None:
         return utcnow()
-    at = from_unix(t)
+    try:
+        at = from_unix(t)
+    except (ValueError, OverflowError, OSError):                  # NaN, бесконечность, год за пределами
+        raise Invalid(f"{what} — не раньше 2000 года и не в будущем") from None
     if at < EARLIEST or at > utcnow() + AHEAD:
         raise Invalid(f"{what} — не раньше 2000 года и не в будущем")
     return at
@@ -164,7 +168,7 @@ def check_entry(kind, value, text):
         raise Invalid(f"текст длиннее {TEXT_MAX} знаков — сократите")
     if kind in TRANSITIONS:
         low, missing = TRANSITIONS[kind]
-        if value is None or value != int(value) or value < low:
+        if value is None or not math.isfinite(value) or value != int(value) or value < low:
             raise Invalid(missing)
         return float(value), text
     unit = MEASURES.get(kind)

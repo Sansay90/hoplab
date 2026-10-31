@@ -16,7 +16,7 @@ class Addition(BaseModel):
     minutes: int = Field(description="минут до конца кипячения")
     kind: AdditionKind = "hop"
     name: str | None = None
-    amount: float | None = Field(None, description="у оборудования не бывает")
+    amount: float | None = Field(None, ge=0, le=100_000, description="у оборудования не бывает")
     unit: Unit = "g"
     whirlpool: int | None = Field(None, description="вирпул: закладывают в конце кипячения и выдерживают "
                                                     "столько минут; None — не вирпул")
@@ -35,7 +35,8 @@ class StyleRef(BaseModel):
 
 
 class Batch(BaseModel):
-    volume: float | None = Field(None, description="л сусла после кипячения — к нему считаются OG, IBU и цвет")
+    volume: float | None = Field(None, ge=0, le=10_000,
+                                 description="л сусла после кипячения — к нему считаются OG, IBU и цвет")
     efficiency: float | None = Field(None, description="эффективность, %: экстракт в сусле после кипячения "
                                                          "/ экстракт засыпи")
     evaporation: float | None = Field(None, description="испарение оборудования, л/ч — у рецепта партии: по нему "
@@ -54,16 +55,16 @@ class Targets(BaseModel):
 class Fermentable(BaseModel):
     name: str = ""
     kind: Literal["grain", "adjunct", "sugar", "extract"] = "grain"
-    amount: float | None = Field(None, description="кг")
-    ebc: float | None = None
+    amount: float | None = Field(None, ge=0, le=10_000, description="кг")
+    ebc: float | None = Field(None, ge=0, le=10_000)
     use: Literal["mash", "boil", "fermentation"] = "mash"
     minutes: int | None = Field(None, description="кипячение — за сколько минут до конца")
 
 
 class Hop(BaseModel):
     name: str = ""
-    alpha: float | None = Field(None, description="альфа-кислоты, %")
-    amount: float | None = Field(None, description="г")
+    alpha: float | None = Field(None, ge=0, le=100, description="альфа-кислоты, %")
+    amount: float | None = Field(None, ge=0, le=100_000, description="г")
     use: Literal["mash", "first_wort", "boil", "whirlpool", "dry_hop"] = "boil"
     minutes: int | None = Field(None, description="кипячение — за сколько минут до конца; вирпул — сколько стоит")
     day: int | None = Field(None, description="сухое охмеление — день брожения; при gravity — примерный")
@@ -74,7 +75,7 @@ class Hop(BaseModel):
 class Misc(BaseModel):
     name: str = ""
     kind: Literal["spice", "fining", "adjunct", "equipment"] = "adjunct"
-    amount: float | None = Field(None, description="у оборудования не бывает")
+    amount: float | None = Field(None, ge=0, le=100_000, description="у оборудования не бывает")
     unit: Unit = "g"
     use: Literal["mash", "boil", "whirlpool", "fermentation", "packaging"] = "boil"
     minutes: int | None = Field(None, description="кипячение — за сколько минут до конца")
@@ -98,7 +99,7 @@ class WaterAddition(BaseModel):
     """Соль (г) или кислота (мл) в заторную или промывочную воду."""
     agent: WaterAgent
     name: str = Field("", description="для agent = other")
-    amount: float | None = None
+    amount: float | None = Field(None, ge=0, le=100_000)
     target: Literal["mash", "sparge"] = "mash"
 
 
@@ -113,9 +114,9 @@ class Water(BaseModel):
 class Yeast(BaseModel):
     name: str = ""
     form: Literal["dry", "liquid"] = "dry"
-    amount: float | None = None
+    amount: float | None = Field(None, ge=0, le=100_000)
     unit: Unit = "pkg"
-    attenuation: float | None = Field(None, description="степень сбраживания, %")
+    attenuation: float | None = Field(None, ge=0, le=100, description="степень сбраживания, %")
 
 
 class MashStep(BaseModel):

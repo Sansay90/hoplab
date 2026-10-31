@@ -13,12 +13,12 @@
 """
 from datetime import timedelta
 
-from sqlalchemy import or_
+from sqlalchemy import exists, func, or_
 from sqlalchemy.orm import defer
 from sqlmodel import select
 
 from ..db import session
-from ..models import Brew, BrewEntry, Event, parse_id, utcnow
+from ..models import Brew, BrewEntry, Event, Reading, parse_id, utcnow
 from ..recipes.program import addition_slots, ru_num
 from .ticker import Ticker
 
@@ -128,6 +128,16 @@ def close_stale(now):
                         .where(Brew.day_ended_at.is_(None), Brew.started_at < now - DAY_SPAN,
                                or_(Brew.source == "manual", Brew.status != "running"))).all():
             end_day(b, b.ended_at or b.started_at)
+            s.add(b)
+            closed.append((b.user_id, b.id))
+        # программа «идёт», а от пивоварни ни одного замера за DAY_SPAN — агент пропал и не вернётся закрыть варку
+        for b in s.exec(select(Brew).options(defer(Brew.snapshot), defer(Brew.recipe))
+                        .where(Brew.day_ended_at.is_(None), Brew.started_at < now - DAY_SPAN,
+                               Brew.source != "manual", Brew.status == "running",
+                               ~exists().where(Reading.brew_id == Brew.id, Reading.at >= now - DAY_SPAN))).all():
+            last = s.exec(select(func.max(Reading.at)).where(Reading.brew_id == b.id)).one()
+            b.status, b.ended_at = "stopped", last or b.started_at
+            end_day(b, b.ended_at)
             s.add(b)
             closed.append((b.user_id, b.id))
         s.commit()

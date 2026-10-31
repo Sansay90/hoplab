@@ -17,7 +17,7 @@ from ..access import PUBLIC
 from ..db import session
 from ..errors import Invalid, NotFound
 from ..models import Recipe, User, parse_id, unix
-from ..recipes.photos import Unsupported, photo_type
+from ..recipes.photos import Unsupported, open_image, photo_type
 
 NICK_RE = re.compile(r"[0-9A-Za-zА-Яа-яЁё][0-9A-Za-zА-Яа-яЁё_-]{2,23}")
 RESERVED = {"admin", "administrator", "root", "support", "moderator", "hoplab", "brewapp", "me", "new", "settings",
@@ -74,7 +74,7 @@ def prepare_avatar(data: bytes) -> bytes:
     if photo_type(data) is None:
         raise Unsupported()
     try:
-        with Image.open(io.BytesIO(data)) as im:
+        with open_image(data, AVATAR_SIDE) as im:
             im = ImageOps.fit(ImageOps.exif_transpose(im).convert("RGB"), (AVATAR_SIDE, AVATAR_SIDE))
             out = io.BytesIO()
             im.save(out, "JPEG", quality=85, optimize=True)

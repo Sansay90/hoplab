@@ -7,7 +7,9 @@ from datetime import timedelta
 import pytest
 
 from app.brewery.brewday import DAY_SPAN, progress, steps_of
-from app.models import from_unix
+from app.brewery.logbook import DEVICE
+from app.db import session
+from app.models import Brew, from_unix, parse_id
 
 
 def test_steps_from_batch_recipe(brewer, recipe):
@@ -91,3 +93,20 @@ def test_abandoned_day_goes_on(service, brewer, recipe):
     assert brewer.ok("GET", "/brews?phase=brewday") == []
     assert [b["id"] for b in brewer.ok("GET", "/brews?phase=fermenting")] == [brew["id"]]
     assert brewer.ok("GET", "/brews?phase=packaged") == []
+
+
+def test_lost_agent_brew_closes(service, brewer, recipe):
+    """Варка с пивоварни «идёт», а агент пропал: через DAY_SPAN без замеров она остановлена, день позади."""
+    rid = brewer.ok("POST", "/recipes", recipe)["id"]
+    brew = brewer.ok("POST", "/brews", {"recipeId": rid})
+    with session() as s:
+        b = s.get(Brew, parse_id(brew["id"]))
+        b.source, b.status = DEVICE, "running"
+        s.add(b)
+        s.commit()
+    assert brewer.post(f"/brews/{brew['id']}/finish")[0] == 409
+    service.state.brewday.tick(from_unix(brew["startedAt"]) + DAY_SPAN - timedelta(minutes=1))
+    assert brewer.ok("GET", f"/brews/{brew['id']}")["status"] == "running"
+    service.state.brewday.tick(from_unix(brew["startedAt"]) + DAY_SPAN + timedelta(minutes=1))
+    done = brewer.ok("GET", f"/brews/{brew['id']}")
+    assert done["status"] == "stopped" and done["phase"] == "fermenting"

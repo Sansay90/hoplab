@@ -36,18 +36,24 @@ def start(user_id, user_agent=None):
 
 def user(token):
     """Пользователь по токену из cookie или None; живая сессия продлевается."""
+    return lookup(token)[0]
+
+
+def lookup(token):
+    """(пользователь или None, продлена ли сессия сейчас) — по токену из cookie."""
     if not token:
-        return None
+        return None, False
     with session() as s:
         row = s.exec(select(UserSession).where(UserSession.token_hash == _hash(token))).first()
         now = utcnow()
         if row is None or row.expires_at <= now:
-            return None
-        if (now - row.last_seen_at).total_seconds() > SESSION_TOUCH_S:
+            return None, False
+        renewed = (now - row.last_seen_at).total_seconds() > SESSION_TOUCH_S
+        if renewed:
             row.last_seen_at, row.expires_at = now, now + timedelta(days=SESSION_DAYS)
             s.add(row)
             s.commit()
-        return s.get(User, row.user_id)
+        return s.get(User, row.user_id), renewed
 
 
 def end(token):
