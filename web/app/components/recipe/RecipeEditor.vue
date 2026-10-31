@@ -34,7 +34,7 @@ function init() {
   const base = source.value
   if (!props.id) {
     draft.value = base ? { ...toDraft(base), name: `${base.name} (копия)` } : blankRecipe(limits.value!, equipment.value ?? null)
-    saved.value = ''
+    saved.value = base ? '' : JSON.stringify(draft.value)   // копия — уже правка, пустой новый — ещё нет
     return
   }
   if (!base) return navigateTo('/recipes', { replace: true })
@@ -57,6 +57,12 @@ async function canLeave() {
   })
 }
 onBeforeRouteLeave(canLeave)
+// перезагрузка, закрытие вкладки, полный переход — браузер спросит сам
+useEventListener('beforeunload', (e: BeforeUnloadEvent) => {
+  if (!dirty.value) return
+  e.preventDefault()
+  e.returnValue = ''
+})
 
 async function save() {
   if (!draft.value || errors.value.length) return

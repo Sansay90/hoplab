@@ -5,15 +5,20 @@ const { $api } = useNuxtApp()
 const push = usePush()
 const { exec, pending } = useCommand()
 const saving = useCommand()
-const { data: settings } = useApi('/api/notifications/settings', { key: 'notice-settings' })
+const { data: settings, refresh } = useApi('/api/notifications/settings', { key: 'notice-settings' })
 
 function toggle(on: boolean) {
   exec(() => (on ? push.enable() : push.disable()))
 }
 
+let latest = 0
 async function save(body: { pushComments?: boolean; pushBrews?: boolean }) {
+  const n = ++latest
+  if (settings.value) settings.value = { ...settings.value, ...body }
   const saved = await saving.exec(() => $api('/api/notifications/settings', { method: 'PUT', body }))
+  if (n !== latest) return                               // успели нажать ещё — правит последний ответ
   if (saved) settings.value = saved
+  else await refresh()                                   // не сохранилось — показать, как на сервере
 }
 const setComments = (on: boolean) => save({ pushComments: on })
 const setBrews = (on: boolean) => save({ pushBrews: on })

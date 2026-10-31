@@ -11,6 +11,7 @@ const props = defineProps<{
   bjcp: BjcpStyle | null
   og: number | null | undefined
   fg: number | null | undefined
+  abv: number | null | undefined
   ibu: number | null | undefined
   ebc: number | null | undefined
   adjustable?: Partial<Record<Key, boolean>>
@@ -32,7 +33,7 @@ const rows = computed(() => {
   const list: { key: Key | 'abv'; label: string; value: number | null; span: Span; digits: number; step: number; suffix: string }[] = [
     { key: 'og', label: 'OG', value: gv(props.og), span: g(b?.og ?? null), ...gravity },
     { key: 'fg', label: 'FG', value: gv(props.fg), span: g(b?.fg ?? null), ...gravity },
-    { key: 'abv', label: 'ABV', value: abvOf(props.og, props.fg), span: b?.abv ?? null, digits: 1, step: 0.1, suffix: ' %' },
+    { key: 'abv', label: 'ABV', value: props.abv ?? null, span: b?.abv ?? null, digits: 1, step: 0.1, suffix: ' %' },
     { key: 'ibu', label: 'IBU', value: props.ibu ?? null, span: b?.ibu ?? null, digits: 0, step: 1, suffix: '' },
     { key: 'ebc', label: 'EBC', value: props.ebc ?? null, span: b?.ebc ?? null, digits: 0, step: 1, suffix: '' },
   ]

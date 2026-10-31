@@ -3,15 +3,19 @@ import type { RecipeDetail, RecipeSummary } from '~/types'
 /** Избранное: отметка меняется сразу — в загруженных каталоге и странице рецепта (данные Nuxt, без перезапроса),
  *  сервис не принял — возвращается обратно с тостом. Гостю — панель входа: избранное хранится у пользователя. */
 export function useFavorite() {
-  const { $api } = useNuxtApp()
+  const nuxtApp = useNuxtApp()
+  const { $api } = nuxtApp
   const auth = useAuthStore()
   const drawer = useAuthDrawer()
   const showError = useErrorToast()
 
   // данные Nuxt — shallowRef: меняется объект целиком, а не поле внутри
   function mark(rid: string, on: boolean) {
-    const list = useNuxtData<RecipeSummary[]>('recipes').data
-    if (list.value) list.value = list.value.map(r => (r.id === rid ? { ...r, favorite: on } : r))
+    // списки рецептов: каталог и страницы пивоваров
+    for (const key of Object.keys(nuxtApp._asyncData).filter(k => k === 'recipes' || k.startsWith('brewer-recipes:'))) {
+      const list = useNuxtData<RecipeSummary[]>(key).data
+      if (list.value) list.value = list.value.map(r => (r.id === rid ? { ...r, favorite: on } : r))
+    }
     const detail = useNuxtData<RecipeDetail | null>(recipeKey(rid)).data
     if (detail.value) detail.value = { ...detail.value, meta: { ...detail.value.meta, favorite: on } }
   }

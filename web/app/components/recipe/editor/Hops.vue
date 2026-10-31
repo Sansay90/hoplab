@@ -38,7 +38,7 @@ function add() {
             <UIcon name="i-lucide-hop" class="size-4 text-success" />
           </template>
         </UInput>
-        <UInputNumber v-model="h.alpha" :min="0" :max="30" :step="0.1" :step-snapping="false" :format-options="{ maximumFractionDigits: 1 }" :increment="false" :decrement="false" placeholder="—" size="sm" class="w-18 sm:w-auto" aria-label="Альфа-кислоты, %" />
+        <UInputNumber v-model="h.alpha" :min="0" :max="100" :step="0.1" :step-snapping="false" :format-options="{ maximumFractionDigits: 1 }" :increment="false" :decrement="false" placeholder="—" size="sm" class="w-18 sm:w-auto" aria-label="Альфа-кислоты, %" />
         <UInputNumber v-model="h.amount" :min="0" :step="1" :step-snapping="false" :format-options="{ maximumFractionDigits: 1 }" :increment="false" :decrement="false" placeholder="—" size="sm" class="w-18 sm:w-auto" aria-label="Масса, г" />
         <RecipeEditorWhen v-model:use="h.use" v-model:minutes="h.minutes" v-model:day="h.day" v-model:gravity="h.gravity" :items="USES" class="w-84 sm:w-auto" />
         <UButton icon="i-lucide-x" color="neutral" variant="ghost" size="sm" aria-label="Убрать" @click="rows.splice(i, 1)" />

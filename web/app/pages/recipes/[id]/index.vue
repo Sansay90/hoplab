@@ -16,7 +16,7 @@ const failure = (e: unknown) => createError({
   fatal: true,
 })
 if (error.value) throw failure(error.value)
-watch(error, e => e && showError(failure(e)))
+watch(error, e => e && !auth.expiredOn && showError(failure(e)))   // вход истёк — поверх панель входа
 
 const style = computed(() => styleByCode(recipe.value?.style?.code))
 const volumes = computed(() => waterVolumes(recipe.value ?? {}, equipment.value?.evaporation))
@@ -69,7 +69,7 @@ useSeoMeta({
         <aside class="space-y-4 xl:sticky xl:top-0 xl:self-start">
           <UCard :ui="{ body: 'p-5 sm:p-5' }">
             <div class="mb-4 text-xs font-medium uppercase tracking-wider text-dimmed">Стиль</div>
-            <RecipeStyleRanges :bjcp="style" :custom="!!recipe.style && !recipe.style.code" :og="calc?.og" :fg="calc?.fg" :ibu="calc?.ibu" :ebc="calc?.ebc" />
+            <RecipeStyleRanges :bjcp="style" :custom="!!recipe.style && !recipe.style.code" :og="calc?.og" :fg="calc?.fg" :abv="calc?.abv" :ibu="calc?.ibu" :ebc="calc?.ebc" />
           </UCard>
           <RecipeViewBatch :recipe="recipe" />
           <!-- свои варки по рецепту — каждому вошедшему: и автору, и тому, кто варит по чужому -->

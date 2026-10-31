@@ -3,7 +3,7 @@ import type { Recipe } from '~/types'
 import { calcRecipe, DEFAULT_EFFICIENCY } from '~/utils/calc'
 import {
   blankRecipe, boilGroups, boilItems, deviceTimers, fermentationStep, mashStep, newMisc, options, programMinutes, programOf, programSummary,
-  share, toDraft, toRecipe, totalKg, validateRecipe, wattOptions, whenInBoil, whenLabel, HOP_USES,
+  newYeast, share, toDraft, toRecipe, totalKg, validateRecipe, wattOptions, whenInBoil, whenLabel, HOP_USES,
 } from '~/utils/recipe'
 import { dots, draft, hop, LIMITS, malt } from './fixtures'
 
@@ -91,6 +91,13 @@ describe('форма ↔ API', () => {
   it('API → форма → API без потерь', () => {
     const r = toRecipe(full())
     expect(toRecipe(toDraft(r))).toEqual(r)
+  })
+
+  it('черновик — копия: правка кипячения в форме не меняет загруженный рецепт', () => {
+    const r = toRecipe(full())
+    const d = toDraft(r)
+    d.boil!.minutes = 90
+    expect(r.boil!.minutes).not.toBe(90)
   })
 
   it('пустые поля ответа сервиса — значения формы по умолчанию', () => {
@@ -229,6 +236,26 @@ describe('validateRecipe', () => {
     d.fermentables.push(malt(1, 5, { name: '' }))
     d.hops.push(hop(10, 5, 10, { name: '' }))
     expect(validateRecipe(d, LIMITS)).toEqual(['Засыпь: у строки нет названия', 'Хмель: у строки нет названия'])
+  })
+
+  it('дрожжи без названия: пустая строка не мешает, со сбраживанием — ошибка (по нему уже считается FG)', () => {
+    const d = ok()
+    d.yeasts = [newYeast()]
+    expect(validateRecipe(d, LIMITS)).toEqual([])
+    d.yeasts = [{ ...newYeast(), attenuation: 82 }]
+    expect(validateRecipe(d, LIMITS)).toEqual(['Дрожжи: у строки нет названия'])
+  })
+
+  it('пределы сервиса — понятной ошибкой до сохранения', () => {
+    const d = ok()
+    d.batch.volume = 20_000
+    d.fermentables[0]!.ebc = 15_000
+    d.hops[0]!.alpha = 120
+    expect(validateRecipe(d, LIMITS)).toEqual([
+      'Объём после кипячения — не больше 10 000 л',
+      `«${d.fermentables[0]!.name || 'засыпь'}»: цвет не больше 10 000 EBC`,
+      `«${d.hops[0]!.name || 'хмель'}»: альфа-кислоты не больше 100 %`,
+    ])
   })
 })
 

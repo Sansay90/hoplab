@@ -47,6 +47,7 @@ const totals = computed(() => {
       :custom="!!draft.style && !draft.style.code"
       :og="calc?.og"
       :fg="calc?.fg"
+      :abv="calc?.abv"
       :ibu="calc?.ibu"
       :ebc="calc?.ebc"
       :adjustable="canAdjust"

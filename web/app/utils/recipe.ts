@@ -93,7 +93,7 @@ export function toDraft(r: Recipe): RecipeDraft {
       })),
     },
     mash: (r.mash ?? []).map(s => ({ ...s, name: s.name ?? '' })),
-    boil: r.boil ?? null,
+    boil: r.boil ? { ...r.boil } : null,                 // копией: иначе «Отмена» оставит правку на странице рецепта
     fermentation: (r.fermentation ?? []).map(s => ({ ...s, name: s.name ?? '', until: s.until ?? 'days', gravity: s.gravity ?? null })),
     notes: r.notes ?? '',
   }
@@ -248,6 +248,26 @@ export function validateRecipe(d: RecipeDraft, l: Limits): string[] {
   }
   unnamed(d.fermentables.filter(f => !blank(f)), 'Засыпь')
   unnamed(d.hops.filter(h => !blank(h)), 'Хмель')
+  // без названия строка не сохранится, а редактор уже считает FG по её сбраживанию
+  unnamed(d.yeasts.filter(y => y.attenuation != null), 'Дрожжи')
+
+  // пределы сервиса — здесь, чтобы ошибка была понятной, а не после «Сохранить»
+  const over = (v: number | null | undefined, max: number) => v != null && v > max
+  if (over(d.batch.volume, 10_000)) out.push('Объём после кипячения — не больше 10 000 л')
+  for (const f of d.fermentables) {
+    if (over(f.amount, 10_000)) out.push(`«${f.name || 'засыпь'}»: не больше 10 000 кг`)
+    if (over(f.ebc, 10_000)) out.push(`«${f.name || 'засыпь'}»: цвет не больше 10 000 EBC`)
+  }
+  for (const h of d.hops) {
+    if (over(h.alpha, 100)) out.push(`«${h.name || 'хмель'}»: альфа-кислоты не больше 100 %`)
+    if (over(h.amount, 100_000)) out.push(`«${h.name || 'хмель'}»: не больше 100 000 г`)
+  }
+  for (const m of d.miscs) if (over(m.amount, 100_000)) out.push(`«${m.name || 'добавка'}»: не больше 100 000`)
+  for (const y of d.yeasts) {
+    if (over(y.attenuation, 100)) out.push(`«${y.name || 'дрожжи'}»: сбраживание не больше 100 %`)
+    if (over(y.amount, 100_000)) out.push(`«${y.name || 'дрожжи'}»: не больше 100 000`)
+  }
+  if (d.water.additions.some(a => over(a.amount, 100_000))) out.push('Вода: соли и кислоты — не больше 100 000')
   d.fermentation.forEach((s, i) => {
     const name = s.name.trim() || `Этап ${i + 1}`
     if (s.until === 'gravity' && s.gravity == null) out.push(`Брожение: у этапа «${name}» — до какой плотности`)
