@@ -15,6 +15,12 @@ const { exec, pending } = useCommand()
 const kind = ref<EntryKind>(props.entry?.kind ?? 'og')
 const value = ref<number | null>(props.entry?.value != null ? fromStored(props.entry.kind, props.entry.value, prefs.gravityUnit) : null)
 const when = ref(localInput(props.entry?.at ?? Date.now() / 1000, true))
+// новая запись: время идёт вместе с часами, пока его не поправили руками (форма живёт со страницей часами)
+let autoWhen = props.entry ? null : when.value
+const clock = useNow({ interval: 30_000 })
+watch(clock, () => {
+  if (autoWhen != null && when.value === autoWhen) when.value = autoWhen = localInput(Date.now() / 1000, true)
+})
 const text = ref(props.entry?.text ?? '')
 
 const items = entryKindItems()
@@ -30,7 +36,7 @@ async function save() {
   const body = {
     value: input.value && value.value != null ? toStored(kind.value, value.value, prefs.gravityUnit) : null,
     text: transition.value ? props.entry!.text : text.value.trim() || null,
-    at: new Date(when.value).getTime() / 1000,
+    at: autoWhen != null && when.value === autoWhen ? Date.now() / 1000 : new Date(when.value).getTime() / 1000,
   }
   const saved = await exec(() => (props.entry
     ? $api('/api/brews/{bid}/entries/{eid}', { method: 'PATCH', path: { bid: props.brewId, eid: props.entry.id }, body })
@@ -40,7 +46,7 @@ async function save() {
   if (!props.entry) {                                     // новая запись — поля готовы к следующей
     value.value = null
     text.value = ''
-    when.value = localInput(Date.now() / 1000, true)
+    when.value = autoWhen = localInput(Date.now() / 1000, true)
   }
 }
 </script>

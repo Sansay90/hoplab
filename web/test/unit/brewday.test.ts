@@ -20,7 +20,8 @@ const STEPS: BrewDayStep[] = [
 const at = (i: number, t: number) => STEPS.map(s => (s.index === i ? { ...s, at: t } : s))
 const entry = (kind: BrewEntry['kind'], t: number, value: number | null = null): BrewEntry => ({ id: `${kind}-${t}`, at: t, kind, value, text: null })
 const brew = (over: Partial<Parameters<typeof brewDay>[0]> = {}): Parameters<typeof brewDay>[0] => ({
-  id: 'b1', brewDay: STEPS, currentStep: 0, phase: 'brewday', snapshot: null, fermentStart: null, ...over,
+  id: 'b1', brewDay: STEPS, currentStep: 0, phase: 'brewday', snapshot: null, fermentStart: null, status: 'running', manual: true,
+  ...over,
 })
 const idle: Phase = phaseOf(null)
 
@@ -80,6 +81,14 @@ describe('шаг по программе пивоварни', () => {
     expect(brewDay(brew({ currentStep: 2 }), snap({ brewId: 'other' }), run({ step: 2, counting: true })).current).toBe(2)
     const stopped = brewDay(brew({ currentStep: 7 }), snap(), idle)
     expect(stopped.current).toBe(7)
+  })
+
+  it('программа партии идёт, а состояния пивоварни нет или она не в сети — ручных шагов нет', () => {
+    const device = brew({ currentStep: 3, manual: false })
+    expect(brewDay(device, null, idle).byBrewery).toBe(true)
+    expect(brewDay(device, snap({ brewId: null, online: false }), idle).byBrewery).toBe(true)
+    expect(brewDay(device, snap({ brewId: null }), idle).byBrewery).toBe(false)   // на связи и не варит её — программа кончилась
+    expect(brewDay(brew({ currentStep: 3 }), null, idle).byBrewery).toBe(false)   // ручная варка
   })
 })
 

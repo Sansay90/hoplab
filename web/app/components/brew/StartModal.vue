@@ -24,7 +24,8 @@ const recipe = computed(() => props.recipe ?? loaded.value)
 watch(picked, async (id) => {
   loaded.value = null
   if (!id || props.recipe) return
-  loaded.value = (await load(() => $api('/api/recipes/{rid}', { path: { rid: id } }))) ?? null
+  const r = await load(() => $api('/api/recipes/{rid}', { path: { rid: id } }))
+  if (picked.value === id) loaded.value = r ?? null     // пока грузился, выбрали другой — этот не показывать
 })
 
 // оборудование: основное выбрано; добавить можно, не уходя из окна

@@ -90,7 +90,7 @@ export function stepDetails(step: Pick<BrewDayStep, 'kind'>, r: Recipe | null | 
 }
 
 export function brewDay(
-  brew: Pick<BrewDetail, 'id' | 'brewDay' | 'currentStep' | 'phase' | 'snapshot' | 'fermentStart'>,
+  brew: Pick<BrewDetail, 'id' | 'brewDay' | 'currentStep' | 'phase' | 'snapshot' | 'fermentStart' | 'status' | 'manual'>,
   s: Snapshot | null,
   phase: Phase,
   unit: GravityUnit = 'plato',
@@ -98,7 +98,8 @@ export function brewDay(
   const steps = brew.brewDay ?? []
   const over = brew.phase !== 'brewday'
   const cut = brew.phase === 'dumped' && brew.fermentStart == null
-  const byBrewery = !over && s?.brewId === brew.id
+  // программа партии идёт, а живого состояния пивоварни нет — день всё равно ведёт она, а не ручные шаги
+  const byBrewery = !over && (s?.brewId === brew.id || (brew.status === 'running' && !brew.manual && !s?.online))
   const current = (byBrewery ? breweryStep(steps, s, phase) : null) ?? brew.currentStep
   const views: DayStep[] = steps.map((st, i) => ({
     ...st,

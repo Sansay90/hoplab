@@ -1,7 +1,19 @@
 <script setup lang="ts">
 const brewery = useBreweryStore()
 const { exec } = useCommand()
+const confirm = useConfirm()
 const manualOpen = ref(false)
+const programActive = computed(() => brewery.phase.running || brewery.phase.paused)
+
+async function setPower(on: boolean) {
+  if (!on && programActive.value && !await confirm({
+    title: 'Выключить пивоварню?',
+    description: 'Программа остановится, продолжить её с того же места не получится.',
+    confirmLabel: 'Выключить',
+    confirmIcon: 'i-lucide-power',
+  })) return
+  await exec(() => brewery.setPower(on), on ? 'Пивоварня включена' : 'Пивоварня выключена')
+}
 
 // ползунок двигается локально, команда уходит, когда его отпустили
 const flow = ref(5)
@@ -11,7 +23,7 @@ const rows = computed(() => [
   {
     key: 'power', icon: 'i-lucide-power', title: 'Питание', hint: 'Ожидание ↔ включена',
     value: !!brewery.snapshot?.power,
-    set: (on: boolean) => exec(() => brewery.setPower(on), on ? 'Пивоварня включена' : 'Пивоварня выключена'),
+    set: setPower,
   },
   {
     key: 'pump', icon: 'i-lucide-waves', title: 'Насос', hint: 'Рециркуляция',
@@ -58,7 +70,7 @@ const rows = computed(() => [
           variant="soft"
           icon="i-lucide-sliders-horizontal"
           label="Ручной режим"
-          :disabled="!brewery.online"
+          :disabled="!brewery.online || programActive"
           @click="manualOpen = true"
         />
       </div>

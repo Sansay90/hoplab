@@ -105,7 +105,9 @@ async function moveOn() {
   const body = step.value.kind === 'pitch'
     ? { kind: 'pitch' as const }
     : { kind: 'step' as const, value: props.view.current + 1 }
-  if (await exec(() => $api('/api/brews/{bid}/entries', { method: 'POST', path: { bid: props.brew.id }, body }))) emit('changed')
+  if (!await exec(() => $api('/api/brews/{bid}/entries', { method: 'POST', path: { bid: props.brew.id }, body }))) return
+  emit('changed')
+  await until(() => props.brew).changed({ timeout: 5000 })   // пока партия не обновилась, шаг на экране прежний
 }
 const uploadHint = computed(() => (!brewery.online ? 'Пивоварня не в сети' : programActive.value ? 'Программа идёт — заменить можно после её окончания' : 'Паузы, кипячение и закладки рецепта партии'))
 async function upload() {

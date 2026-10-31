@@ -35,6 +35,7 @@ export const useSound = createSharedComposable(() => {
   async function play(kind: SoundKind) {
     if (!prefs.sound) return
     const c = context()
+    if (c.state !== 'running') return                  // звук ещё не разрешён — пропустить, а не копить
     await load(c)
     const buffer = buffers.get(kind)
     if (!buffer) return

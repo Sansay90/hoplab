@@ -13,7 +13,9 @@ function reset() {
   form.calibration = device.value?.calibration ?? 0
   form.boilCompensation = device.value?.boilCompensation ?? 0
 }
-watchOnce(() => device.value?.calibration != null, reset, { immediate: true })
+// заполнить, когда настройки пивоварни пришли: снимка при открытии страницы может ещё не быть — иначе в форме нули,
+// и «Записать» затёрло бы калибровку
+watch(() => device.value?.calibration != null, (known, was) => { if (known && !was) reset() }, { immediate: true })
 </script>
 
 <template>

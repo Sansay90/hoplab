@@ -66,11 +66,27 @@ const figures = computed(() => {
   ].filter(Boolean) as { label: string; value: string }[]
 })
 
-// этап брожения, сухое охмеление, розлив — записи в журнал прямо с таймлайна
-async function advanceStage(index: number) {
-  if (await exec(() => $api('/api/brews/{bid}/entries', { method: 'POST', path: { bid: id.value }, body: { kind: 'stage', value: index } }))) await refresh()
+// этап брожения, сухое охмеление, розлив — записи в журнал прямо с таймлайна. Запись и обновление партии — одним
+// заходом: второй тап, пока партия не обновилась, ничего не пишет
+const recording = ref(false)
+async function once(fn: () => Promise<unknown>) {
+  if (recording.value) return
+  recording.value = true
+  try {
+    await fn()
+  } finally {
+    recording.value = false
+  }
 }
-async function entry(kind: 'dry_hop' | 'package', text?: string) {
+function advanceStage(index: number) {
+  return once(async () => {
+    if (await exec(() => $api('/api/brews/{bid}/entries', { method: 'POST', path: { bid: id.value }, body: { kind: 'stage', value: index } }))) await refresh()
+  })
+}
+function entry(kind: 'dry_hop' | 'package', text?: string) {
+  return once(() => record(kind, text))
+}
+async function record(kind: 'dry_hop' | 'package', text?: string) {
   // розлив без конечной плотности — крепость не посчитать; спросить
   if (kind === 'package' && brew.value && !lastMeasures(brew.value.entries).get('fg') && !await confirm({
     title: 'Конечная плотность не записана',

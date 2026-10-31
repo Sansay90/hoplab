@@ -22,8 +22,10 @@ const saved = ref(false)                                 // записали в 
 
 // поле отдаёт значение по мере набора: «5,35» — это 5, 5,3, 5,35. Записываем один раз, когда ввод закончен
 const DELAY_MS = 900
+const CORRECT_MS = 2 * 60_000                            // вскоре после записи новое значение — поправка той же записи
 let timer: ReturnType<typeof setTimeout> | null = null
 let lastSaved: number | null = null
+let written: { id: string; at: number } | null = null   // что записали из этого поля и когда
 let inflight: Promise<unknown> | null = null
 async function save() {
   if (timer) clearTimeout(timer)
@@ -32,12 +34,17 @@ async function save() {
   const v = value.value
   if (v == null || v === lastSaved) return
   if (!props.fresh && lastInput.value != null && Math.abs(v - lastInput.value) < 1e-9) return
-  const body = { kind: props.kind, value: toStored(props.kind, v, prefs.gravityUnit) }
-  const request = exec(() => $api('/api/brews/{bid}/entries', { method: 'POST', path: { bid: props.brewId }, body }))
+  const stored = toStored(props.kind, v, prefs.gravityUnit)
+  // «12», пауза в поисках запятой, «12,5» — это одна запись 12,5, а не две точки на графике
+  const fix = written && Date.now() - written.at < CORRECT_MS ? written.id : null
+  const request = exec(() => (fix
+    ? $api('/api/brews/{bid}/entries/{eid}', { method: 'PATCH', path: { bid: props.brewId, eid: fix }, body: { value: stored } })
+    : $api('/api/brews/{bid}/entries', { method: 'POST', path: { bid: props.brewId }, body: { kind: props.kind, value: stored } })))
   inflight = request
   const entry = await request
   inflight = null
   if (!entry) return
+  written = { id: entry.id, at: fix ? written!.at : Date.now() }
   saved.value = true
   lastSaved = props.fresh ? null : v
   if (props.fresh) value.value = null
