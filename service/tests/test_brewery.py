@@ -1,11 +1,12 @@
 """Сквозь сервис и агента: пивоварня-имитация, настоящие Controller и Link, настоящий сервис с базой."""
 import asyncio
 import json
+import time
 
 import websockets
 
 from app.db import session
-from app.models import Recipe, parse_id
+from app.models import Brew, Equipment, Reading, Recipe, from_unix, parse_id
 
 from .conftest import new_agent_token
 from .support import eventually
@@ -57,6 +58,34 @@ def test_limits_from_agent(service, brewer, agents, recipe):
     bid = brewer.ok("POST", "/brews", {"recipeId": rid, "watts": [2500, 1500, 1000, 2600]})["id"]
     status, err = brewer.post(f"/brews/{bid}/upload")
     assert status == 400 and "мощность 2600" in err["detail"]          # пивоварня такую программу не примет
+
+
+def test_readings_after_program(service, brewer, agents, recipe):
+    """График партии: пока идёт варочный день, показания её пивоварни вне программы (охлаждение после конца) — тоже
+    её; после конца дня и чужой варки — нет."""
+    online(service, brewer, agents)
+    rid = brewer.ok("POST", "/recipes", recipe)["id"]
+    batch = brewer.ok("POST", "/brews", {"recipeId": rid})
+    [eq] = brewer.ok("GET", "/equipment")
+    start = batch["startedAt"] - 600                                         # партия начата 10 мин назад
+    with session() as s:
+        s.get(Brew, parse_id(batch["id"])).started_at = from_unix(start)
+        device = s.get(Equipment, parse_id(eq["id"])).device_id
+        other = Brew(user_id=parse_id(brewer.me["id"]), source="device", device_id=device, name="Другая",
+                     started_at=from_unix(start))
+        s.add(other)
+        s.flush()
+        for dt, temp, brew in [(-60, 15.0, None), (60, 63.0, None), (120, 40.0, None), (90, 70.0, other.id)]:
+            s.add(Reading(device_id=device, brew_id=brew, at=from_unix(start + dt), temp=temp))
+        s.commit()
+    mine = {15.0, 63.0, 40.0, 70.0, 12.0}                                   # имитация сама шлёт 20 °C — не наши
+    shown = lambda: [p[1] for p in brewer.ok("GET", f"/brews/{batch['id']}/readings") if p[1] in mine]  # noqa: E731
+    assert shown() == [63.0, 40.0]
+    brewer.ok("POST", f"/brews/{batch['id']}/finish")                       # день позади — новые показания не её
+    with session() as s:
+        s.add(Reading(device_id=device, brew_id=None, at=from_unix(time.time() + 30), temp=12.0))
+        s.commit()
+    assert shown() == [63.0, 40.0]
 
 
 def loaded(brewer, bid):

@@ -22,7 +22,7 @@
 import math
 from datetime import timedelta
 
-from sqlalchemy import exists, func
+from sqlalchemy import and_, exists, func, or_
 from sqlmodel import select
 
 from ..access import can_view
@@ -248,11 +248,17 @@ class Logbook:
                 "entries": [self._entry(e) for e in entries]}
 
     def readings(self, brew_id):
-        """Температура варки с пивоварни: [(unix-время, °C, цель °C)] по времени."""
+        """Температура варки с пивоварни: [(unix-время, °C, цель °C)] по времени. Пока идёт варочный день партии,
+        её — и показания её пивоварни вне программы (без варки): после конца программы — охлаждение, до неё — нагрев
+        рукой; пивоварня присылает температуру и в ожидании."""
         with session() as s:
             b = self._brew(s, brew_id)
-            rows = s.exec(select(Reading.at, Reading.temp, Reading.target)
-                          .where(Reading.brew_id == b.id).order_by(Reading.at)).all()
+            eq = s.get(Equipment, b.equipment_id) if b.equipment_id else None
+            mine = Reading.brew_id == b.id
+            if device := b.device_id or (eq.device_id if eq else None):
+                mine = or_(mine, and_(Reading.brew_id.is_(None), Reading.device_id == device,
+                                      Reading.at >= b.started_at, Reading.at <= (b.day_ended_at or utcnow())))
+            rows = s.exec(select(Reading.at, Reading.temp, Reading.target).where(mine).order_by(Reading.at)).all()
         return [(unix(at), temp, target) for at, temp, target in rows]
 
     def snapshot(self, brew_id):

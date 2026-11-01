@@ -45,6 +45,7 @@ const brewery = useBreweryStore()
 // минуты хватает всему, кроме таймера шага — его секунды считает «Сейчас»
 const now = useNow({ interval: 60_000 })
 const t = computed(() => now.value.getTime() / 1000)
+watch(now, () => { if (view.value?.active && connected.value) refreshReadings() })
 const stage = computed(() => brew.value && batchStatus(brew.value, t.value))
 const date = computed(() => brew.value
   && new Date(brew.value.startedAt * 1000).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric', weekday: 'long' }))
@@ -221,7 +222,7 @@ const menu = computed(() => [[
           </template>
         </UCollapsible>
 
-        <BrewDayNowCard v-if="view.active && view.steps.length" :brew="brew" :view="view" :connected="connected" @changed="refresh()" />
+        <BrewDayNowCard v-if="view.active && view.steps.length" :brew="brew" :view="view" :connected="connected" :controlled="!!eq?.controlled" @changed="refresh()" />
 
         <div class="grid gap-4 sm:gap-6 xl:grid-cols-[minmax(0,1fr)_24rem] xl:items-start">
           <div class="min-w-0 space-y-4 sm:space-y-6">

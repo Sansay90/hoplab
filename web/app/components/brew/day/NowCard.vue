@@ -13,7 +13,8 @@ import type { BrewDetail, BrewEntry } from '~/types'
 import type { BrewDayView } from '~/utils/brewday'
 import type { EntryKind } from '~/utils/brewlog'
 
-const props = defineProps<{ brew: BrewDetail; view: BrewDayView; connected: boolean }>()
+// controlled — партия на пивоварне, которой управляет сайт: её снимок в сторе — это она
+const props = defineProps<{ brew: BrewDetail; view: BrewDayView; connected: boolean; controlled?: boolean }>()
 const emit = defineEmits<{ changed: [] }>()
 const brewery = useBreweryStore()
 const { $api } = useNuxtApp()
@@ -37,7 +38,7 @@ function measured(e: BrewEntry) {
 const loaded = computed(() => brewery.snapshot?.deviceRecipe?.brewId === props.brew.id)
 // пивоварня партии на связи — на шагах, где сусло в котле, живая температура с её датчика (охлаждение чиллером и т. п.)
 const IN_KETTLE = new Set(['heat', 'mash_in', 'rest', 'sparge', 'boil', 'chill'])
-const liveTemp = computed(() => (props.connected && brewery.online && IN_KETTLE.has(step.value.kind)
+const liveTemp = computed(() => (props.controlled && brewery.online && IN_KETTLE.has(step.value.kind)
   ? brewery.snapshot?.temp ?? null
   : null))
 const programActive = computed(() => brewery.phase.running || brewery.phase.paused)
