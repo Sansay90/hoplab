@@ -1,7 +1,5 @@
 import type { BrewEvent } from '~/types'
 
-const REPEAT_MS = 4_000            // пока не подтверждено — сигнал почти без перерыва
-
 /** Звук на события варки и напоминание, пока подсказка не подтверждена — на любой странице. */
 export default defineNuxtPlugin({
   name: 'notifications',
@@ -20,12 +18,13 @@ export default defineNuxtPlugin({
       else if (e.kind === 'alertCleared') push.close('alert')
     })
 
-    // подсказка пивоварни или закладка хмеля без подтверждения — сигнал повторяется, пока не подтвердят
-    let repeat: ReturnType<typeof setInterval> | undefined
+    // подсказка пивоварни или закладка хмеля без подтверждения — сигнал повторяется, всего не больше RING_TIMES раз
+    // (первый — от события), дальше тишина: подтверждения ждёт сама пивоварня
+    let stop: (() => void) | undefined
     const waiting = computed(() => (brewery.snapshot?.alert ? 'alert' : brewery.snapshot?.additionsPending.length ? 'addition' : null))
     watch(waiting, (kind) => {
-      clearInterval(repeat)
-      if (kind) repeat = setInterval(() => sound.play(kind), REPEAT_MS)
+      stop?.()
+      stop = kind ? sound.ring(kind, 1) : undefined
     })
   },
 })

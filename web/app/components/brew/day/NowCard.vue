@@ -3,8 +3,8 @@
 // на последнем шаге — «Дрожжи заданы», веха pitch; ошиблись — удалить запись в журнале); справа — таймер шага (если у
 // шага есть время) и поля его замеров (не записаны — «Дальше» спрашивает: эти цифры потом не восстановить; кроме
 // рекомендуемых — pH: прибор есть не у всех). Пивоварня ведёт шаги — под её карточками замеры её шага. Звук
-// здесь же: время шага вышло — сигнал минуту, дальше раз в 5 минут, пока не нажали «Дальше» (ждут йодную пробу —
-// не звенеть без конца); закладка на кипячении в свою минуту — сигнал закладки (на пивоварне звучат её события).
+// здесь же: время шага вышло — сигнал, не больше 4 раз (общее правило, useSound.ring); закладка на кипячении в свою
+// минуту — сигнал закладки (на пивоварне звучат её события).
 // На подключённой пивоварне: до засыпи программа партии ещё не в ней — загрузить, загружена — запустить; позже
 // загружать незачем (программа начнётся с нагрева) — шаги рукой. Программа идёт — «Сейчас» и «Дальше» самой
 // пивоварни, шаги она ведёт сама.
@@ -48,27 +48,13 @@ const progress = computed(() => (remaining.value != null && step.value.minutes
   ? Math.min(100, Math.max(0, 100 * (1 - remaining.value / (step.value.minutes * 60))))
   : null))
 
-// время шага вышло — сигнал минуту, дальше раз в 5 минут, пока не перешли дальше
-const RING_MS = 4_000
-const RING_FOR_MS = 60_000
-const NAG_MS = 5 * 60_000
-let repeat: ReturnType<typeof setInterval> | undefined
-let quieter: ReturnType<typeof setTimeout> | undefined
-function silence() {
-  clearInterval(repeat)
-  clearTimeout(quieter)
-}
+// время шага вышло — сигнал, не больше 4 раз
+let silence: (() => void) | undefined
 watch(over, (ring) => {
-  silence()
-  if (!ring) return
-  sound.play('end')
-  repeat = setInterval(() => sound.play('end'), RING_MS)
-  quieter = setTimeout(() => {
-    clearInterval(repeat)
-    repeat = setInterval(() => sound.play('end'), NAG_MS)
-  }, RING_FOR_MS)
+  silence?.()
+  silence = ring ? sound.ring('end') : undefined
 }, { immediate: true })
-onBeforeUnmount(silence)
+onBeforeUnmount(() => silence?.())
 // закладки кипячения — по таймеру шага: пришла минута закладки — один сигнал (вернулись позже минуты — молча)
 const sounded = new Set<number>()
 watch(() => props.view.current, () => sounded.clear())

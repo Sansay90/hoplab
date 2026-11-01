@@ -1,11 +1,14 @@
 import type { BrewEvent } from '~/types'
 
 // Файлы — public/sounds/*.mp3, генерирует scripts/sounds.py (маримба с реверберацией).
-// Сигнал звучит один раз; повтор до подтверждения делает плагин уведомлений.
+// Сигнал звучит один раз; повтор — ring: общее правило для всех напоминаний — не больше RING_TIMES раз, дальше тишина,
+// даже если не подтвердили (подсказка пивоварни, закладка, конец шага).
 const KINDS = ['alert', 'addition', 'end', 'problem'] as const
 export type SoundKind = typeof KINDS[number]
 
 const VOLUME = 0.8
+export const RING_TIMES = 4
+const RING_MS = 4_000
 
 /** Звуковые сигналы. Браузер разрешает звук только после жеста пользователя — первый клик «будит» его. */
 export const useSound = createSharedComposable(() => {
@@ -47,6 +50,20 @@ export const useSound = createSharedComposable(() => {
     src.start()
   }
 
+  /** Сигнал с повтором раз в RING_MS, всего не больше RING_TIMES раз; played — сколько уже прозвучало (первый
+   *  сигнал сыграл forEvent). Возвращает «хватит» — подтвердили или ушли со страницы. */
+  function ring(kind: SoundKind, played = 0) {
+    let left = RING_TIMES - played
+    let timer: ReturnType<typeof setInterval> | undefined
+    const tick = () => {
+      if (left-- > 0) play(kind)
+      if (left <= 0) clearInterval(timer)
+    }
+    if (!played) tick()
+    if (left > 0) timer = setInterval(tick, RING_MS)
+    return () => clearInterval(timer)
+  }
+
   function forEvent(e: BrewEvent) {
     if (e.kind === 'alert') play('alert')
     else if (e.kind === 'addition') play('addition')
@@ -59,5 +76,5 @@ export const useSound = createSharedComposable(() => {
     if (prefs.sound) play('addition')
   }
 
-  return { enabled: computed(() => prefs.sound), play, forEvent, toggle }
+  return { enabled: computed(() => prefs.sound), play, ring, forEvent, toggle }
 })
