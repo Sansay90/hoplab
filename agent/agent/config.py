@@ -24,6 +24,16 @@ def env(name, default=None, path=ENV_FILE):
     return default
 
 
+LOG_LEVELS = ("DEBUG", "INFO", "WARNING", "ERROR")
+
+
+def log_level(value):
+    level = (value or "INFO").strip().upper()
+    if level not in LOG_LEVELS:
+        raise SystemExit(f"LOG_LEVEL={value!r} — нужно одно из: {', '.join(LOG_LEVELS)}")
+    return level
+
+
 @dataclass(frozen=True)
 class Config:
     service_url: str                  # SERVICE_URL — адрес сервиса для агентов, wss://<сайт>/api/agent
@@ -45,4 +55,4 @@ class Config:
                    state=env("BREWAPP_STATE") or os.path.join(AGENT_DIR, "data", "state.json"),
                    brewery_ip=env("BREWERY_IP"), brewery_version=env("BREWERY_VERSION"),
                    max_watts=int(max_watts) if max_watts else None,
-                   log_level=(env("LOG_LEVEL") or "INFO").upper())
+                   log_level=log_level(env("LOG_LEVEL")))
