@@ -30,7 +30,7 @@ from ..db import session
 from ..errors import Conflict, Invalid, NotFound
 from ..models import Brew, BrewEntry, Equipment, Event, Reading, Recipe, from_unix, parse_id, unix, utcnow
 from ..recipes.calc import abv_of
-from ..recipes.program import ru_num, with_watts, without_watts
+from ..recipes.program import heat_watts, program_steps, ru_num, with_watts, without_watts
 from ..recipes.scale import scale_recipe
 from .brewday import end_day, progress, reopen_day, steps_of
 from .equipment import main_of, own
@@ -94,17 +94,22 @@ def plan_of(data):
     return {k: v for k, v in plan.items() if v is not None}
 
 
-def batch_recipe(data, equipment, watts=None):
+def batch_recipe(data, equipment, watts=None, heat=None, max_steps=None):
     """Рецепт партии: рецепт (JSONB recipes.data) под объём и эффективность оборудования, с его испарением — по нему
-    вода на варку, и мощностью ТЭНа watts на шагах программы (with_watts) — для пивоварни; оборудования нет — как есть.
+    вода на варку, и мощностью ТЭНа на шагах программы (watts) и на нагреве до первой паузы (heat; with_watts) — для
+    пивоварни; оборудования нет — как есть. Нагрев своей мощностью — лишний шаг программы: сверх max_steps — Invalid.
     Мощность из рецепта (сохранённого до того, как её убрали из рецептов) в партию не идёт."""
-    if watts and (equipment is None or equipment.kind not in HEATED):
+    if (watts or heat is not None) and (equipment is None or equipment.kind not in HEATED):
         raise Invalid("мощность ТЭНа задают только для пивоварни")
     if equipment is None:
         return without_watts(scale_recipe(data, None, None))
     r = without_watts(scale_recipe(data, equipment.volume, equipment.efficiency))
     r["batch"]["evaporation"] = equipment.evaporation
-    return with_watts(r, watts) if watts else r
+    r = with_watts(r, watts, heat)
+    if max_steps and heat_watts(r) is not None and (n := len(program_steps(r))) > max_steps:
+        raise Invalid(f"нагреву своей мощностью нет места: программа с ним — {n} шагов, пивоварня помнит {max_steps}; "
+                      f"задайте нагрев как у первой паузы")
+    return r
 
 
 def event_view(e):
@@ -255,11 +260,11 @@ class Logbook:
                 raise Conflict("варочный день этой партии позади")
             return (str(b.recipe_id) if b.recipe_id else None), b.snapshot
 
-    def create(self, recipe_id, started_at=None, equipment_id=None, watts=None):
+    def create(self, recipe_id, started_at=None, equipment_id=None, watts=None, heat=None, max_steps=None):
         """Сварить: новая партия по рецепту, который пивовару виден, на указанном или основном оборудовании.
         Рецепт партии — пересчитанный под его объём и эффективность (без оборудования — как есть), на пивоварне —
-        с мощностью ТЭНа watts на шагах. День и оборудование задаются один раз: рецепт партии посчитан под них,
-        ошиблись — удалить и сварить заново."""
+        с мощностью ТЭНа watts на шагах и heat на нагреве. День и оборудование задаются один раз: рецепт партии
+        посчитан под них, ошиблись — удалить и сварить заново."""
         at = check_at(started_at)
         with session() as s:
             r = s.get(Recipe, rid) if (rid := parse_id(recipe_id)) else None
@@ -268,7 +273,7 @@ class Logbook:
             e = self._equipment(s, equipment_id) if equipment_id else main_of(s, self.user.id)
             if e is not None and not is_system(e.kind):
                 raise Invalid("варят на варочной системе — кастрюле, котле или пивоварне")
-            snapshot = batch_recipe(r.data, e, watts)
+            snapshot = batch_recipe(r.data, e, watts, heat, max_steps)
             b = Brew(user_id=self.user.id, source=MANUAL, recipe_id=r.id, name=r.data.get("name") or "Варка",
                      equipment_id=e.id if e else None, snapshot=snapshot, plan=plan_of(snapshot),
                      status="running" if started_at is None else "finished", started_at=at,

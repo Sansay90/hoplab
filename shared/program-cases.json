@@ -1329,5 +1329,99 @@
         }
       ]
     }
+  },
+  {
+    "name": "Нагрев своей мощностью — шаг «Нагрев» перед первой паузой",
+    "recipe": {
+      "mash": [
+        {
+          "name": "Осахаривание",
+          "temp": 62.0,
+          "watts": 1500,
+          "minutes": 50
+        },
+        {
+          "name": "Мэш-аут",
+          "temp": 78.0,
+          "watts": 2000,
+          "minutes": 10
+        }
+      ],
+      "heat": {
+        "watts": 2500
+      },
+      "boil": {
+        "watts": 2500,
+        "minutes": 60
+      }
+    },
+    "expected": {
+      "steps": [
+        {
+          "temp": 62.0,
+          "minutes": 1,
+          "watts": 2500,
+          "boil": false
+        },
+        {
+          "temp": 62.0,
+          "minutes": 50,
+          "watts": 1500,
+          "boil": false
+        },
+        {
+          "temp": 78.0,
+          "minutes": 10,
+          "watts": 2000,
+          "boil": false
+        },
+        {
+          "temp": 100.0,
+          "minutes": 60,
+          "watts": 2500,
+          "boil": true
+        }
+      ],
+      "timers": [],
+      "slots": []
+    }
+  },
+  {
+    "name": "Нагрев как у первой паузы — без лишнего шага",
+    "recipe": {
+      "mash": [
+        {
+          "name": "Осахаривание",
+          "temp": 66.0,
+          "watts": 2500,
+          "minutes": 60
+        }
+      ],
+      "heat": {
+        "watts": 2500
+      },
+      "boil": {
+        "watts": 2500,
+        "minutes": 60
+      }
+    },
+    "expected": {
+      "steps": [
+        {
+          "temp": 66.0,
+          "minutes": 60,
+          "watts": 2500,
+          "boil": false
+        },
+        {
+          "temp": 100.0,
+          "minutes": 60,
+          "watts": 2500,
+          "boil": true
+        }
+      ],
+      "timers": [],
+      "slots": []
+    }
   }
 ]

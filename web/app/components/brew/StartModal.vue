@@ -66,8 +66,12 @@ const powered = computed(() => !!chosen.value?.connected && limits.value?.maxWat
 const program = computed(() => (scaled.value && powered.value ? programOf(scaled.value, limits.value?.boilTemp) : []))
 const wattItems = computed(() => wattOptions(limits.value ?? null))
 const watts = ref<number[]>([])
+// нагрев до первой паузы своей мощностью — отдельный шаг программы перед ней: если для него есть место
+const heatRoom = computed(() => !!limits.value && !!program.value[0] && !program.value[0].boil && program.value.length < limits.value.maxSteps)
+const heat = ref<number | null>(null)
 watch([program, () => chosen.value?.watts, wattItems], () => {
   watts.value = scaled.value && program.value.length ? defaultWatts(scaled.value, chosen.value?.watts, wattItems.value) : []
+  heat.value = heatRoom.value ? defaultHeat(chosen.value?.watts, wattItems.value) : null
 }, { immediate: true })
 const packs = (r: Recipe) => (r.yeasts ?? []).filter(y => y.amount != null)
   .map(y => `${fmtNumber(y.amount, 1)} ${unitLabel(y.unit)}`).join(' + ')
@@ -99,7 +103,10 @@ async function create() {
   if (!picked.value) return
   // сегодня — время записи; другой день — его полдень по местному времени
   const startedAt = day.value === today() ? undefined : new Date(`${day.value}T12:00`).getTime() / 1000
-  const body = { recipeId: picked.value!, startedAt, equipmentId: equipmentId.value, watts: watts.value.length ? watts.value : undefined }
+  const body = {
+    recipeId: picked.value!, startedAt, equipmentId: equipmentId.value,
+    watts: watts.value.length ? watts.value : undefined, heatWatts: watts.value.length ? heat.value ?? undefined : undefined,
+  }
   const brew = await exec(() => $api('/api/brews', { method: 'POST', body }))
   if (!brew) return
   // подключённая пивоварня: программа партии — сразу в неё; не вышло (не в сети, программа идёт) — со страницы партии
@@ -149,6 +156,11 @@ async function create() {
 
         <UFormField v-if="program.length && watts.length === program.length" label="Мощность ТЭНа">
           <div class="space-y-2">
+            <div v-if="heat != null" class="flex flex-wrap items-center gap-x-3 gap-y-1">
+              <span class="min-w-0 flex-1 text-base text-highlighted">Нагрев</span>
+              <span class="num text-sm text-muted">до {{ fmtNumber(program[0]!.temp, 1) }} °C</span>
+              <USelect v-model="heat" :items="wattItems" size="lg" class="w-32" aria-label="Мощность: нагрев" />
+            </div>
             <div v-for="(s, i) in program" :key="i" class="flex flex-wrap items-center gap-x-3 gap-y-1">
               <span class="min-w-0 flex-1 text-base text-highlighted">{{ s.name }}</span>
               <span class="num text-sm text-muted">{{ s.boil ? 'кипение' : `${fmtNumber(s.temp, 1)} °C` }}{{ SEP }}{{ s.minutes }} мин</span>

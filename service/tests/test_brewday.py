@@ -46,6 +46,24 @@ def test_progress_by_brewery_events():
     assert progress(steps, 0, [(9, "pitch", None)], events)[0] == len(steps) - 1
 
 
+def test_progress_with_own_heating_step():
+    """Нагрев своей мощностью — свой шаг программы перед первой паузой: её шаг 1 — нагрев (и минута догрева после
+    засыпи), паузы — со второго шага."""
+    steps = steps_of({"mash": [{"temp": 66, "minutes": 60, "watts": 1500}, {"temp": 78, "minutes": 10, "watts": 1500}],
+                      "heat": {"watts": 2500}, "boil": {"minutes": 60, "watts": 2500}})
+    kinds = [s["kind"] for s in steps]
+    assert steps[kinds.index("heat")]["watts"] == 2500
+    events = [(1, "step", {"step": 1}), (2, "alert", {"alert": "malt"}), (3, "alertCleared", None),
+              (4, "step", {"step": 2}), (5, "step", {"step": 3}), (6, "alert", {"alert": "mashEnd"}),
+              (7, "alertCleared", None), (8, "step", {"step": 4}), (9, "end", None)]
+    seen = [progress(steps, 0, [], events[:n])[0] for n in range(1, len(events) + 1)]
+    rests = [i for i, k in enumerate(kinds) if k == "rest"]
+    assert [kinds[i] for i in seen] == ["heat", "mash_in", "rest", "rest", "rest", "sparge", "sparge", "boil", "chill"]
+    assert seen[3] == rests[0] and seen[4] == rests[1]
+    same = steps_of({"mash": [{"temp": 66, "minutes": 60, "watts": 2500}], "heat": {"watts": 2500}})
+    assert not any(s.get("own") for s in same)                     # мощность как у первой паузы — шага нет
+
+
 def test_step_timers(service, brewer, recipe, pushes):
     rid = brewer.ok("POST", "/recipes", recipe)["id"]
     bid = brewer.ok("POST", "/brews", {"recipeId": rid})["id"]

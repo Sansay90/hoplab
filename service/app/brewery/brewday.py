@@ -19,7 +19,7 @@ from sqlmodel import select
 
 from ..db import session
 from ..models import Brew, BrewEntry, Event, Reading, parse_id, utcnow
-from ..recipes.program import addition_slots, ru_num
+from ..recipes.program import addition_slots, heat_watts, ru_num
 from .ticker import Ticker
 
 DAY_SPAN = timedelta(hours=36)          # столько после начала варки день без дрожжей ещё считается идущим
@@ -35,7 +35,11 @@ def steps_of(recipe):
     chill_to = next((st.get("temp") for st in recipe.get("fermentation") or [] if st.get("temp") is not None), None)
     steps = [{"kind": "prepare", "name": "Подготовка"}]
     if mash:
-        steps.append({"kind": "heat", "name": "Нагрев", "temp": mash[0]["temp"], "watts": mash[0].get("watts")})
+        heat = heat_watts(recipe)
+        steps.append({"kind": "heat", "name": "Нагрев", "temp": mash[0]["temp"],
+                      "watts": mash[0].get("watts") if heat is None else heat})
+        if heat is not None:
+            steps[-1]["own"] = True          # у программы свой шаг «Нагрев» — паузы в ней со второго шага
         steps.append({"kind": "mash_in", "name": "Засыпать солод", "measures": ["ph", "mash_temp"]})
     for i, st in enumerate(mash):
         steps.append({"kind": "rest", "name": st.get("name") or f"Пауза {i + 1}", "temp": st["temp"],
@@ -58,19 +62,26 @@ def steps_of(recipe):
 def brewery_steps(steps, events):
     """[(когда, номер шага варочного дня)] по событиям программы пивоварни — (когда, вид, data) по времени.
     Программа — паузы затирания, затем кипячение (recipes/program.py): её шаг 1 — нагрев до первой паузы, шаг k —
-    k-я пауза, после пауз — кипячение; подсказка «солод» — засыпь, её подтверждение — первая пауза; «конец
-    затирания» — промывка; программа закончена — охлаждение."""
+    k-я пауза, после пауз — кипячение; у нагрева свой шаг (own у шага «Нагрев») — паузы сдвинуты на один;
+    подсказка «солод» — засыпь, её подтверждение — первая пауза; «конец затирания» — промывка; программа закончена —
+    охлаждение."""
     first = {}
     for s in steps:
         first.setdefault(s["kind"], s["index"])
     rests = [s["index"] for s in steps if s["kind"] == "rest"]
+    offset = 1 if any(s.get("own") for s in steps) else 0
     out, alert = [], None
     for at, kind, data in events:
         data = data or {}
         index = None
         if kind == "step" and data.get("step"):
-            k = int(data["step"])
-            index = first.get("boil") if k > len(rests) else first.get("heat", rests[0]) if k == 1 else rests[k - 1]
+            k = int(data["step"]) - offset                 # номер паузы; свой шаг нагрева — 0
+            if k > len(rests):
+                index = first.get("boil")
+            elif k < 1 or (k == 1 and not offset):
+                index = first.get("heat", rests[0] if rests else None)
+            else:
+                index = rests[k - 1]
         elif kind == "alert":
             alert = data.get("alert")
             index = first.get(ALERT_STEPS.get(alert))

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import type { Recipe } from '~/types'
 import { calcRecipe, DEFAULT_EFFICIENCY } from '~/utils/calc'
 import {
-  blankRecipe, boilGroups, boilItems, defaultWatts, deviceTimers, fermentationStep, mashStep, newMisc, options, programMinutes, programOf, programSummary,
+  blankRecipe, boilGroups, boilItems, defaultHeat, defaultWatts, deviceTimers, fermentationStep, mashStep, newMisc, options, programMinutes, programOf, programSummary,
   newYeast, share, toDraft, toRecipe, totalKg, validateRecipe, wattOptions, whenInBoil, whenLabel, HOP_USES,
 } from '~/utils/recipe'
 import { dots, draft, hop, LIMITS, malt } from './fixtures'
@@ -34,6 +34,9 @@ describe('новый рецепт', () => {
     expect(defaultWatts(r, { mash: [900, 2550], boil: null }, opts)).toEqual([2500, 2500, 2500, 2500])
     expect(defaultWatts({ ...r, boil: null }, { mash: [1500], boil: 2400 }, opts)).toEqual([1500, 1500, 1500])
     expect(defaultWatts(r, null, [])).toEqual([])
+    expect(defaultHeat(null, opts)).toBe(2500)                                    // нагрев — потолок
+    expect(defaultHeat({ mash: [1500], boil: 2400, heat: 2300 }, opts)).toBe(2300)
+    expect(defaultHeat(null, [])).toBeNull()
   })
 
   it('варианты мощности — от потолка вниз с шагом', () => {
@@ -142,6 +145,10 @@ describe('программа пивоварни и закладки', () => {
     ])
     const batch = { ...recipe(), mash: [{ temp: 66, minutes: 60, watts: 2000 }], boil: { minutes: 60, watts: 2500 } }
     expect(programOf(batch).map(st => st.watts)).toEqual([2000, 2500])               // рецепт партии на пивоварне
+    // нагрев своей мощностью — шаг «Нагрев» перед первой паузой; как у первой паузы — без шага
+    expect(programOf({ ...batch, heat: { watts: 2500 } }).map(st => [st.name, st.temp, st.minutes, st.watts]))
+      .toEqual([['Нагрев', 66, 1, 2500], ['Пауза 1', 66, 60, 2000], ['Кипячение', 100.1, 60, 2500]])
+    expect(programOf({ ...batch, heat: { watts: 2000 } })).toHaveLength(2)
     expect(programOf(recipe(), 99.5).at(-1)!.temp).toBe(99.5)
     expect(programMinutes(recipe())).toBe(135)
     expect(programOf({ ...recipe(), boil: null })).toHaveLength(2)

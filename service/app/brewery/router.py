@@ -169,8 +169,9 @@ def list_brews(logbook: UserLogbook, recipe: str | None = None,
 @router.post("/brews", response_model=BrewDetail, tags=["варки"], summary="Сварить — новая партия по рецепту",
              description="По рецепту, который виден: свой или опубликованный. Партия получает рецепт, "
                          "пересчитанный под объём и эффективность оборудования (snapshot), и план по нему.")
-def create_brew(body: BrewIn, logbook: UserLogbook):
-    return logbook.create(body.recipeId, body.startedAt, body.equipmentId, body.watts)
+def create_brew(body: BrewIn, logbook: UserLogbook, brewery: UserBrewery):
+    return logbook.create(body.recipeId, body.startedAt, body.equipmentId, body.watts, body.heatWatts,
+                          brewery.limits()["maxSteps"])
 
 
 @router.get("/brews/{bid}", response_model=BrewDetail, tags=["варки"],

@@ -7,13 +7,16 @@
 у закладок строго внутри кипячения (0 < мин < длительности); о закладках в начале и в конце напоминает приложение.
 
 Мощность ТЭНа — свойство пивоварни, а не пива: у рецепта её нет (without_watts), у партии её задают при «Сварить»
-(with_watts); шагу без мощности при загрузке достаётся потолок модели (brewery/control.py).
+(with_watts); шагу без мощности при загрузке достаётся потолок модели (brewery/control.py). Мощность шага у Easy Brew —
+и на нагрев до его температуры, и на выдержку; нагрев до первой паузы своей мощностью (heat) — отдельный шаг «Нагрев»
+перед ней: та же температура, HEAT_MINUTES.
 
 Агенту программа уходит в общем виде (build_program); как записать её в свою пивоварню, решает агент.
 """
 from ..errors import Invalid
 
 BOIL_TEMP = 100.0
+HEAT_MINUTES = 1                       # шаг «Нагрев»: после засыпи ещё минута догрева затора на мощности нагрева
 
 KIND_LABELS = {"hop": "Хмель", "spice": "Специи", "fining": "Осветлитель", "water": "Соли", "adjunct": "Добавка",
                "sugar": "Сахар", "equipment": "Оборудование"}
@@ -26,10 +29,22 @@ def ru_num(v, digits=None):
     return s.replace(".", ",")
 
 
+def heat_watts(recipe):
+    """Мощность нагрева до первой паузы, если она своя (heat у рецепта партии, не как у первой паузы), иначе None —
+    нагрев идёт на мощности первой паузы."""
+    mash = recipe.get("mash") or []
+    w = (recipe.get("heat") or {}).get("watts")
+    return w if mash and w is not None and w != mash[0].get("watts") else None
+
+
 def program_steps(recipe):
-    """Шаги программы для пивоварни и экрана: паузы затирания, затем кипячение."""
+    """Шаги программы для пивоварни и экрана: «Нагрев» своей мощностью (если задан), паузы затирания, кипячение."""
+    mash = recipe.get("mash") or []
     steps = [{"name": s.get("name"), "temp": s["temp"], "minutes": s["minutes"], "watts": s.get("watts"),
-              "boil": False} for s in recipe.get("mash") or []]
+              "boil": False} for s in mash]
+    if (heat := heat_watts(recipe)) is not None:
+        steps.insert(0, {"name": "Нагрев", "temp": mash[0]["temp"], "minutes": HEAT_MINUTES, "watts": heat,
+                         "boil": False})
     boil = recipe.get("boil")
     if boil:
         steps.append({"name": "Кипячение", "temp": BOIL_TEMP, "minutes": boil["minutes"], "watts": boil.get("watts"),
@@ -43,27 +58,34 @@ def without_watts(recipe):
         s.pop("watts", None)
     if recipe.get("boil"):
         recipe["boil"].pop("watts", None)
+    recipe.pop("heat", None)
     return recipe
 
 
-def with_watts(recipe, watts):
+def with_watts(recipe, watts, heat=None):
     """Рецепт партии с мощностью ТЭНа (правит на месте): watts — по одной на каждую паузу затирания, затем на
-    кипячение, W. Не по числу шагов — Invalid."""
+    кипячение, W (не по числу шагов — Invalid); heat — на нагреве до первой паузы. None — не задавать."""
     mash, boil = recipe.get("mash") or [], recipe.get("boil")
-    if len(watts) != len(mash) + (1 if boil else 0):
-        raise Invalid("мощность — по одной на каждую паузу и на кипячение")
-    for s, w in zip(mash, watts, strict=False):
-        s["watts"] = w
-    if boil:
-        boil["watts"] = watts[-1]
+    if watts:
+        if len(watts) != len(mash) + (1 if boil else 0):
+            raise Invalid("мощность — по одной на каждую паузу и на кипячение")
+        for s, w in zip(mash, watts, strict=False):
+            s["watts"] = w
+        if boil:
+            boil["watts"] = watts[-1]
+    if heat is not None:
+        if not mash:
+            raise Invalid("нагрев — до первой паузы, а пауз нет")
+        recipe["heat"] = {"watts": heat}
     return recipe
 
 
 def program_watts(recipe):
-    """Мощность на шагах рецепта партии — {"mash": [W…], "boil": W | None}; не задана ни на одном шаге — None."""
+    """Мощность на шагах рецепта партии — {"mash": [W…], "boil": W | None, "heat": W | None}; не задана нигде — None."""
     mash = [s["watts"] for s in recipe.get("mash") or [] if s.get("watts") is not None]
     boil = (recipe.get("boil") or {}).get("watts")
-    return {"mash": mash, "boil": boil} if mash or boil is not None else None
+    heat = (recipe.get("heat") or {}).get("watts")
+    return {"mash": mash, "boil": boil, "heat": heat} if mash or boil is not None or heat is not None else None
 
 
 def boil_items(recipe):

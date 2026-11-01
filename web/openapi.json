@@ -3916,6 +3916,20 @@
             ],
             "title": "Watts",
             "description": "мощность ТЭНа на шагах программы, W: по одной на каждую паузу затирания, затем на кипячение — для пивоварни; не указана — при загрузке потолок модели"
+          },
+          "heatWatts": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 100000.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Heatwatts",
+            "description": "мощность ТЭНа на нагреве до первой паузы, W; не как у первой паузы — перед ней шаг программы «Нагрев»"
           }
         },
         "type": "object",
@@ -5479,6 +5493,20 @@
         "type": "object",
         "title": "HTTPValidationError"
       },
+      "Heat": {
+        "properties": {
+          "watts": {
+            "type": "integer",
+            "title": "Watts",
+            "description": "мощность ТЭНа на нагреве до первой паузы, W"
+          }
+        },
+        "type": "object",
+        "required": [
+          "watts"
+        ],
+        "title": "Heat"
+      },
       "Hop": {
         "properties": {
           "name": {
@@ -6089,6 +6117,18 @@
             ],
             "title": "Boil",
             "description": "кипячение, W"
+          },
+          "heat": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Heat",
+            "description": "нагрев до первой паузы, W"
           }
         },
         "type": "object",
@@ -6271,6 +6311,17 @@
             "title": "Mash",
             "default": []
           },
+          "heat": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Heat"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "нагрев до первой паузы своей мощностью — только у рецепта партии («Сварить»): не как у первой паузы — перед ней шаг программы «Нагрев»"
+          },
           "boil": {
             "anyOf": [
               {
@@ -6365,6 +6416,17 @@
             "type": "array",
             "title": "Mash",
             "default": []
+          },
+          "heat": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Heat"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "нагрев до первой паузы своей мощностью — только у рецепта партии («Сварить»): не как у первой паузы — перед ней шаг программы «Нагрев»"
           },
           "boil": {
             "anyOf": [

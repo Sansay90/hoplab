@@ -77,7 +77,7 @@ def test_batch_power(service, brewer, agents, recipe):
     program = loaded(brewer, batch["id"])
     assert [st["watts"] for st in program["steps"]] == [1500, 1500, 2000, 2400]
     [eq] = brewer.ok("GET", "/equipment")
-    assert eq["watts"] == {"mash": [1500, 1500, 2000], "boil": 2400}
+    assert eq["watts"] == {"mash": [1500, 1500, 2000], "boil": 2400, "heat": None}
 
     status, err = brewer.post("/brews", {"recipeId": rid, "watts": [1500, 2400]})
     assert status == 400 and "по одной на каждую паузу" in err["detail"]
@@ -87,6 +87,18 @@ def test_batch_power(service, brewer, agents, recipe):
     brewer.ok("POST", f"/brews/{plain['id']}/upload")
     program = loaded(brewer, plain["id"])
     assert [st["watts"] for st in program["steps"]] == [2500] * 4
+
+    heated = brewer.ok("POST", "/brews", {"recipeId": rid, "watts": [1500, 1500, 2000, 2400], "heatWatts": 2500})
+    assert next(st for st in heated["brewDay"] if st["kind"] == "heat")["watts"] == 2500
+    brewer.ok("POST", f"/brews/{heated['id']}/upload")                     # свой нагрев — шаг перед первой паузой
+    program = loaded(brewer, heated["id"])
+    assert [(st["temp"], st["minutes"], st["watts"]) for st in program["steps"][:2]] == [(30, 1, 2500), (30, 2, 1500)]
+    assert len(program["steps"]) == 5 and brewer.ok("GET", "/equipment")[0]["watts"]["heat"] == 2500
+
+    long = brewer.ok("POST", "/recipes", {**recipe, "mash": [{"temp": 30 + i, "minutes": 2} for i in range(8)]})["id"]
+    status, err = brewer.post("/brews", {"recipeId": long, "watts": [1500] * 9, "heatWatts": 2500})
+    assert status == 400 and "нет места" in err["detail"]                   # 8 пауз + кипячение — для нагрева места нет
+    assert brewer.post("/brews", {"recipeId": long, "watts": [1500] * 9, "heatWatts": 1500})[0] == 200   # как у паузы
 
     pot = brewer.ok("POST", "/equipment", {"name": "Кастрюля", "kind": "manual", "volume": 20, "efficiency": 75})
     status, err = brewer.post("/brews", {"recipeId": rid, "equipmentId": pot["id"], "watts": [1500, 1500, 2000, 2400]})

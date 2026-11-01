@@ -134,6 +134,10 @@ class Boil(BaseModel):
     watts: int | None = Field(None, description=WATTS_NOTE)
 
 
+class Heat(BaseModel):
+    watts: int = Field(description="мощность ТЭНа на нагреве до первой паузы, W")
+
+
 class FermentationStep(BaseModel):
     """Этап брожения: температура и когда переходить к следующему (until). gravity — плотность дошла до цели
     (в партии цель — от фактической OG, та же доля сбраживания); fg — плотность перестала падать (конечная);
@@ -164,6 +168,8 @@ class Recipe(BaseModel):
     yeasts: list[Yeast] = []
     water: Water = Field(default_factory=Water)
     mash: list[MashStep] = []
+    heat: Heat | None = Field(None, description="нагрев до первой паузы своей мощностью — только у рецепта партии "
+                                                "(«Сварить»): не как у первой паузы — перед ней шаг программы «Нагрев»")
     boil: Boil | None = None
     fermentation: list[FermentationStep] = []
     notes: str = ""

@@ -139,7 +139,18 @@ export function toRecipe(d: RecipeDraft): Recipe {
 }
 
 // ── программа пивоварни и закладки (как в сервисе, program.py) ───────────────
-type ProgramSource = Pick<Recipe, 'mash' | 'boil' | 'hops' | 'miscs' | 'fermentables'>
+type ProgramSource = Pick<Recipe, 'mash' | 'heat' | 'boil' | 'hops' | 'miscs' | 'fermentables'>
+
+/** Шаг «Нагрев» своей мощностью: после засыпи ещё минута догрева затора на ней (как HEAT_MINUTES в program.py). */
+export const HEAT_MINUTES = 1
+
+/** Мощность нагрева до первой паузы, если она своя (heat у рецепта партии, не как у первой паузы), иначе null —
+ *  нагрев идёт на мощности первой паузы: у Easy Brew мощность шага — и на нагрев до него, и на выдержку. */
+export function heatWatts(r: Pick<Recipe, 'mash' | 'heat'>) {
+  const first = r.mash?.[0]
+  const w = r.heat?.watts
+  return first && w != null && w !== first.watts ? w : null
+}
 
 export interface ProgramStep {
   name: string
@@ -158,6 +169,8 @@ export function programOf(r: ProgramSource, boilTemp = 100.1): ProgramStep[] {
   const steps = (r.mash ?? []).map((s, i) => ({
     name: s.name || `Пауза ${i + 1}`, temp: s.temp, minutes: s.minutes, watts: s.watts ?? null, boil: false,
   }))
+  const heat = heatWatts(r)
+  if (heat != null) steps.unshift({ name: 'Нагрев', temp: r.mash![0]!.temp, minutes: HEAT_MINUTES, watts: heat, boil: false })
   if (r.boil) steps.push({ name: 'Кипячение', temp: boilTemp, minutes: r.boil.minutes, watts: r.boil.watts ?? null, boil: true })
   return steps
 }
@@ -301,10 +314,18 @@ export function programSummary(r: ProgramSource) {
  *  тоже потолок. */
 export function defaultWatts(r: ProgramSource, last: ProgramWatts | null | undefined, options: { value: number }[]): number[] {
   if (!options.length) return []
-  const top = options[0]!.value
-  const pick = (w: number | null | undefined) => (w != null && options.some(o => o.value === w) ? w : top)
-  const mash = (r.mash ?? []).map((_, i) => pick(last?.mash[i] ?? last?.mash.at(-1)))
-  return r.boil ? [...mash, pick(last?.boil)] : mash
+  const mash = (r.mash ?? []).map((_, i) => wattOr(last?.mash[i] ?? last?.mash.at(-1), options))
+  return r.boil ? [...mash, wattOr(last?.boil, options)] : mash
+}
+
+/** Мощность нагрева до первой паузы для «Сварить»: как в прошлой партии, иначе потолок модели. */
+export function defaultHeat(last: ProgramWatts | null | undefined, options: { value: number }[]) {
+  return options.length ? wattOr(last?.heat, options) : null
+}
+
+/** w, если пивоварня такую примет, иначе потолок модели (первый вариант). */
+function wattOr(w: number | null | undefined, options: { value: number }[]) {
+  return w != null && options.some(o => o.value === w) ? w : options[0]!.value
 }
 
 /** Варианты мощности для выпадающего списка: от потолка модели вниз с её шагом мощности. */

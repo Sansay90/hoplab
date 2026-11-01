@@ -67,6 +67,16 @@ describe('шаг по программе пивоварни', () => {
     expect(breweryStep(STEPS, snap(), run({ step: 3, counting: true, current: steps[2]! }))).toBe(6)
   })
 
+  it('свой шаг нагрева перед первой паузой: шаг 1 — нагрев, догрев после засыпи — первая пауза, паузы — со второго', () => {
+    const own = [{ temp: 66, minutes: 1, watts: 2500, additions: [], boil: false }, ...steps]
+    const s = snap({ deviceRecipe: { steps: own } })
+    expect(breweryStep(STEPS, s, run({ step: 1, heating: true }))).toBe(1)
+    expect(breweryStep(STEPS, s, run({ step: 1, counting: true }))).toBe(3)
+    expect(breweryStep(STEPS, s, run({ step: 2, heating: true }))).toBe(3)
+    expect(breweryStep(STEPS, s, run({ step: 3, counting: true }))).toBe(4)
+    expect(breweryStep(STEPS, s, run({ step: 4, counting: true, current: own[3]! }))).toBe(6)
+  })
+
   it('подсказки пивоварни — засыпь и промывка', () => {
     expect(breweryStep(STEPS, snap({ alert: 'malt' }), run({ step: 1 }))).toBe(2)
     expect(breweryStep(STEPS, snap({ alert: 'mashEnd' }), run({ step: 2 }))).toBe(5)

@@ -33,16 +33,21 @@ export interface BrewDayView {
   byBrewery: boolean         // шаги ведёт пивоварня
 }
 
-/** Шаг варочного дня по живой программе пивоварни; null — программа не идёт. */
+/** Шаг варочного дня по живой программе пивоварни; null — программа не идёт. У нагрева может быть свой шаг программы
+ *  перед первой паузой («Нагрев» своей мощностью): шагов-не-кипячения в программе больше, чем пауз, — паузы сдвинуты. */
 export function breweryStep(steps: BrewDayStep[], s: Snapshot | null, phase: Phase) {
   if (!s || !phase.inRecipe) return null
   const by = (kind: BrewDayStep['kind']) => steps.find(x => x.kind === kind)?.index ?? null
   if (s.alert === 'malt') return by('mash_in')
   if (s.alert === 'mashEnd') return by('sparge')
   if (phase.current?.boil) return by('boil')
-  const rest = steps.filter(x => x.kind === 'rest')[phase.step - 1]
+  const rests = steps.filter(x => x.kind === 'rest')
+  const offset = Math.max(0, (s.deviceRecipe?.steps ?? []).filter(d => !d.boil).length - rests.length)
+  const k = phase.step - offset                      // номер паузы; свой шаг нагрева — 0
+  if (k < 1) return phase.heating ? by('heat') ?? rests[0]?.index ?? null : rests[0]?.index ?? null   // после засыпи — догрев
+  const rest = rests[k - 1]
   if (!rest) return null
-  return phase.step === 1 && phase.heating ? by('heat') ?? rest.index : rest.index
+  return k === 1 && !offset && phase.heating ? by('heat') ?? rest.index : rest.index
 }
 
 const litres = (v: number | null) => (v == null ? '—' : fmtNumber(v, 1, ' л'))

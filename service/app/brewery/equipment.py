@@ -55,7 +55,8 @@ def last_watts(s, ids):
     (партия, которую завёл агент, или от старой вкладки — без мощности: такую пропускаем)."""
     if not ids:
         return {}
-    has_watts = or_(Brew.snapshot["boil"].has_key("watts"), Brew.snapshot[("mash", 0)].has_key("watts"))
+    has_watts = or_(Brew.snapshot["boil"].has_key("watts"), Brew.snapshot[("mash", 0)].has_key("watts"),
+                    Brew.snapshot.has_key("heat"))
     rows = s.exec(select(Brew.equipment_id, Brew.snapshot)
                   .where(Brew.equipment_id.in_(ids), Brew.snapshot.is_not(None), has_watts)
                   .order_by(Brew.equipment_id, Brew.started_at.desc()).ext(distinct_on(Brew.equipment_id))).all()

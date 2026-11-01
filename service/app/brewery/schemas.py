@@ -218,6 +218,9 @@ class BrewIn(BaseModel):
     watts: list[Annotated[int, Field(ge=1, le=100_000)]] | None = Field(
         None, max_length=40, description="мощность ТЭНа на шагах программы, W: по одной на каждую паузу затирания, "
                                          "затем на кипячение — для пивоварни; не указана — при загрузке потолок модели")
+    heatWatts: int | None = Field(None, ge=1, le=100_000,
+                                  description="мощность ТЭНа на нагреве до первой паузы, W; не как у первой паузы — "
+                                              "перед ней шаг программы «Нагрев»")
 
 
 class BrewDetail(BrewSummary):
@@ -262,6 +265,7 @@ class EquipmentNew(EquipmentIn):
 class ProgramWatts(BaseModel):
     mash: list[int] = Field(description="по паузам затирания, W")
     boil: int | None = Field(None, description="кипячение, W")
+    heat: int | None = Field(None, description="нагрев до первой паузы, W")
 
 
 class Equipment(EquipmentNew):
