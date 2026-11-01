@@ -74,10 +74,11 @@ function saved() {
             </div>
             <p v-if="r.entry.text" class="mt-0.5 ps-6 text-sm break-words whitespace-pre-line text-muted">{{ r.entry.text }}</p>
           </div>
-          <div v-else class="flex items-center gap-2 px-2 py-0.5 text-sm text-muted">
-            <UIcon :name="EVENT_LOOK[r.event.kind].icon" class="size-4 shrink-0" :class="EVENT_LOOK[r.event.kind].tone" />
-            <span class="num w-12 shrink-0">{{ fmtTime(r.at) }}</span>
-            <span class="min-w-0 flex-1">{{ r.event.text }}</span>
+          <!-- событие пивоварни — в той же сетке и кегле, что запись; отличается приглушённым цветом -->
+          <div v-else class="flex items-center gap-2 rounded-lg px-2 py-1">
+            <UIcon :name="EVENT_LOOK[r.event.kind].icon" class="size-5 shrink-0" :class="EVENT_LOOK[r.event.kind].tone" />
+            <span class="num w-12 shrink-0 text-base leading-none text-muted">{{ fmtTime(r.at) }}</span>
+            <span class="min-w-0 flex-1 text-base leading-tight text-muted">{{ r.event.text }}</span>
           </div>
         </li>
       </ul>
