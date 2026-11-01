@@ -7,6 +7,16 @@ const { exec, pending } = useCommand()
 const confirm = useConfirm()
 
 const a = computed(() => brewery.next)
+// крутится только нажатая кнопка, а не все кнопки карточки
+const pressed = ref<NextActionId | null>(null)
+async function press(id: NextActionId, fn: () => unknown) {
+  pressed.value = id
+  try {
+    await fn()
+  } finally {
+    pressed.value = null
+  }
+}
 
 const toneBox: Record<Tone, string> = {
   primary: 'bg-primary/10 text-primary',
@@ -29,7 +39,7 @@ async function startRecipe() {
     confirmLabel: 'Запустить',
     confirmIcon: 'i-lucide-play',
   })
-  if (ok) exec(brewery.startRecipe, 'Рецепт запущен')
+  if (ok) await exec(brewery.startRecipe, 'Рецепт запущен')
 }
 
 /** Как выглядит и что делает каждое действие, которое может предложить «Дальше». */
@@ -43,7 +53,7 @@ const ACTIONS: Record<NextActionId, ButtonProps & { onClick?: () => void; toolti
     icon: 'i-lucide-check',
     color: 'warning',
     size: 'xl',
-    onClick: () => { if (a.value.addition != null) exec(() => brewery.ackAddition(a.value.addition!)) },
+    onClick: () => (a.value.addition != null ? exec(() => brewery.ackAddition(a.value.addition!)) : undefined),
   },
   confirmAlert: {
     label: 'Подтвердить',
@@ -54,7 +64,10 @@ const ACTIONS: Record<NextActionId, ButtonProps & { onClick?: () => void; toolti
   },
 }
 
-const buttons = computed(() => a.value.actions.map(id => ({ id, ...ACTIONS[id] })))
+const buttons = computed(() => a.value.actions.map((id) => {
+  const { onClick, ...b } = ACTIONS[id]
+  return { id, ...b, onClick: onClick && (() => press(id, onClick)) }
+}))
 </script>
 
 <template>
@@ -79,10 +92,15 @@ const buttons = computed(() => a.value.actions.map(id => ({ id, ...ACTIONS[id] }
       {{ fmtDuration(a.countdown) }}
     </div>
 
+    <!-- что ещё показать под действием пивоварни: замеры шага на странице партии -->
+    <div v-if="$slots.default" class="mt-6 border-t border-default pt-5">
+      <slot />
+    </div>
+
     <div v-if="buttons.length" class="mt-auto flex flex-wrap items-center gap-2 pt-6">
       <template v-for="{ id, tooltip, ...b } in buttons" :key="id">
         <UTooltip :text="tooltip" :disabled="!tooltip">
-          <UButton v-bind="b" :loading="pending && !!b.onClick" :disabled="!brewery.online && id !== 'chooseRecipe'" />
+          <UButton v-bind="b" :loading="pending && pressed === id" :disabled="!brewery.online && id !== 'chooseRecipe'" />
         </UTooltip>
       </template>
     </div>

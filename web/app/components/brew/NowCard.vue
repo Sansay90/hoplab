@@ -33,7 +33,8 @@ const stats = computed(() => {
   const e = brewery.snapshot?.energy
   const energy = !e || (!e.wh && !e.watts)
     ? { value: '—', hint: 'оценка' }
-    : { value: fmtEnergy(e.wh), hint: e.watts ? `ТЭН ~${e.watts} W${SEP}оценка` : 'оценка ±20–30 %' }
+    // оценка — «≈» у числа: подпись «ТЭН ~2500 W · оценка» не влезала в ячейку
+    : { value: `≈ ${fmtEnergy(e.wh)}`, hint: e.watts ? `ТЭН ~${e.watts} W` : 'оценка ±20–30 %' }
 
   return [
     { label: 'Осталось шага', ...stepLeft },

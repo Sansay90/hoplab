@@ -15,13 +15,14 @@ export const useBreweryStore = defineStore('brewery', () => {
   const events = ref<BrewEvent[]>([])    // новые — первыми
   const history = ref<HistoryPoint[]>([])
   const heatStart = ref<number | null>(null)
+  const heatStartAt = ref<number | null>(null)        // когда начался этот нагрев — скорость считаем только по нему
   const now = useNow({ interval: 500 })
 
   // ── производные ────────────────────────────────────────────────────────────
   const online = computed(() => !!snapshot.value?.online)
   const phase = computed(() => phaseOf(snapshot.value))
   const remaining = computed(() => remainingSeconds(snapshot.value, receivedAt.value, now.value.getTime() / 1000))
-  const rate = computed(() => heatingRate(history.value))
+  const rate = computed(() => heatingRate(history.value, heatStartAt.value))
   const eta = computed(() => heatingEta(snapshot.value, phase.value, rate.value))
   const progress = computed(() => stepProgress(snapshot.value, phase.value, remaining.value, heatStart.value))
   const status = computed(() => statusOf(snapshot.value, phase.value))
@@ -44,6 +45,7 @@ export const useBreweryStore = defineStore('brewery', () => {
   // источники — по отдельности: геттер с массивом давал новый массив на каждый снимок и сбрасывал начало нагрева
   watch([() => phase.value.heating, () => phase.value.step], ([heating]) => {
     heatStart.value = heating ? snapshot.value?.temp ?? null : null
+    heatStartAt.value = heating ? Date.now() / 1000 : null
   })
 
   // ── приём данных ───────────────────────────────────────────────────────────

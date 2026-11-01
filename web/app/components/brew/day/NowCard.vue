@@ -115,18 +115,18 @@ async function upload() {
   <!-- пивоварня ведёт шаги: её «Сейчас» и «Дальше» -->
   <div v-if="view.byBrewery" class="grid gap-4 sm:gap-6 lg:grid-cols-2">
     <BrewNowCard />
-    <BrewNextCard />
-    <UCard v-if="step.measures.length" :ui="{ body: 'p-5 sm:p-6' }" class="lg:col-span-2">
-      <template #header>
-        <h2 class="text-xl font-semibold text-highlighted">Замеры<span class="ms-3 text-base font-normal text-muted">{{ step.name }}</span></h2>
+    <!-- замеры шага пивоварни — в «Дальше», под таймером: места там хватает -->
+    <BrewNextCard>
+      <template v-if="step.measures.length" #default>
+        <div class="text-xs font-medium tracking-wider text-dimmed uppercase">Замеры{{ SEP }}{{ step.name }}</div>
+        <ul v-if="step.details.length" class="mt-2 space-y-1 text-base text-toned">
+          <li v-for="d in step.details" :key="d">{{ d }}</li>
+        </ul>
+        <div class="mt-3 flex flex-wrap gap-x-8 gap-y-3">
+          <BrewDayMeasureInput v-for="m in step.measures" :key="m" :brew-id="brew.id" :kind="m" :last="measures.get(m)" :hint="hintOf(m)" @saved="measured" />
+        </div>
       </template>
-      <ul v-if="step.details.length" class="mb-4 space-y-1 text-base text-toned">
-        <li v-for="d in step.details" :key="d">{{ d }}</li>
-      </ul>
-      <div class="flex flex-wrap gap-x-8 gap-y-3">
-        <BrewDayMeasureInput v-for="m in step.measures" :key="m" :brew-id="brew.id" :kind="m" :last="measures.get(m)" :hint="hintOf(m)" @saved="measured" />
-      </div>
-    </UCard>
+    </BrewNextCard>
   </div>
 
   <!-- две карточки, как «Варка» и «Журнал» ниже: слева шаг, справа таймер или замеры -->

@@ -93,6 +93,9 @@ describe('время', () => {
     expect(heatingRate(history)).toBeCloseTo(1, 6)                  // 1.5 °C за 90 с
     expect(heatingRate(history.slice(0, 3))).toBeNull()
     expect(heatingRate([])).toBeNull()
+    // нагрев начался на 60-й секунде: до него выдержка — окна по нагреву ещё нет, прогноз позже
+    expect(heatingRate(history, 60)).toBeNull()
+    expect(heatingRate([...history, [150, 53, 66]], 60)).toBeCloseTo(1.333, 3)   // 2 °C за 90 с нагрева
   })
 
   it('прогноз нагрева', () => {

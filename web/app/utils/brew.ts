@@ -82,11 +82,12 @@ export function remainingSeconds(s: Snapshot | null, receivedAt: number, now: nu
 }
 
 /** Скорость нагрева, °C/мин — по истории за последние ~1.5 мин. */
-export function heatingRate(history: HistoryPoint[]): number | null {
+export function heatingRate(history: HistoryPoint[], since: number | null = null): number | null {
   const last = history[history.length - 1]
   if (!last) return null
   for (let i = history.length - 2; i >= 0; i--) {
     const p = history[i]!
+    if (since != null && p[0] < since) return null      // до начала этого нагрева — выдержка, её скорость не та
     if (last[0] - p[0] >= RATE_WINDOW_S) return (last[1] - p[1]) / ((last[0] - p[0]) / 60)
   }
   return null
