@@ -81,6 +81,13 @@ def test_readings_after_program(service, brewer, agents, recipe):
     mine = {15.0, 63.0, 40.0, 70.0, 12.0}                                   # имитация сама шлёт 20 °C — не наши
     shown = lambda: [p[1] for p in brewer.ok("GET", f"/brews/{batch['id']}/readings") if p[1] in mine]  # noqa: E731
     assert shown() == [63.0, 40.0]
+    pitch = next(st["index"] for st in batch["brewDay"] if st["kind"] == "pitch")
+    brewer.ok("POST", f"/brews/{batch['id']}/entries", {"kind": "step", "value": pitch, "at": start + 150})
+    assert shown() == [63.0, 40.0]                                           # сусло в ферментере — котёл дальше не её
+    with session() as s:
+        s.add(Reading(device_id=device, brew_id=None, at=from_unix(start + 200), temp=15.0))   # вода с теста
+        s.commit()
+    assert shown() == [63.0, 40.0]
     brewer.ok("POST", f"/brews/{batch['id']}/finish")                       # день позади — новые показания не её
     with session() as s:
         s.add(Reading(device_id=device, brew_id=None, at=from_unix(time.time() + 30), temp=12.0))
@@ -102,7 +109,7 @@ def test_batch_power(service, brewer, agents, recipe):
     assert [st["watts"] for st in batch["snapshot"]["mash"]] == [1500, 1500, 2000]
     by_kind = {st["kind"]: st["measures"] for st in batch["brewDay"]}
     assert by_kind["mash_in"] == ["mash_temp"]                               # программа ещё не шла — замер рукой
-    assert next(st for st in batch["brewDay"] if st["kind"] == "rest")["measures"] == ["ph"]
+    assert next(st for st in batch["brewDay"] if st["kind"] == "rest")["measures"] == ["ph", "mash_gravity"]
     assert {st["kind"]: st["watts"] for st in batch["brewDay"] if st["watts"]} == {"heat": 1500, "rest": 2000,
                                                                                       "boil": 2400}
     brewer.ok("POST", f"/brews/{batch['id']}/upload")

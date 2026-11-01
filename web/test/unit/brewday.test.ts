@@ -178,6 +178,15 @@ describe('подсказки к замерам', () => {
     expect(measureHint('ph', null)).toBe('обычно 5,2–5,4')
     expect(measureHint('mash_temp', r)).toBeNull()
   })
+
+  it('плотность затора — до скольки при полном осахаривании и сколько уже есть', () => {
+    // 5 кг светлого солода (выход 80 %), гидромодуль 3 → 4 кг экстракта в 15 л: 4 / 19 = 21,1 °P
+    const r = { fermentables: [{ name: 'Pilsner', kind: 'grain', amount: 5, ebc: 3, use: 'mash' }], water: { ratio: 3 } } as unknown as Recipe
+    expect(measureHint('mash_gravity', r)).toBe('полное осахаривание — до ~21,1 °P')
+    const hint = measureHint('mash_gravity', r, 'plato', sgFromPlato(16))!
+    expect(hint).toBe(dots('полное осахаривание — до ~21,1 °P · сейчас ~71 %'))    // 16/84 ÷ 21,05/78,95
+    expect(measureHint('mash_gravity', { fermentables: [], water: {} } as unknown as Recipe)).toBeNull()
+  })
 })
 
 describe('последние замеры', () => {

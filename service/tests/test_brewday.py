@@ -21,7 +21,7 @@ def test_steps_from_batch_recipe(brewer, recipe):
     assert [s["index"] for s in steps] == list(range(10))
     assert steps[1]["temp"] == 30 and steps[2]["measures"] == ["mash_temp"]
     assert steps[3]["name"] == "Пауза 1" and steps[3]["temp"] == 30 and steps[3]["minutes"] == 2
-    assert steps[3]["measures"] == ["ph"] and steps[4]["measures"] == []     # pH — на первой паузе
+    assert steps[3]["measures"] == ["ph", "mash_gravity"] and steps[4]["measures"] == ["mash_gravity"]
     assert steps[6]["measures"] == ["first_wort", "preboil_volume", "preboil_gravity"]
     boil = steps[7]
     assert boil["minutes"] == 3 and [a["minutes"] for a in boil["additions"]] == [2, 1]

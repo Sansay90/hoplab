@@ -3324,6 +3324,7 @@
             "items": {
               "type": "string",
               "enum": [
+                "mash_gravity",
                 "first_wort",
                 "preboil_gravity",
                 "og",
@@ -3669,6 +3670,7 @@
           "kind": {
             "type": "string",
             "enum": [
+              "mash_gravity",
               "first_wort",
               "preboil_gravity",
               "og",
@@ -3747,6 +3749,7 @@
           "kind": {
             "type": "string",
             "enum": [
+              "mash_gravity",
               "first_wort",
               "preboil_gravity",
               "og",

@@ -40,7 +40,7 @@ MANUAL, DEVICE = "manual", "device"
 BREWDAY, FERMENTING, PACKAGED, DUMPED = "brewday", "fermenting", "packaged", "dumped"   # фазы партии
 # замеры: вид → единица; вехи и заметка — без значения
 MEASURES = {
-    "first_wort": "sg", "preboil_gravity": "sg", "og": "sg", "gravity": "sg", "fg": "sg",
+    "mash_gravity": "sg", "first_wort": "sg", "preboil_gravity": "sg", "og": "sg", "gravity": "sg", "fg": "sg",
     "ph": "ph",
     "preboil_volume": "l", "postboil_volume": "l", "fermenter_volume": "l",
     "mash_temp": "c", "pitch_temp": "c", "temp": "c",   # затора; сусла при задаче дрожжей; брожения
@@ -248,16 +248,22 @@ class Logbook:
                 "entries": [self._entry(e) for e in entries]}
 
     def readings(self, brew_id):
-        """Температура варки с пивоварни: [(unix-время, °C, цель °C)] по времени. Пока идёт варочный день партии,
-        её — и показания её пивоварни вне программы (без варки): после конца программы — охлаждение, до неё — нагрев
-        рукой; пивоварня присылает температуру и в ожидании."""
+        """Температура варки с пивоварни: [(unix-время, °C, цель °C)] по времени. Пока сусло в котле — её
+        и показания её пивоварни вне программы (без варки): после конца программы — охлаждение, до неё — нагрев
+        рукой; пивоварня присылает температуру и в ожидании. Сусло ушло в ферментер — переход к «Задать дрожжи»
+        или дрожжи заданы, конец дня — дальше котёл не её (в нём уже следующая вода)."""
         with session() as s:
             b = self._brew(s, brew_id)
             eq = s.get(Equipment, b.equipment_id) if b.equipment_id else None
             mine = Reading.brew_id == b.id
             if device := b.device_id or (eq.device_id if eq else None):
+                pitch = next((st["index"] for st in steps_of(b.snapshot or {}) if st["kind"] == "pitch"), None)
+                moved = s.exec(select(func.min(BrewEntry.at)).where(
+                    BrewEntry.brew_id == b.id,
+                    or_(BrewEntry.kind == "pitch", and_(BrewEntry.kind == STEP, BrewEntry.value == pitch)))).one()
+                until = min((t for t in (b.day_ended_at, moved) if t is not None), default=utcnow())
                 mine = or_(mine, and_(Reading.brew_id.is_(None), Reading.device_id == device,
-                                      Reading.at >= b.started_at, Reading.at <= (b.day_ended_at or utcnow())))
+                                      Reading.at >= b.started_at, Reading.at <= until))
             rows = s.exec(select(Reading.at, Reading.temp, Reading.target).where(mine).order_by(Reading.at)).all()
         return [(unix(at), temp, target) for at, temp, target in rows]
 

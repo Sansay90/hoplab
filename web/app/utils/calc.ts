@@ -101,6 +101,23 @@ function extractWhere(r: Source, keep: (f: Fermentable) => boolean) {
   return (r.fermentables ?? []).filter(keep).reduce((a, f) => a + extractOf(f, efficiencyOf(r)), 0)
 }
 
+/** Плотность затора при полном осахаривании (SG): весь экстракт того, что в затор (выход по типу и цвету, без
+ *  эффективности — в заторе ещё ничего не потеряно), в заторной воде — гидромодуль × засыпь. Подсказка к замеру на
+ *  паузах: сколько уже осахарилось. Нет гидромодуля или засыпи — null. */
+export function mashSgMax(r: Pick<Recipe, 'fermentables' | 'water'>) {
+  const inMash = (r.fermentables ?? []).filter(f => (f.use ?? 'mash') === 'mash')
+  const grain = inMash.reduce((a, f) => a + (f.amount ?? 0), 0)
+  const water = r.water?.ratio && grain ? r.water.ratio * grain : null
+  const kg = inMash.reduce((a, f) => a + ((f.amount ?? 0) * yieldOf(f)) / 100, 0)
+  return water && kg ? sgFromPlato((100 * kg) / (kg + water)) : null
+}
+
+/** Доля экстракта затора относительно полного осахаривания: сколько экстракта в растворе при sg против max. */
+export function mashShare(sg: number, max: number) {
+  const solved = (s: number) => { const p = platoFromSg(s); return p / (100 - p) }
+  return solved(sg) / solved(max)
+}
+
 /** Плотность до кипячения в preBoil литрах: экстракт того, что в котле до кипячения, — затираемое (сахар и экстракт
  *  «в кипячение» и «на брожение» — нет), с эффективностью партии. Тот же расчёт, что OG, — экстракт сходится с ней. */
 export function preBoilSg(r: Source, preBoil: number) {

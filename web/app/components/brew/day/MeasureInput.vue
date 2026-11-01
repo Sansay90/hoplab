@@ -14,6 +14,12 @@ const prefs = usePreferencesStore()
 const { exec, pending } = useCommand()
 
 const input = computed(() => entryInput(props.kind, prefs.gravityUnit)!)
+const gravity = computed(() => ENTRY_KINDS[props.kind].unit === 'sg')
+// пересчитали показание ареометра или рефрактометра — в поле и сразу записать
+function fromHelper(sg: number) {
+  value.value = Number(fixed(fromStored(props.kind, sg, prefs.gravityUnit), input.value.digits).replace(',', '.'))
+  save()
+}
 // прошлая запись — в единицах пивовара
 const lastInput = computed(() => (props.last?.value != null ? fromStored(props.kind, props.last.value, prefs.gravityUnit) : null))
 const value = ref<number | null>(props.fresh ? null : lastInput.value)
@@ -86,6 +92,7 @@ onBeforeUnmount(() => {
         @blur="save"
       />
       <span class="w-6 text-base text-muted">{{ input.suffix }}</span>
+      <BrewDayGravityHelper v-if="gravity" :kind="kind" @use="fromHelper" />
       <span v-if="pending" class="flex items-center text-sm text-muted"><UIcon name="i-lucide-loader-circle" class="size-4 animate-spin" /></span>
       <UIcon v-else-if="saved" name="i-lucide-check" class="size-5 text-success" aria-label="Записано" />
       <UIcon v-else-if="lastInput != null && !fresh" name="i-lucide-check" class="size-5 text-muted" aria-label="Записано раньше" />

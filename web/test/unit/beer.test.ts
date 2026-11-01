@@ -1,7 +1,15 @@
 import { describe, expect, it } from 'vitest'
-import { abvOf, beerColor, ebcGradient, fmtGravity, gravityIn, platoFromSg, sgFromPlato } from '~/utils/beer'
+import { abvOf, beerColor, ebcGradient, fmtGravity, gravityIn, hydrometerSg, platoFromSg, refractometerPlato, sgFromPlato } from '~/utils/beer'
 
 describe('плотность', () => {
+  it('ареометр — поправка на температуру пробы, рефрактометр — Brix ÷ WCF', () => {
+    expect(platoFromSg(hydrometerSg(sgFromPlato(12), 29))).toBeCloseTo(12.55, 1)   // тёплая проба — показывает меньше
+    expect(hydrometerSg(1.048, 20)).toBeCloseTo(1.048, 6)                             // на калибровочной — как есть
+    expect(platoFromSg(hydrometerSg(sgFromPlato(12), 15))).toBeLessThan(12)           // холодная — больше
+    expect(refractometerPlato(12.9)).toBeCloseTo(12.4, 1)
+    expect(refractometerPlato(12.9, 1)).toBe(12.9)
+  })
+
   it('°P и SG взаимно обратны', () => {
     for (const p of [0, 5, 12, 20, 30]) expect(platoFromSg(sgFromPlato(p))).toBeCloseTo(p, 1)
   })

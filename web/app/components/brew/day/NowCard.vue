@@ -45,7 +45,8 @@ const programActive = computed(() => brewery.phase.running || brewery.phase.paus
 // пивоварня: программа ещё не загружена или ждёт запуска — пока её шаги не идут, рукой доходим до старта; после
 // засыпи загружать и запускать незачем: программа начнётся с нагрева
 const breweryIdle = computed(() => props.connected && !props.view.byBrewery && ['prepare', 'heat'].includes(step.value.kind))
-const hintOf = (m: EntryKind) => measureHint(m, props.brew.snapshot)
+const prefs = usePreferencesStore()
+const hintOf = (m: EntryKind) => measureHint(m, props.brew.snapshot, prefs.gravityUnit, measures.value.get(m)?.value ?? null)
 // справа есть что показать (таймер, замеры, «Дальше» пивоварни) — иначе карточка шага на всю ширину
 const aside = computed(() => !!step.value.minutes || step.value.measures.length > 0 || (breweryIdle.value && loaded.value))
 

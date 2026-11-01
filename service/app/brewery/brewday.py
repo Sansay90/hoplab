@@ -30,8 +30,8 @@ ALERT_STEPS = {"malt": "mash_in", "mashEnd": "sparge"}       # подсказк�
 def steps_of(recipe, automated=False):
     """Шаги варочного дня из рецепта партии: [{index, key, kind, name, temp, minutes, measures, additions}].
     kind: prepare, heat, mash_in, rest, sparge, boil, chill, pitch. measures — виды замеров на этом шаге: pH — на
-    первой паузе (после засыпи он устанавливается 10–15 мин), температура затора — на засыпи, если её не пишет
-    пивоварня сама (automated)."""
+    первой паузе (после засыпи он устанавливается 10–15 мин), плотность затора — на каждой паузе (ход осахаривания),
+    температура затора — на засыпи, если её не пишет пивоварня сама (automated)."""
     mash = recipe.get("mash") or []
     boil = recipe.get("boil")
     chill_to = next((st.get("temp") for st in recipe.get("fermentation") or [] if st.get("temp") is not None), None)
@@ -45,7 +45,8 @@ def steps_of(recipe, automated=False):
         steps.append({"kind": "mash_in", "name": "Засыпать солод", "measures": [] if automated else ["mash_temp"]})
     for i, st in enumerate(mash):
         steps.append({"kind": "rest", "name": st.get("name") or f"Пауза {i + 1}", "temp": st["temp"],
-                      "minutes": st["minutes"], "watts": st.get("watts"), "measures": ["ph"] if i == 0 else []})
+                      "minutes": st["minutes"], "watts": st.get("watts"),
+                      "measures": ["ph", "mash_gravity"] if i == 0 else ["mash_gravity"]})
     if mash:
         steps.append({"kind": "sparge", "name": "Промывка",
                       "measures": ["first_wort", "preboil_volume", "preboil_gravity"]})

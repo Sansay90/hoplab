@@ -14,9 +14,13 @@ type Group = 'Варочный день' | 'Брожение и розлив' | 
 // optional — рекомендуемый замер (прибор есть не у всех): «Дальше» без него не переспрашивает
 export interface EntryKindView { label: string; short?: string; icon: string; unit?: Unit; group: Group; transition?: true; own?: true; optional?: true }
 
+/** Несброженное сусло: его плотность можно мерить рефрактометром (в пиве спирт искажает показание). */
+export const UNFERMENTED = new Set<EntryKind>(['mash_gravity', 'first_wort', 'preboil_gravity', 'og'])
+
 export const ENTRY_KINDS: Record<EntryKind, EntryKindView> = {
   ph: { label: 'pH затора', icon: 'i-lucide-flask-conical', unit: 'ph', group: 'Варочный день', optional: true },
   mash_temp: { label: 'Температура затора', icon: 'i-lucide-thermometer', unit: 'c', group: 'Варочный день' },
+  mash_gravity: { label: 'Плотность затора', icon: 'i-lucide-droplet', unit: 'sg', group: 'Варочный день', optional: true },
   first_wort: { label: 'Плотность первого сусла', short: 'Плотность до промывки', icon: 'i-lucide-droplet', unit: 'sg', group: 'Варочный день' },
   preboil_volume: { label: 'Объём до кипячения', short: 'Объём в котле', icon: 'i-lucide-beaker', unit: 'l', group: 'Варочный день' },
   preboil_gravity: { label: 'Плотность до кипячения', short: 'Плотность в котле', icon: 'i-lucide-droplet', unit: 'sg', group: 'Варочный день' },

@@ -22,6 +22,22 @@ export function fmtGravity(sg: number | null | undefined, unit: GravityUnit) {
   return unit === 'plato' ? `${text} °P` : text
 }
 
+/** Ареометр откалиброван на calibC (обычно 20 °C): показание sg при температуре пробы sampleC → при калибровочной.
+ *  Поправка — по плотности воды (полином для °F, общепринятый у пивоваров). */
+export function hydrometerSg(sg: number, sampleC: number, calibC = 20) {
+  const k = (c: number) => {
+    const t = c * 9 / 5 + 32
+    return 1.00130346 - 0.000134722124 * t + 0.00000204052596 * t ** 2 - 0.00000000232820948 * t ** 3
+  }
+  return (sg * k(sampleC)) / k(calibC)
+}
+
+/** Рефрактометр: Brix несброженного сусла → °P. WCF — поправка на сусло (у прибора шкала по сахарозе). */
+export const DEFAULT_WCF = 1.04
+export function refractometerPlato(brix: number, wcf = DEFAULT_WCF) {
+  return brix / wcf
+}
+
 /** Крепость по начальной и конечной плотности, % об. */
 export function abvOf(og: number | null | undefined, fg: number | null | undefined) {
   if (!og || !fg || fg >= og) return null

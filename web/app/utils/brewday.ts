@@ -12,7 +12,7 @@ import type { GravityUnit } from '~/utils/beer'
 import type { Phase } from '~/utils/brew'
 import { additionAmount, additionName, unitLabel } from '~/utils/additions'
 import { fmtGravity, gravityIn } from '~/utils/beer'
-import { extractForSg, preBoilSg, sgFromExtract } from '~/utils/calc'
+import { extractForSg, mashShare, mashSgMax, preBoilSg, sgFromExtract } from '~/utils/calc'
 import { fmtMinutes, fmtNumber, fmtTemp, fmtWatts, SEP } from '~/utils/format'
 import { WATER_AGENTS, waterAmount, waterVolumes } from '~/utils/water'
 
@@ -166,11 +166,19 @@ export function additionWhen(minutes: number, boil: number | null | undefined) {
   return minutes === boil ? 'старт' : minutes === 0 ? 'конец' : `за ${minutes} мин`
 }
 
-/** Подсказка к замеру на шаге: pH — цель по рецепту (партии), не задана — обычный диапазон. */
-export function measureHint(kind: BrewEntry['kind'], r: Recipe | null | undefined) {
-  if (kind !== 'ph') return null
-  const ph = r?.water?.ph
-  return ph != null ? `по рецепту ${fmtNumber(ph, 2)}` : 'обычно 5,2–5,4'
+/** Подсказка к замеру на шаге: pH — цель по рецепту (партии), не задана — обычный диапазон; плотность затора —
+ *  сколько будет при полном осахаривании и сколько уже есть по последнему замеру (last, SG). */
+export function measureHint(kind: BrewEntry['kind'], r: Recipe | null | undefined, unit: GravityUnit = 'plato',
+  last: number | null = null) {
+  if (kind === 'ph') {
+    const ph = r?.water?.ph
+    return ph != null ? `по рецепту ${fmtNumber(ph, 2)}` : 'обычно 5,2–5,4'
+  }
+  if (kind !== 'mash_gravity' || !r) return null
+  const max = mashSgMax(r)
+  if (max == null) return null
+  const now = last != null && last > 1 ? `${SEP}сейчас ~${Math.round(mashShare(last, max) * 100)} %` : ''
+  return `полное осахаривание — до ~${fmtGravity(max, unit)}${now}`
 }
 
 /** Последний замер каждого вида — для чипов на шагах. */

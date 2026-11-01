@@ -102,9 +102,9 @@ class Limits(BaseModel):
 
 
 # ── история варок ─────────────────────────────────────────────────────────────
-EntryKind = Literal["first_wort", "preboil_gravity", "og", "gravity", "fg", "ph", "preboil_volume", "postboil_volume",
-                    "fermenter_volume", "mash_temp", "pitch_temp", "temp", "pitch", "dry_hop", "cold_crash", "package",
-                    "dumped", "note", "stage", "step"]
+EntryKind = Literal["mash_gravity", "first_wort", "preboil_gravity", "og", "gravity", "fg", "ph", "preboil_volume",
+                    "postboil_volume", "fermenter_volume", "mash_temp", "pitch_temp", "temp", "pitch", "dry_hop",
+                    "cold_crash", "package", "dumped", "note", "stage", "step"]
 
 
 class EquipmentRef(BaseModel):

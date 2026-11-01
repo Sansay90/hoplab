@@ -7,7 +7,8 @@ const YEAR_S = 365 * 24 * 3600
 export const usePreferencesStore = defineStore('preferences', () => {
   const sound = preference<boolean>('brewapp.sound', false)
   const gravityUnit = preference<GravityUnit>('brewapp.gravityUnit', 'plato')
-  return { sound, gravityUnit }
+  const wcf = preference<string>('brewapp.wcf', '1.04')          // поправка рефрактометра на сусло — запоминается
+  return { sound, gravityUnit, wcf }
 })
 
 /** Настройка: пока её не меняли, cookie нет (гостю и поисковикам сервер её не ставит), значение — fallback. */
