@@ -288,10 +288,11 @@ class Controller:
                     ("Кипячение" if step and step.is_boil else f"{step.temp:g} °C" if step else ""))
             self._event("step", f"Шаг {changed[DP_STEP]}: {name}".strip(), step=changed[DP_STEP])
         # таймер 0 на последнем шаге — программа кончилась: дальше пивоварня ~30 с пищит «End», ничего не присылая,
-        # и выключается сама (PROTOCOL.md) — конец засчитываем сразу, а не после писка
+        # и выключается сама (PROTOCOL.md) — конец засчитываем сразу, а не после писка. На самом конце шаг не меняется:
+        # таймер 0 одним пакетом со сменой шага — это старт последнего шага, а не конец
         d, last = self.dev.dps, len(self.device_steps())
         if (changed.get(DP_TIMER, -1) == 0 and prev.get(DP_TIMER) and not self._ended and d.get(DP_STATUS) == 2
-                and last and d.get(DP_STEP) == last):
+                and DP_STEP not in changed and last and d.get(DP_STEP) == last):
             self._end(last)
         if DP_SWITCH in changed and not changed[DP_SWITCH] and prev.get(DP_SWITCH):
             # таймер 0 мог прийти одним пакетом с выключением — смотрим текущий, а не прошлый снимок

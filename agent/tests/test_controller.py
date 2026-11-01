@@ -145,6 +145,13 @@ def test_reading_while_temperature_holds(idle, brewery, recorder):
     assert len(recorder.of("reading")) == before
 
 
+def test_last_step_start_is_not_end(idle, brewery, recorder):
+    """Таймер 0 одним пакетом с переходом на последний шаг — это старт кипячения, а не конец программы."""
+    start_program(idle, brewery)
+    brewery.push({"144": 2, "6": 0})
+    assert "end" not in recorder.events() and idle.brew_id is not None
+
+
 def test_end_in_one_packet(idle, brewery, recorder):
     start_program(idle, brewery)
     brewery.push({"144": 2, "6": 1, "10": 1000})
