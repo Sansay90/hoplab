@@ -234,8 +234,9 @@ class Logbook:
             eq = s.get(Equipment, b.equipment_id) if b.equipment_id else None
         names = {eq.id: eq.name} if eq else {}
         last = summary_of((e.kind, e.value, e.at) for e in entries)
-        # температуру затора пишет пивоварня, которой управляет сайт, — на её партии ручного замера нет
-        automated = b.source != MANUAL or (eq is not None and eq.kind == "easybrew")
+        # температуру затора пишет пивоварня, когда программа этой партии шла в ней (тогда показания идут в партию), —
+        # ручного замера нет; уже записанный замер остаётся на своём шаге
+        automated = (b.device_id is not None or b.source != MANUAL) and not any(e.kind == "mash_temp" for e in entries)
         steps = steps_of(b.snapshot, automated) if b.snapshot else []
         current, starts, _ = progress(steps, b.started_at, [(e.at, e.kind, e.value) for e in entries],
                                       [(e.at, e.kind, e.data) for e in events])

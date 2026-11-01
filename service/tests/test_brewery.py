@@ -72,7 +72,7 @@ def test_batch_power(service, brewer, agents, recipe):
     batch = brewer.ok("POST", "/brews", {"recipeId": rid, "watts": [1500, 1500, 2000, 2400]})
     assert [st["watts"] for st in batch["snapshot"]["mash"]] == [1500, 1500, 2000]
     by_kind = {st["kind"]: st["measures"] for st in batch["brewDay"]}
-    assert by_kind["mash_in"] == [] and by_kind["rest"] == []                # температуру пишет пивоварня
+    assert by_kind["mash_in"] == ["mash_temp"]                               # программа ещё не шла — замер рукой
     assert next(st for st in batch["brewDay"] if st["kind"] == "rest")["measures"] == ["ph"]
     assert {st["kind"]: st["watts"] for st in batch["brewDay"] if st["watts"]} == {"heat": 1500, "rest": 2000,
                                                                                       "boil": 2400}
@@ -133,6 +133,8 @@ def test_batch_brewed_on_the_brewery(service, brewer, agents, recipe):
     fake.push({"1": False, "104": 0, "144": 0})                             # выключили на первом шаге — прервана
     done = eventually(lambda: (b := brewer.get(f"/brews/{batch['id']}")[1])["status"] == "stopped" and b)
     assert done["manual"] is False and done["recipe"]["id"] == rid and done["snapshot"]["name"] == recipe["name"]
+    mash_in = next(st for st in done["brewDay"] if st["kind"] == "mash_in")
+    assert mash_in["measures"] == []                                         # программа шла — температуру пишет она
     assert [b["id"] for b in brewer.ok("GET", "/brews")] == [batch["id"]]
     # выключение пивоварни — не конец партии: день идёт с того шага, где она остановилась, доводят рукой
     assert done["phase"] == "brewday" and done["brewDay"][done["currentStep"]]["kind"] == "heat"
