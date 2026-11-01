@@ -35,6 +35,11 @@ function measured(e: BrewEntry) {
   emit('changed')
 }
 const loaded = computed(() => brewery.snapshot?.deviceRecipe?.brewId === props.brew.id)
+// пивоварня партии на связи — на шагах, где сусло в котле, живая температура с её датчика (охлаждение чиллером и т. п.)
+const IN_KETTLE = new Set(['heat', 'mash_in', 'rest', 'sparge', 'boil', 'chill'])
+const liveTemp = computed(() => (props.connected && brewery.online && IN_KETTLE.has(step.value.kind)
+  ? brewery.snapshot?.temp ?? null
+  : null))
 const programActive = computed(() => brewery.phase.running || brewery.phase.paused)
 // пивоварня: программа ещё не загружена или ждёт запуска — пока её шаги не идут, рукой доходим до старта; после
 // засыпи загружать и запускать незачем: программа начнётся с нагрева
@@ -137,6 +142,10 @@ async function upload() {
       </template>
       <div class="text-3xl font-semibold text-highlighted">
         {{ step.name }}<span v-if="stepLine(step)" class="ms-3 text-xl font-normal whitespace-nowrap text-muted">{{ stepLine(step) }}</span>
+      </div>
+      <div v-if="liveTemp != null" class="mt-1 flex items-baseline gap-2 text-xl">
+        <span class="text-muted">сейчас</span>
+        <span class="num font-semibold text-highlighted">{{ fmtTemp(liveTemp) }} °C</span>
       </div>
       <ul v-if="step.details.length" class="mt-2 space-y-1 text-base text-toned">
         <li v-for="d in step.details" :key="d">{{ d }}</li>
