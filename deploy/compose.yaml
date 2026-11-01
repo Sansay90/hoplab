@@ -1,28 +1,28 @@
-# brewapp на сервере: Postgres, сервис (API) и интерфейс (сервер Nuxt). Лежит в /opt/brewapp, туда же его кладёт
-# выкатка (.github/workflows/deploy.yml) вместе с новыми образами. Настройки — /opt/brewapp/.env (образец —
+# Hoplab на сервере: Postgres, сервис (API) и интерфейс (сервер Nuxt). Лежит в /opt/hoplab, туда же его кладёт
+# выкатка (.github/workflows/deploy.yml) вместе с новыми образами. Настройки — /opt/hoplab/.env (образец —
 # deploy/.env.example). HTTPS и домен — nginx на сервере (deploy/nginx.conf): /api → app, остальное → web;
 # оба слушают только 127.0.0.1. Агенты пивоварен подключаются извне: wss://<домен>/api/agent.
-name: brewapp
+name: hoplab
 
 services:
   db:
     image: postgres:17-alpine
     restart: unless-stopped
     environment:
-      POSTGRES_DB: brewapp
-      POSTGRES_USER: brewapp
+      POSTGRES_DB: hoplab
+      POSTGRES_USER: hoplab
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?задайте POSTGRES_PASSWORD в .env}
       TZ: ${TZ:-Europe/Moscow}
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U brewapp -d brewapp"]
+      test: ["CMD-SHELL", "pg_isready -U hoplab -d hoplab"]
       interval: 5s
       timeout: 3s
       retries: 10
 
   app:
-    image: ghcr.io/sansay90/beer-app:${APP_TAG:-latest}
+    image: ghcr.io/sansay90/hoplab:${APP_TAG:-latest}
     restart: unless-stopped
     depends_on:
       db:
@@ -31,12 +31,12 @@ services:
       - "127.0.0.1:8000:8000"
     env_file: .env
     environment:
-      DATABASE_URL: postgresql+psycopg://brewapp:${POSTGRES_PASSWORD}@db:5432/brewapp
+      DATABASE_URL: postgresql+psycopg://hoplab:${POSTGRES_PASSWORD}@db:5432/hoplab
       # запросы приходят только от nginx на этом же сервере и от web — их заголовкам X-Forwarded-* можно верить
       FORWARDED_ALLOW_IPS: "*"
 
   web:
-    image: ghcr.io/sansay90/beer-app-web:${APP_TAG:-latest}
+    image: ghcr.io/sansay90/hoplab-web:${APP_TAG:-latest}
     restart: unless-stopped
     depends_on:
       app:

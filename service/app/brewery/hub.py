@@ -15,7 +15,7 @@ from starlette.websockets import WebSocket, WebSocketDisconnect
 from ..errors import AppError, Forbidden
 from . import agents
 
-log = logging.getLogger("brewapp.hub")
+log = logging.getLogger("hoplab.hub")
 
 HELLO_TIMEOUT_S = 10
 BREW_STATUSES = ("finished", "stopped")

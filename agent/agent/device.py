@@ -12,7 +12,7 @@ from concurrent.futures import Future
 
 import tinytuya
 
-log = logging.getLogger("brewapp.device")
+log = logging.getLogger("hoplab.device")
 
 ECHO_TIMEOUT_S = 4
 SOCKET_TIMEOUT_S = 1

@@ -1,10 +1,10 @@
 """Разведка Easy Brew по локальной сети: какие точки данных (DP) отдаёт пивоварня.
 
-Из папки brewapp/agent:
+Из папки hoplab/agent:
     .venv\\Scripts\\python tools\\probe.py dump     снимок всех DP с именами из dpmap.json
     .venv\\Scripts\\python tools\\probe.py watch    журнал изменений DP в реальном времени (Ctrl+C — стоп)
 
-Нужен devices.json от `python -m tinytuya wizard` в brewapp/agent (см. README.md).
+Нужен devices.json от `python -m tinytuya wizard` в hoplab/agent (см. README.md).
 """
 import argparse
 import base64
@@ -18,7 +18,7 @@ from datetime import datetime
 
 import tinytuya
 
-APP_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))      # brewapp/agent
+APP_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))      # hoplab/agent
 DEVICES_FILE = os.path.join(APP_DIR, "devices.json")
 DPMAP_FILE = os.path.join(APP_DIR, "dpmap.json")
 LOG_DIR = os.path.join(APP_DIR, "logs")

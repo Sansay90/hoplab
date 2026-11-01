@@ -1,6 +1,6 @@
-"""Агент brewapp — рядом с пивоварней: связь с ней по домашней сети и с сервисом по WebSocket.
+"""Агент Hoplab — рядом с пивоварней: связь с ней по домашней сети и с сервисом по WebSocket.
 
-Запуск из папки brewapp/agent:
+Запуск из папки hoplab/agent:
     .venv\\Scripts\\python -m agent
 
 Настройки — config.py (переменные окружения или agent/.env).
@@ -56,8 +56,8 @@ async def serve(controller, brewery, url, token, device):
 def main():
     cfg = Config.from_env()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s: %(message)s", datefmt="%H:%M:%S")
-    # подробнее — только свои логгеры brewapp.*: websockets и tinytuya на DEBUG пишут токен агента и ключ пивоварни
-    logging.getLogger("brewapp").setLevel(cfg.log_level)
+    # подробнее — только свои логгеры hoplab.*: websockets и tinytuya на DEBUG пишут токен агента и ключ пивоварни
+    logging.getLogger("hoplab").setLevel(cfg.log_level)
     if not cfg.token:
         raise SystemExit("не задан AGENT_TOKEN — токен агента выдаёт сервис (README.md, «Запуск»)")
     d = load_device(cfg.devices, cfg.brewery_id)

@@ -1,4 +1,4 @@
-"""Сервис brewapp: HTTP API и поток SSE для интерфейса, WebSocket для агентов у пивоварен.
+"""Сервис hoplab: HTTP API и поток SSE для интерфейса, WebSocket для агентов у пивоварен.
 
 create_app собирает приложение: настройки (config.py), общие объекты в app.state (зависимости — deps.py),
 роутеры разделов и проверку источника запросов. На старте (lifespan) — миграции базы, журнал, связь с агентами
@@ -78,7 +78,7 @@ def api_router():
 
 def create_app(settings: Settings | None = None) -> FastAPI:
     settings = settings or Settings()
-    app = FastAPI(title="brewapp", version="0.4", lifespan=lifespan)
+    app = FastAPI(title="Hoplab", version="0.4", lifespan=lifespan)
     app.state.settings = settings
     app.state.mailer = Mailer(settings)
     app.state.limits = AuthLimits()

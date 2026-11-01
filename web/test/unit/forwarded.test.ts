@@ -3,7 +3,7 @@ import { proxyHeaders } from '../../server/utils/forwarded'
 
 describe('заголовки запроса к сервису через прокси /api', () => {
   const incoming = {
-    'cookie': 'brewapp_session=abc',
+    'cookie': 'hoplab_session=abc',
     'content-type': 'application/json',
     'x-forwarded-for': '6.6.6.6',
     'x-forwarded-proto': 'https',
@@ -13,7 +13,7 @@ describe('заголовки запроса к сервису через про�
 
   it('без своего прокси — подставные X-Forwarded-* долой, адрес и схема — самого соединения', () => {
     expect(proxyHeaders(incoming, { trust: false, ip: '192.168.1.5', secure: false })).toEqual({
-      'cookie': 'brewapp_session=abc',
+      'cookie': 'hoplab_session=abc',
       'content-type': 'application/json',
       'x-forwarded-for': '192.168.1.5',
       'x-forwarded-proto': 'http',

@@ -1,4 +1,4 @@
-# Как устроен brewapp
+# Как устроен hoplab
 
 Сервис рецептов для домашних пивоваров с управлением пивоварней Easy Brew Connect. Здесь — устройство на сегодня; что умеет — [features.md](./features.md), куда идём — [roadmap.md](./roadmap.md), как вести разработку — [development.md](./development.md).
 

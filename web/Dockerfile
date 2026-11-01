@@ -1,7 +1,7 @@
-# Интерфейс brewapp — сервер Nuxt (Nitro) на порту 3000: каталог и рецепт рендерятся на сервере, остальное — SPA.
+# Интерфейс Hoplab — сервер Nuxt (Nitro) на порту 3000: каталог и рецепт рендерятся на сервере, остальное — SPA.
 # /api он проксирует сервису по NUXT_API_SERVER (в проде nginx отдаёт /api сервису сам, мимо Nuxt).
-#   docker build -t brewapp-web .        (контекст — папка web)
-#   docker run -p 3000:3000 -e NUXT_API_SERVER=http://service:8000 brewapp-web
+#   docker build -t hoplab-web .        (контекст — папка web)
+#   docker run -p 3000:3000 -e NUXT_API_SERVER=http://service:8000 hoplab-web
 
 # lock-файл записан npm 11 (Node 24): на Node 22 / npm 10 npm ci его не принимает
 FROM node:24-alpine AS build

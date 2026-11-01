@@ -9,7 +9,7 @@ from ..errors import Forbidden
 from ..models import Device
 from .equipment import attach_device, controlled_device
 
-log = logging.getLogger("brewapp.devices")
+log = logging.getLogger("hoplab.devices")
 
 
 class DeviceStore:

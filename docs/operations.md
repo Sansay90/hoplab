@@ -2,23 +2,23 @@
 
 Как жить с сервисом на сервере: выкатка и откат, частые операции, «что делать, если…». Как сервер настроен — [deploy/README.md](../deploy/README.md).
 
-Все команды — на сервере в `/opt/brewapp` под пользователем `deploy` (или root):
+Все команды — на сервере в `/opt/hoplab` под пользователем `deploy` (или root):
 
 ```sh
-cd /opt/brewapp
+cd /opt/hoplab
 docker compose ps                     # что запущено
 docker compose logs -f app            # журнал сервиса (web — интерфейса, сервера Nuxt)
 docker compose exec app python -m app <команда>   # команды сервиса: agents, vapid…
-docker compose exec db psql -U brewapp brewapp    # база
+docker compose exec db psql -U hoplab hoplab    # база
 ```
 
 На том же сервере работает VPN AmneziaWG (контейнер `amnezia-awg2`) — его не трогать.
 
 ## Выкатка
 
-- **Обычная:** пуш в `main` → GitHub Actions: проверки → образ `ghcr.io/sansay90/beer-app:<коммит>` → сервер → проверка `/api/health`. Миграции сервис применяет сам при старте.
+- **Обычная:** пуш в `main` → GitHub Actions: проверки → образ `ghcr.io/sansay90/hoplab:<коммит>` → сервер → проверка `/api/health`. Миграции сервис применяет сам при старте.
 - **Повторить** без пуша — Actions → «Проверка и выкатка» → Run workflow.
-- **Откатить:** надёжно — `git revert` плохого коммита и пуш. Быстро — прежний образ, если он ещё на сервере (`docker images ghcr.io/sansay90/beer-app`): `APP_TAG=<коммит> docker compose up -d app`. Схему базы откат образа **не** возвращает: если новая версия принесла миграцию, старый код может с ней не работать — тогда только revert или `docker compose exec app alembic downgrade -1` (осторожно: миграции, удаляющие данные, обратно их не вернут).
+- **Откатить:** надёжно — `git revert` плохого коммита и пуш. Быстро — прежний образ, если он ещё на сервере (`docker images ghcr.io/sansay90/hoplab`): `APP_TAG=<коммит> docker compose up -d app`. Схему базы откат образа **не** возвращает: если новая версия принесла миграцию, старый код может с ней не работать — тогда только revert или `docker compose exec app alembic downgrade -1` (осторожно: миграции, удаляющие данные, обратно их не вернут).
 
 ## Частые операции
 
@@ -57,14 +57,14 @@ docker compose logs app | grep -E "verify\?token|reset\?token"
 **По расписанию бэкапа пока нет** — это первое, что нужно сделать до открытия регистрации, и хранить копии не на этом же сервере. Вручную:
 
 ```sh
-docker compose exec -T db pg_dump -U brewapp -Fc brewapp > brewapp-$(date +%F).dump      # копия
-docker compose exec -T db pg_restore -U brewapp -d brewapp --clean < brewapp-2026-10-27.dump   # восстановить
+docker compose exec -T db pg_dump -U hoplab -Fc hoplab > hoplab-$(date +%F).dump      # копия
+docker compose exec -T db pg_restore -U hoplab -d hoplab --clean < hoplab-2026-10-27.dump   # восстановить
 ```
 
 ### Сертификат и nginx
 
 - Сертификат Let's Encrypt продлевает certbot сам (таймер systemd); проверка — `certbot renew --dry-run` (root).
-- Конфиг nginx — `deploy/nginx.conf` → `/etc/nginx/sites-available/brewapp`, затем `nginx -t && systemctl reload nginx`. Выкатка nginx не трогает.
+- Конфиг nginx — `deploy/nginx.conf` → `/etc/nginx/sites-available/hoplab`, затем `nginx -t && systemctl reload nginx`. Выкатка nginx не трогает.
 
 ## Что делать, если…
 

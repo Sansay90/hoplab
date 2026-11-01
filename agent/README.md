@@ -1,4 +1,4 @@
-# agent — агент brewapp
+# agent — агент hoplab
 
 Программа рядом с пивоварней. Держит **единственное** подключение к Easy Brew Connect по домашней сети (модуль Tuya, протокол 3.4, библиотека [tinytuya](https://github.com/jasonacox/tinytuya)) и связь с сервисом ([../service](../service/README.md)) по WebSocket. Соединение открывает сам агент, поэтому пивовару не нужны ни белый IP, ни проброс портов.
 
@@ -27,7 +27,7 @@ python -m agent
 - **Ключи** — `devices.json` в этой папке (ниже — как получить).
 - **Адрес пивоварни** без `BREWERY_IP` агент ищет сам — по UDP-широковещанию модуля Tuya — и запоминает. В Docker широковещание не доходит, там адрес обязателен. Лучше закрепить IP за пивоварней в роутере (DHCP-резервация).
 
-Настройки — переменные окружения или `.env` (`agent/config.py`): `SERVICE_URL` — адрес сервиса для агентов (`wss://<сайт>/api/agent`, у себя на ПК — `ws://127.0.0.1:8000/api/agent`); `AGENT_TOKEN`; `BREWERY_IP`, `BREWERY_VERSION` — пивоварня вместо автопоиска; `BREWERY_ID` — id пивоварни, если в `devices.json` несколько устройств (без него агент возьмёт единственное или единственную Easy Brew, иначе не запустится); `MAX_WATTS` — потолок мощности, если модели нет в списке (`agent/recipe.py`, `MODEL_MAX_WATTS`); `BREWAPP_DEVICES`, `BREWAPP_STATE` — пути к ключам и памяти; `LOG_LEVEL=DEBUG` — в журнал агента каждое изменение DP пивоварни (разобрать её поведение, PROTOCOL.md).
+Настройки — переменные окружения или `.env` (`agent/config.py`): `SERVICE_URL` — адрес сервиса для агентов (`wss://<сайт>/api/agent`, у себя на ПК — `ws://127.0.0.1:8000/api/agent`); `AGENT_TOKEN`; `BREWERY_IP`, `BREWERY_VERSION` — пивоварня вместо автопоиска; `BREWERY_ID` — id пивоварни, если в `devices.json` несколько устройств (без него агент возьмёт единственное или единственную Easy Brew, иначе не запустится); `MAX_WATTS` — потолок мощности, если модели нет в списке (`agent/recipe.py`, `MODEL_MAX_WATTS`); `HOPLAB_DEVICES`, `HOPLAB_STATE` — пути к ключам и памяти; `LOG_LEVEL=DEBUG` — в журнал агента каждое изменение DP пивоварни (разобрать её поведение, PROTOCOL.md).
 
 Модуль Tuya обслуживает не больше трёх одновременных локальных подключений — агент занимает одно, Smart Life работает параллельно.
 
@@ -104,7 +104,7 @@ dpmap.json           полная карта DP с пояснениями (дл�
 2. **Cloud → Development → Create Cloud Project**: Industry — Smart Home, Development Method — Smart Home, Data Center — регион аккаунта Smart Life («Я» → шестерёнка → «Учётная запись и безопасность» → «Регион»; для России обычно **Central Europe**, при неудаче добавить **Western Europe**).
 3. **Devices → Link App Account → Add App Account** → отсканировать QR из Smart Life («Я» → сканер справа вверху).
 4. На вкладке **Overview** — **Access ID** и **Access Secret**; в **Devices** — **Device ID** пивоварни.
-5. Из `brewapp\agent`: `.venv\Scripts\python -m tinytuya wizard` — ввести Access ID, Secret, Device ID, регион (`eu` / `eu-w`), на вопросы о DP mappings и опросе сети — **Y**.
+5. Из `hoplab\agent`: `.venv\Scripts\python -m tinytuya wizard` — ввести Access ID, Secret, Device ID, регион (`eu` / `eu-w`), на вопросы о DP mappings и опросе сети — **Y**.
 
 Мастер создаст `devices.json` (ключи) и `tinytuya.json` (секрет облака) — никому не пересылать. Подписка IoT Core нужна только для мастера. Если пивоварню сбросить и подключить к Smart Life заново, `local_key` сменится — мастер запустить ещё раз.
 

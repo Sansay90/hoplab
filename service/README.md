@@ -1,4 +1,4 @@
-# service — сервис brewapp
+# service — сервис hoplab
 
 Бэкенд: вход и роли, рецепты и фото, история варок, уведомления и связь с агентами пивоварен. Пивоварню сервис сам не видит — с ней говорит агент рядом с ней ([../agent](../agent/README.md)), а сервис принимает его по WebSocket. Как устроено — [docs/architecture.md](../docs/architecture.md).
 
@@ -75,4 +75,4 @@ python -m app                     # http://127.0.0.1:8000; --lan — ещё и �
 
 ## Тесты
 
-`pytest` — сквозные (настоящий сервис в потоке, Postgres, агент с имитацией пивоварни) и юнит-тесты. База — `TEST_DATABASE_URL`, без неё — `brewapp_test` рядом с базой из `DATABASE_URL`, создаётся сама; имя обязано кончаться на `_test`. Подробно — [docs/development.md](../docs/development.md#проверки).
+`pytest` — сквозные (настоящий сервис в потоке, Postgres, агент с имитацией пивоварни) и юнит-тесты. База — `TEST_DATABASE_URL`, без неё — `hoplab_test` рядом с базой из `DATABASE_URL`, создаётся сама; имя обязано кончаться на `_test`. Подробно — [docs/development.md](../docs/development.md#проверки).

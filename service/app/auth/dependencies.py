@@ -7,7 +7,7 @@ from ..access import is_admin
 from ..models import User
 from . import sessions
 
-SESSION_COOKIE = "brewapp_session"
+SESSION_COOKIE = "hoplab_session"
 
 
 def set_session_cookie(request, response, token):

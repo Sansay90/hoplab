@@ -16,7 +16,7 @@ from ..db import session
 from ..models import Notification, User, utcnow
 from ..notifications.feed import BREW
 
-log = logging.getLogger("brewapp.ticker")
+log = logging.getLogger("hoplab.ticker")
 
 
 class Ticker:

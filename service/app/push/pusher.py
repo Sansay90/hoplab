@@ -19,7 +19,7 @@ from ..db import session
 from ..errors import Invalid
 from ..models import PushSubscription, utcnow
 
-log = logging.getLogger("brewapp.push")
+log = logging.getLogger("hoplab.push")
 
 SEND_TIMEOUT_S = 10
 QUEUE_MAX = 100

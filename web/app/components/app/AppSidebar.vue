@@ -118,7 +118,7 @@ const userItems = computed(() => [
         <div class="grid size-8 shrink-0 place-items-center rounded-lg bg-primary/15 text-primary">
           <UIcon name="i-lucide-beer" class="size-5" />
         </div>
-        <span v-if="!collapsed" class="font-semibold text-highlighted">Пивоварня</span>
+        <span v-if="!collapsed" class="font-semibold text-highlighted">Hoplab</span>
       </div>
     </template>
 

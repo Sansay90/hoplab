@@ -1,4 +1,4 @@
-"""Память агента между перезапусками — state.json (BREWAPP_STATE, по умолчанию agent/data/state.json).
+"""Память агента между перезапусками — state.json (HOPLAB_STATE, по умолчанию agent/data/state.json).
 
 Свою программу пивоварня в status не отдаёт (DP 128 приходит, только когда меняется), поэтому последнюю
 агент помнит сам. Вместе с ней — что загружено из приложения (названия шагов и закладок), модель,
@@ -9,7 +9,7 @@ import logging
 import os
 import threading
 
-log = logging.getLogger("brewapp.state")
+log = logging.getLogger("hoplab.state")
 
 FIELDS = ("model", "recipe_raw", "active", "heat_capacity", "brew")
 

@@ -1,4 +1,4 @@
-# Агент brewapp: связь с пивоварней (Tuya, домашняя сеть) и с сервисом (WebSocket).
+# Агент hoplab: связь с пивоварней (Tuya, домашняя сеть) и с сервисом (WebSocket).
 # Ключи (devices.json) в образ не входят — подключаются томом; память агента — в /data (compose.yaml).
 FROM python:3.13-slim
 
@@ -7,8 +7,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
     TZ=Europe/Moscow \
-    BREWAPP_DEVICES=/config/devices.json \
-    BREWAPP_STATE=/data/state.json
+    HOPLAB_DEVICES=/config/devices.json \
+    HOPLAB_STATE=/data/state.json
 
 # tzdata — чтобы время в журнале агента было местным, а не UTC
 RUN apt-get update \

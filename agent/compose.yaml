@@ -1,15 +1,15 @@
-# Агент brewapp в Docker — на компьютере рядом с пивоварней, сам по себе. Из папки brewapp/agent:
+# Агент hoplab в Docker — на компьютере рядом с пивоварней, сам по себе. Из папки hoplab/agent:
 #   docker compose up -d --build      запустить (и пересобрать после обновления)
 #   docker compose logs -f            журнал агента
 # Настройки — agent/.env (образец — .env.example): адрес сервиса, токен агента и BREWERY_IP обязательно —
 # автопоиск пивоварни по широковещанию из контейнера не работает.
-name: brewapp-agent
+name: hoplab-agent
 
 services:
   agent:
     build: .
-    image: brewapp-agent
-    container_name: brewapp-agent
+    image: hoplab-agent
+    container_name: hoplab-agent
     restart: unless-stopped
     env_file: .env
     environment:

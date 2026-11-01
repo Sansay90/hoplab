@@ -17,7 +17,7 @@ from collections import deque
 import websockets
 from websockets.exceptions import ConnectionClosed, InvalidStatus
 
-log = logging.getLogger("brewapp.link")
+log = logging.getLogger("hoplab.link")
 
 BACKOFF_S = (1, 2, 5, 10, 30)
 HELLO_TIMEOUT_S = 10

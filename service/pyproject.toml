@@ -1,7 +1,7 @@
 [project]
-name = "brewapp-service"
+name = "hoplab-service"
 version = "0.4.0"
-description = "Сервис brewapp: рецепты, вход, связь с агентами пивоварен"
+description = "Сервис hoplab: рецепты, вход, связь с агентами пивоварен"
 requires-python = ">=3.13"
 
 [tool.pytest.ini_options]

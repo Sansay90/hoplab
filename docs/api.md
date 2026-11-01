@@ -5,7 +5,7 @@ HTTP API сервиса для интерфейса и WebSocket для аген
 ## Общее
 
 - Всё под `/api`, тела и ответы — JSON. Интерфейс и API на одном адресе: nginx шлёт `/api` сервису, остальное — серверу Nuxt; в разработке `/api` проксирует сам Nuxt.
-- **Вход** — cookie `brewapp_session` (httpOnly), её ставят `register`, `login`, `reset`. Запросы из браузера — с cookie (`credentials: 'include'`).
+- **Вход** — cookie `hoplab_session` (httpOnly), её ставят `register`, `login`, `reset`. Запросы из браузера — с cookie (`credentials: 'include'`).
 - **Изменяющие запросы** (`POST`, `PUT`, `DELETE`) с заголовком `Origin` чужого сайта — 403 «запрос с чужого сайта».
 - **Время** — unix-секунды (`float`), **плотность** — SG (1.048), **цвет** — EBC, **объём** — л, **солод** — кг, **хмель** — г, **температура** — °C, **мощность** — W.
 - Имена полей — `camelCase`, как их ждёт интерфейс.

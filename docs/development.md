@@ -45,7 +45,7 @@ cd service && pytest
 cd web && npm run lint && npm run test && npm run typecheck
 ```
 
-- **Тесты сервиса** поднимают настоящий сервис в потоке и работают с настоящим Postgres. База — `TEST_DATABASE_URL`, а без неё — `brewapp_test` рядом с базой из `DATABASE_URL` (создаётся сама; нужна запущенная база из `service/compose.yaml`). Её имя обязано кончаться на `_test`: перед каждым тестом таблицы очищаются. Агент в сквозных тестах настоящий (`Controller`, `Link`), пивоварня — имитация (`agent/agent/fake.py`).
+- **Тесты сервиса** поднимают настоящий сервис в потоке и работают с настоящим Postgres. База — `TEST_DATABASE_URL`, а без неё — `hoplab_test` рядом с базой из `DATABASE_URL` (создаётся сама; нужна запущенная база из `service/compose.yaml`). Её имя обязано кончаться на `_test`: перед каждым тестом таблицы очищаются. Агент в сквозных тестах настоящий (`Controller`, `Link`), пивоварня — имитация (`agent/agent/fake.py`).
 - **Тесты интерфейса** (vitest) — чистые утилиты `app/utils`, без Nuxt: `web/test/unit`.
 - **Автоисправления:** `ruff check --fix service agent`, `npm run lint:fix`.
 
@@ -60,4 +60,4 @@ cd web && npm run lint && npm run test && npm run typecheck
 
 ## Выкатка
 
-Пуш в `main` → CI: линтеры, тесты, сверка схемы API → образ `ghcr.io/sansay90/beer-app` → сервер. Pull request проходит только проверки. Сервер и секреты — [deploy/README.md](../deploy/README.md).
+Пуш в `main` → CI: линтеры, тесты, сверка схемы API → образ `ghcr.io/sansay90/hoplab` → сервер. Pull request проходит только проверки. Сервер и секреты — [deploy/README.md](../deploy/README.md).

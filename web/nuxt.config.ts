@@ -26,7 +26,7 @@ export default defineNuxtConfig({
   devtools: { enabled: false },
   app: {
     head: {
-      title: 'Пивоварня',
+      title: 'Hoplab',
       htmlAttrs: { lang: 'ru' },
       meta: [{ name: 'viewport', content: 'width=device-width, initial-scale=1, viewport-fit=cover' }],
       link: [{ rel: 'icon', type: 'image/png', href: '/icon-192.png' }],

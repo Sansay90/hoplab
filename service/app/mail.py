@@ -10,7 +10,7 @@ import ssl
 import threading
 from email.message import EmailMessage
 
-log = logging.getLogger("brewapp.mail")
+log = logging.getLogger("hoplab.mail")
 TIMEOUT_S = 20
 
 
@@ -51,13 +51,13 @@ class Mailer:
 
 
 def verify_letter(email, link):
-    return ("Подтвердите почту — Пивоварня",
-            f"Здравствуйте!\n\nЧтобы подтвердить адрес {email} в Пивоварне, откройте ссылку:\n{link}\n\n"
+    return ("Подтвердите почту — Hoplab",
+            f"Здравствуйте!\n\nЧтобы подтвердить адрес {email} в Hoplab, откройте ссылку:\n{link}\n\n"
             "Ссылка действует 2 дня. Если вы не регистрировались, просто удалите это письмо.\n")
 
 
 def reset_letter(link):
-    return ("Новый пароль — Пивоварня",
+    return ("Новый пароль — Hoplab",
             f"Здравствуйте!\n\nЧтобы задать новый пароль, откройте ссылку:\n{link}\n\n"
             "Ссылка действует час и сработает один раз. Если вы не просили сменить пароль, просто удалите это письмо — "
             "пароль останется прежним.\n")

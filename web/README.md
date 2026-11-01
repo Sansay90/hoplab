@@ -1,4 +1,4 @@
-# web — интерфейс brewapp
+# web — интерфейс Hoplab
 
 Nuxt 4 + Nuxt UI 4, Pinia, nuxt-open-fetch; работает своим сервером Nuxt (Nitro, Node). **Гибридный рендеринг:** каталог `/recipes` и рецепт `/recipes/[id]` рендерятся на сервере — для поисковиков и превью ссылок (`useSeoMeta`), вошедшему — по его cookie; личное — варка, редактор, настройки, администрирование, `/verify`, `/reset` — приложение в браузере (`routeRules`, `ssr: false`). Что умеет интерфейс — [docs/features.md](../docs/features.md).
 

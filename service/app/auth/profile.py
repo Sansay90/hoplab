@@ -20,7 +20,7 @@ from ..models import Recipe, User, parse_id, unix
 from ..recipes.photos import Unsupported, open_image, photo_type
 
 NICK_RE = re.compile(r"[0-9A-Za-zА-Яа-яЁё][0-9A-Za-zА-Яа-яЁё_-]{2,23}")
-RESERVED = {"admin", "administrator", "root", "support", "moderator", "hoplab", "brewapp", "me", "new", "settings",
+RESERVED = {"admin", "administrator", "root", "support", "moderator", "hoplab", "хоплаб", "me", "new", "settings",
             "админ", "администратор", "модератор", "поддержка", "пивоварня"}
 AVATAR_SIDE = 256
 AVATAR_MAX_BYTES = 5 * 1024 * 1024

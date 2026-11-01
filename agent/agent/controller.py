@@ -26,7 +26,7 @@ from .recipe import (
     to_steps,
 )
 
-log = logging.getLogger("brewapp.brew")
+log = logging.getLogger("hoplab.brew")
 
 # DP — PROTOCOL.md
 DP_SWITCH, DP_START, DP_TIMER, DP_TEMP = "1", "2", "6", "10"

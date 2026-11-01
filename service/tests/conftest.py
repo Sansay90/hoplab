@@ -1,5 +1,5 @@
 """Тесты сервиса. Юнит-тесты базы не требуют; сквозные (фикстура service) идут на настоящем Postgres:
-TEST_DATABASE_URL, а без неё — база brewapp_test рядом с базой из DATABASE_URL (service/.env), создаётся сама.
+TEST_DATABASE_URL, а без неё — база hoplab_test рядом с базой из DATABASE_URL (service/.env), создаётся сама.
 Схема — миграциями, перед каждым тестом таблицы очищаются."""
 import json
 import os
@@ -24,7 +24,7 @@ def database_url_for_tests():
         base = Settings().database_url
         if not base:
             return None
-        url = make_url(base).set(database="brewapp_test").render_as_string(hide_password=False)
+        url = make_url(base).set(database="hoplab_test").render_as_string(hide_password=False)
     if not make_url(url).database.endswith("_test"):
         raise RuntimeError(f"тестовая база должна называться *_test, а не {make_url(url).database}: её очищают")
     return url

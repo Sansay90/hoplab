@@ -1,4 +1,4 @@
-"""Команды сервиса — из папки brewapp/service (.venv) или в контейнере:
+"""Команды сервиса — из папки hoplab/service (.venv) или в контейнере:
 
     python -m app [serve] [--host H] [--port P] [--lan]   запустить сервис (--lan — доступ из домашней сети)
     python -m app agents new [название] [--email почта]    новый агент — токен печатается один раз
@@ -68,7 +68,7 @@ def main(argv=None):
     argv = sys.argv[1:] if argv is None else argv
     if not argv or argv[0].startswith("-"):
         argv = ["serve", *argv]
-    p = argparse.ArgumentParser(prog="python -m app", description="brewapp — сервис рецептов и пивоварен")
+    p = argparse.ArgumentParser(prog="python -m app", description="Hoplab — сервис рецептов и пивоварен")
     sub = p.add_subparsers(dest="command", required=True)
 
     s = sub.add_parser("serve", help="запустить сервис")

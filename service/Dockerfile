@@ -1,5 +1,5 @@
-# Сервис brewapp: HTTP API, поток SSE для интерфейса, WebSocket для агентов. Интерфейс — отдельный образ (web/Dockerfile).
-# Сборка из папки service: docker build -t brewapp-service .  (в CI — .github/workflows/deploy.yml)
+# Сервис hoplab: HTTP API, поток SSE для интерфейса, WebSocket для агентов. Интерфейс — отдельный образ (web/Dockerfile).
+# Сборка из папки service: docker build -t hoplab-service .  (в CI — .github/workflows/deploy.yml)
 FROM python:3.13-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \

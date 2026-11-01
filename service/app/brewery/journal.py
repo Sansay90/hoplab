@@ -11,7 +11,7 @@ from ..db import session
 from ..models import Brew, Equipment, Event, Reading, Recipe, from_unix, parse_id, unix, utcnow
 from .logbook import DEVICE, batch_recipe, event_view, plan_of
 
-log = logging.getLogger("brewapp.journal")
+log = logging.getLogger("hoplab.journal")
 
 EVENT_FIELDS = ("kind", "text", "at")
 

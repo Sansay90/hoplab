@@ -1,5 +1,5 @@
 {
-  "name": "brewapp-web",
+  "name": "hoplab-web",
   "private": true,
   "type": "module",
   "scripts": {
