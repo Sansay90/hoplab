@@ -16,6 +16,7 @@ export type WaterAdditionRow = Row<WaterAddition>
 
 export interface WaterDraft {
   ratio: number | null                  // гидромодуль, л/кг; литры считаются (utils/water.ts)
+  ph: number | null                     // цель pH затора
   source: Row<WaterProfile>
   additions: WaterAdditionRow[]
 }

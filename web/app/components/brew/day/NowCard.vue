@@ -1,7 +1,8 @@
 <script setup lang="ts">
 // «Сейчас» — текущий шаг варочного дня. Без пивоварни: шаг, что приготовить, что дальше, «Дальше» (запись «step»;
 // на последнем шаге — «Дрожжи заданы», веха pitch; ошиблись — удалить запись в журнале); справа — таймер шага (если у
-// шага есть время) или поля его замеров (не записаны — «Дальше» спрашивает: эти цифры потом не восстановить). Звук
+// шага есть время) и поля его замеров (не записаны — «Дальше» спрашивает: эти цифры потом не восстановить; кроме
+// рекомендуемых — pH: прибор есть не у всех). Пивоварня ведёт шаги — под её карточками замеры её шага. Звук
 // здесь же: время шага вышло — сигнал минуту, дальше раз в 5 минут, пока не нажали «Дальше» (ждут йодную пробу —
 // не звенеть без конца); закладка на кипячении в свою минуту — сигнал закладки (на пивоварне звучат её события).
 // На подключённой пивоварне: до засыпи программа партии ещё не в ней — загрузить, загружена — запустить; позже
@@ -37,6 +38,7 @@ const programActive = computed(() => brewery.phase.running || brewery.phase.paus
 // пивоварня: программа ещё не загружена или ждёт запуска — пока её шаги не идут, рукой доходим до старта; после
 // засыпи загружать и запускать незачем: программа начнётся с нагрева
 const breweryIdle = computed(() => props.connected && !props.view.byBrewery && ['prepare', 'heat'].includes(step.value.kind))
+const hintOf = (m: EntryKind) => measureHint(m, props.brew.snapshot)
 // справа есть что показать (таймер, замеры, «Дальше» пивоварни) — иначе карточка шага на всю ширину
 const aside = computed(() => !!step.value.minutes || step.value.measures.length > 0 || (breweryIdle.value && loaded.value))
 
@@ -95,7 +97,7 @@ async function advance() {
 async function moveOn() {
   // ввели значение и сразу «Дальше» — сначала дописать его
   await Promise.all([...flushes].map(f => f()))
-  const missing = step.value.measures.filter(m => !measures.value.get(m) && !recorded.value.has(m))
+  const missing = step.value.measures.filter(m => !ENTRY_KINDS[m].optional && !measures.value.get(m) && !recorded.value.has(m))
   if (missing.length && !await confirm({
     title: 'Замеры не записаны',
     description: `${missing.map(m => ENTRY_KINDS[m].short ?? ENTRY_KINDS[m].label).join(', ')} — поля на этом шаге пустые. Идти дальше без записи?`,
@@ -120,6 +122,17 @@ async function upload() {
   <div v-if="view.byBrewery" class="grid gap-4 sm:gap-6 lg:grid-cols-2">
     <BrewNowCard />
     <BrewNextCard />
+    <UCard v-if="step.measures.length" :ui="{ body: 'p-5 sm:p-6' }" class="lg:col-span-2">
+      <template #header>
+        <h2 class="text-xl font-semibold text-highlighted">Замеры<span class="ms-3 text-base font-normal text-muted">{{ step.name }}</span></h2>
+      </template>
+      <ul v-if="step.details.length" class="mb-4 space-y-1 text-base text-toned">
+        <li v-for="d in step.details" :key="d">{{ d }}</li>
+      </ul>
+      <div class="flex flex-wrap gap-x-8 gap-y-3">
+        <BrewDayMeasureInput v-for="m in step.measures" :key="m" :brew-id="brew.id" :kind="m" :last="measures.get(m)" :hint="hintOf(m)" @saved="measured" />
+      </div>
+    </UCard>
   </div>
 
   <!-- две карточки, как «Варка» и «Журнал» ниже: слева шаг, справа таймер или замеры -->
@@ -171,30 +184,32 @@ async function upload() {
       />
     </UCard>
 
-    <UCard v-if="step.minutes" :ui="{ body: 'p-5 sm:p-6' }" class="h-full">
-      <template #header>
-        <div class="flex flex-wrap items-center justify-between gap-2">
-          <h2 class="text-xl font-semibold text-highlighted">Таймер</h2>
-          <span class="flex items-center gap-1.5 text-sm text-muted"><UIcon name="i-lucide-bell" class="size-4" />{{ over ? 'время вышло' : 'напомним' }}</span>
+    <div v-if="step.minutes || step.measures.length" class="flex flex-col gap-4 sm:gap-6">
+      <UCard v-if="step.minutes" :ui="{ body: 'p-5 sm:p-6' }">
+        <template #header>
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <h2 class="text-xl font-semibold text-highlighted">Таймер</h2>
+            <span class="flex items-center gap-1.5 text-sm text-muted"><UIcon name="i-lucide-bell" class="size-4" />{{ over ? 'время вышло' : 'напомним' }}</span>
+          </div>
+        </template>
+        <div class="num text-6xl font-semibold tracking-tight" :class="over ? 'text-warning' : 'text-highlighted'">
+          {{ remaining != null ? (over ? '+' : '') + fmtDuration(Math.abs(remaining)) : fmtMinutes(step.minutes) }}
         </div>
-      </template>
-      <div class="num text-6xl font-semibold tracking-tight" :class="over ? 'text-warning' : 'text-highlighted'">
-        {{ remaining != null ? (over ? '+' : '') + fmtDuration(Math.abs(remaining)) : fmtMinutes(step.minutes) }}
-      </div>
-      <UProgress v-if="progress != null" :model-value="Math.round(progress)" size="sm" :color="over ? 'warning' : 'primary'" class="mt-3" />
-      <div v-if="step.at != null && step.ends != null" class="num mt-2 text-sm text-muted">
-        {{ fmtTime(step.at) }} → {{ fmtTime(step.ends) }}
-      </div>
-    </UCard>
-    <!-- замеры шага (у шагов с таймером замеров нет) -->
-    <UCard v-else-if="step.measures.length" :ui="{ body: 'p-5 sm:p-6' }" class="h-full">
-      <template #header>
-        <h2 class="text-xl font-semibold text-highlighted">Замеры</h2>
-      </template>
-      <div class="flex flex-col gap-3">
-        <BrewDayMeasureInput v-for="m in step.measures" :key="m" :brew-id="brew.id" :kind="m" :last="measures.get(m)" @saved="measured" />
-      </div>
-    </UCard>
+        <UProgress v-if="progress != null" :model-value="Math.round(progress)" size="sm" :color="over ? 'warning' : 'primary'" class="mt-3" />
+        <div v-if="step.at != null && step.ends != null" class="num mt-2 text-sm text-muted">
+          {{ fmtTime(step.at) }} → {{ fmtTime(step.ends) }}
+        </div>
+      </UCard>
+      <!-- замеры шага — и под таймером паузы (pH на первой паузе) -->
+      <UCard v-if="step.measures.length" :ui="{ body: 'p-5 sm:p-6' }">
+        <template #header>
+          <h2 class="text-xl font-semibold text-highlighted">Замеры</h2>
+        </template>
+        <div class="flex flex-col gap-3">
+          <BrewDayMeasureInput v-for="m in step.measures" :key="m" :brew-id="brew.id" :kind="m" :last="measures.get(m)" :hint="hintOf(m)" @saved="measured" />
+        </div>
+      </UCard>
+    </div>
     <BrewNextCard v-else-if="breweryIdle && loaded" class="h-full" />
   </div>
 </template>

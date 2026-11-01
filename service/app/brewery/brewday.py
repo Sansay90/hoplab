@@ -27,9 +27,11 @@ PROGRESS_EVENTS = ("step", "alert", "alertCleared", "end")   # события п
 ALERT_STEPS = {"malt": "mash_in", "mashEnd": "sparge"}       # подсказка пивоварни → шаг варочного дня
 
 
-def steps_of(recipe):
+def steps_of(recipe, automated=False):
     """Шаги варочного дня из рецепта партии: [{index, key, kind, name, temp, minutes, measures, additions}].
-    kind: prepare, heat, mash_in, rest, sparge, boil, chill, pitch. measures — виды замеров на этом шаге."""
+    kind: prepare, heat, mash_in, rest, sparge, boil, chill, pitch. measures — виды замеров на этом шаге: pH — на
+    первой паузе (после засыпи он устанавливается 10–15 мин), температура затора — на засыпи, если её не пишет
+    пивоварня сама (automated)."""
     mash = recipe.get("mash") or []
     boil = recipe.get("boil")
     chill_to = next((st.get("temp") for st in recipe.get("fermentation") or [] if st.get("temp") is not None), None)
@@ -40,10 +42,10 @@ def steps_of(recipe):
                       "watts": mash[0].get("watts") if heat is None else heat})
         if heat is not None:
             steps[-1]["own"] = True          # у программы свой шаг «Нагрев» — паузы в ней со второго шага
-        steps.append({"kind": "mash_in", "name": "Засыпать солод", "measures": ["ph", "mash_temp"]})
+        steps.append({"kind": "mash_in", "name": "Засыпать солод", "measures": [] if automated else ["mash_temp"]})
     for i, st in enumerate(mash):
         steps.append({"kind": "rest", "name": st.get("name") or f"Пауза {i + 1}", "temp": st["temp"],
-                      "minutes": st["minutes"], "watts": st.get("watts")})
+                      "minutes": st["minutes"], "watts": st.get("watts"), "measures": ["ph"] if i == 0 else []})
     if mash:
         steps.append({"kind": "sparge", "name": "Промывка",
                       "measures": ["first_wort", "preboil_volume", "preboil_gravity"]})

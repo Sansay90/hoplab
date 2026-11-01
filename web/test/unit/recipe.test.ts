@@ -57,6 +57,7 @@ describe('форма ↔ API', () => {
     yeasts: [{ name: ' W-34/70 ', form: 'dry', amount: 2, unit: 'pkg', attenuation: 80 }, { name: '', form: 'dry', amount: 1, unit: 'pkg', attenuation: null }],
     water: {
       ratio: 3,
+      ph: 5.4,
       source: { ca: 0, mg: 0, na: 0, cl: 0, so4: 0, hco3: 0 },
       additions: [
         { agent: 'cacl2', name: 'лишнее', amount: 3, target: 'mash' },
@@ -120,7 +121,7 @@ describe('форма ↔ API', () => {
     } as Recipe)
     expect(d.batch).toEqual({ volume: null, efficiency: null })
     expect(d.fermentables[0]).toEqual({ name: 'Pale', kind: 'grain', amount: null, ebc: null, use: 'mash', minutes: null })
-    expect(d.water).toEqual({ ratio: null, source: { ca: 0, mg: 0, na: 0, cl: 0, so4: 0, hco3: 0 }, additions: [] })
+    expect(d.water).toEqual({ ratio: null, ph: null, source: { ca: 0, mg: 0, na: 0, cl: 0, so4: 0, hco3: 0 }, additions: [] })
     expect(d.mash[0]).toEqual({ name: '', temp: 66, minutes: 60 })        // мощность, сохранённая раньше, — не в черновик
     expect(d.boil).toEqual({ minutes: 60 })
     expect(d.style).toBeNull()

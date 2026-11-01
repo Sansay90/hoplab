@@ -7290,6 +7290,20 @@
             "title": "Ratio",
             "description": "гидромодуль — заторная вода к засыпи, л/кг"
           },
+          "ph": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 7.0,
+                "minimum": 4.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ph",
+            "description": "цель pH затора — проба при комнатной температуре"
+          },
           "source": {
             "$ref": "#/components/schemas/WaterProfile",
             "description": "исходная вода; нули — осмос"

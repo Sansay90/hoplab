@@ -166,6 +166,13 @@ export function additionWhen(minutes: number, boil: number | null | undefined) {
   return minutes === boil ? 'старт' : minutes === 0 ? 'конец' : `за ${minutes} мин`
 }
 
+/** Подсказка к замеру на шаге: pH — цель по рецепту (партии), не задана — обычный диапазон. */
+export function measureHint(kind: BrewEntry['kind'], r: Recipe | null | undefined) {
+  if (kind !== 'ph') return null
+  const ph = r?.water?.ph
+  return ph != null ? `по рецепту ${fmtNumber(ph, 2)}` : 'обычно 5,2–5,4'
+}
+
 /** Последний замер каждого вида — для чипов на шагах. */
 export function lastMeasures(entries: BrewEntry[]) {
   const out = new Map<BrewEntry['kind'], BrewEntry>()

@@ -14,6 +14,7 @@ const rows = computed(() => [
 ].filter(r => r.ions))
 const summary = computed(() => [
   props.water.ratio && `${props.water.ratio.toLocaleString('ru-RU', { maximumFractionDigits: 2 })} л/кг`,
+  props.water.ph != null && `pH затора ${props.water.ph.toLocaleString('ru-RU', { maximumFractionDigits: 2 })}`,
   props.volumes.mash != null && `затор ${fmtL(props.volumes.mash)}`,
   props.volumes.sparge != null && `промывка ${fmtL(props.volumes.sparge)}`,
 ].filter(Boolean).join(SEP))

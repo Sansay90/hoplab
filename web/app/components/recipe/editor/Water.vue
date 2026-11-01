@@ -47,9 +47,12 @@ const fmtRatio = (v: number | null) => (v == null ? '—' : v.toLocaleString('ru
       </UDropdownMenu>
     </template>
 
-    <div class="grid gap-4 sm:grid-cols-3">
+    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
       <UFormField label="Гидромодуль" hint="л/кг">
         <UInputNumber v-model="water.ratio" :min="0" :step="0.1" :step-snapping="false" :increment="false" :decrement="false" :format-options="{ maximumFractionDigits: 2 }" placeholder="—" class="w-full" />
+      </UFormField>
+      <UFormField label="pH затора" hint="цель">
+        <UInputNumber v-model="water.ph" :min="4" :max="7" :step="0.05" :step-snapping="false" :increment="false" :decrement="false" :format-options="{ maximumFractionDigits: 2 }" placeholder="5,2–5,4" class="w-full" />
       </UFormField>
       <UFormField label="Заторная вода">
         <div class="num flex h-8 items-center text-sm" :class="volumes.mash == null ? 'text-dimmed' : 'text-highlighted'">

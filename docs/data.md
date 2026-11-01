@@ -66,7 +66,7 @@ users ─┬─ sessions                  входы
 | `hops[]` | `name`, `alpha` %, `amount` г, `use` (`mash` / `first_wort` / `boil` / `whirlpool` / `dry_hop`), `minutes` — до конца кипячения или время вирпула, `day` — день сухого охмеления, `gravity` — у сухого: при какой плотности брожения, SG (день — примерный) |
 | `miscs[]` | `name`, `kind` (`spice` / `fining` / `adjunct` / `equipment`), `amount` + `unit` (`g` / `kg` / `ml` / `pcs` / `pkg`), `use` (`mash` / `boil` / `whirlpool` / `fermentation` / `packaging`), `minutes` |
 | `yeasts[]` | `name`, `form` (`dry` / `liquid`), `amount` + `unit`, `attenuation` — % |
-| `water` | `ratio` — гидромодуль л/кг, `source` — исходная вода (Ca, Mg, Na, Cl, SO₄, HCO₃, мг/л; нули — осмос), `additions[]` — соль (г) или кислота (мл): `agent`, `amount`, `target` (`mash` / `sparge`) |
+| `water` | `ratio` — гидромодуль л/кг, `ph` — цель pH затора (4–7, необязательно), `source` — исходная вода (Ca, Mg, Na, Cl, SO₄, HCO₃, мг/л; нули — осмос), `additions[]` — соль (г) или кислота (мл): `agent`, `amount`, `target` (`mash` / `sparge`) |
 | `mash[]` | паузы: `name`, `temp`, `minutes`, `watts` |
 | `boil` | `minutes`, `watts`; пусто — без кипячения |
 | `fermentation[]` | этапы: `name`, `temp`, `until` (`gravity` — до плотности, `fg` — до конечной, `days` — выдержка; нет — `days`), `gravity` (SG, для `gravity`), `days` (у выдержки — сколько, у `gravity` и `fg` — примерно) |

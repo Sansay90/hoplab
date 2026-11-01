@@ -71,6 +71,9 @@ def test_batch_power(service, brewer, agents, recipe):
     rid = brewer.ok("POST", "/recipes", recipe)["id"]
     batch = brewer.ok("POST", "/brews", {"recipeId": rid, "watts": [1500, 1500, 2000, 2400]})
     assert [st["watts"] for st in batch["snapshot"]["mash"]] == [1500, 1500, 2000]
+    by_kind = {st["kind"]: st["measures"] for st in batch["brewDay"]}
+    assert by_kind["mash_in"] == [] and by_kind["rest"] == []                # температуру пишет пивоварня
+    assert next(st for st in batch["brewDay"] if st["kind"] == "rest")["measures"] == ["ph"]
     assert {st["kind"]: st["watts"] for st in batch["brewDay"] if st["watts"]} == {"heat": 1500, "rest": 2000,
                                                                                       "boil": 2400}
     brewer.ok("POST", f"/brews/{batch['id']}/upload")

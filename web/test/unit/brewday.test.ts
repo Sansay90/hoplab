@@ -4,7 +4,7 @@ import type { BrewDayStep, BrewEntry, Recipe } from '~/types'
 import type { Phase } from '~/utils/brew'
 import { sgFromPlato } from '~/utils/beer'
 import { phaseOf } from '~/utils/brew'
-import { additionWhen, brewDay, breweryStep, lastMeasures, spargeLine, stepDetails, stepLine, stepRemaining } from '~/utils/brewday'
+import { additionWhen, brewDay, breweryStep, lastMeasures, measureHint, spargeLine, stepDetails, stepLine, stepRemaining } from '~/utils/brewday'
 import { dots, snapshot } from './fixtures'
 
 const STEPS: BrewDayStep[] = [
@@ -167,6 +167,16 @@ describe('подписи шагов', () => {
     expect(stepLine({ ...STEPS[3]!, watts: 2000 })).toBe(dots('66,0 °C · 1 ч · 2000 W'))      // партия на пивоварне
     expect(stepLine(STEPS[5]!)).toBe('')
     expect([60, 10, 0].map(m => additionWhen(m, 60))).toEqual(['старт', 'за 10 мин', 'конец'])
+  })
+})
+
+describe('подсказки к замерам', () => {
+  it('pH — цель по рецепту партии, нет — обычный диапазон; прочим — ничего', () => {
+    const r = { water: { ph: 5.4 } } as unknown as Recipe
+    expect(measureHint('ph', r)).toBe('по рецепту 5,4')
+    expect(measureHint('ph', { water: { ratio: 3 } } as unknown as Recipe)).toBe('обычно 5,2–5,4')
+    expect(measureHint('ph', null)).toBe('обычно 5,2–5,4')
+    expect(measureHint('mash_temp', r)).toBeNull()
   })
 })
 

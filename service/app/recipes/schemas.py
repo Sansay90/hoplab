@@ -107,6 +107,7 @@ class Water(BaseModel):
     """Заторная вода = гидромодуль × засыпь; промывочная — остальное до объёма перед кипячением
     с поправкой на дробину (считает интерфейс: испарение — у оборудования, а не в рецепте)."""
     ratio: float | None = Field(None, description="гидромодуль — заторная вода к засыпи, л/кг")
+    ph: float | None = Field(None, ge=4, le=7, description="цель pH затора — проба при комнатной температуре")
     source: WaterProfile = Field(default_factory=WaterProfile, description="исходная вода; нули — осмос")
     additions: list[WaterAddition] = []
 

@@ -6,7 +6,8 @@
 import type { BrewEntry } from '~/types'
 import type { EntryKind } from '~/utils/brewlog'
 
-const props = defineProps<{ brewId: string; kind: EntryKind; last?: BrewEntry | null; fresh?: boolean }>()
+// hint — подсказка под полем (цель pH по рецепту); рекомендуемый замер (ENTRY_KINDS optional) — с пометкой
+const props = defineProps<{ brewId: string; kind: EntryKind; last?: BrewEntry | null; fresh?: boolean; hint?: string | null }>()
 const emit = defineEmits<{ saved: [entry: BrewEntry] }>()
 const { $api } = useNuxtApp()
 const prefs = usePreferencesStore()
@@ -64,7 +65,9 @@ onBeforeUnmount(() => {
 
 <template>
   <label class="flex flex-col gap-1">
-    <span class="text-sm text-muted">{{ ENTRY_KINDS[kind].short ?? ENTRY_KINDS[kind].label }}</span>
+    <span class="text-sm text-muted">
+      {{ ENTRY_KINDS[kind].short ?? ENTRY_KINDS[kind].label }}<template v-if="ENTRY_KINDS[kind].optional">{{ SEP }}рекомендуется</template>
+    </span>
     <span class="flex items-center gap-1.5">
       <UInputNumber
         v-model="value"
@@ -87,5 +90,6 @@ onBeforeUnmount(() => {
       <UIcon v-else-if="saved" name="i-lucide-check" class="size-5 text-success" aria-label="Записано" />
       <UIcon v-else-if="lastInput != null && !fresh" name="i-lucide-check" class="size-5 text-muted" aria-label="Записано раньше" />
     </span>
+    <span v-if="hint" class="num text-sm text-muted">{{ hint }}</span>
   </label>
 </template>

@@ -37,7 +37,7 @@ export const newMisc = (kind: MiscRow['kind']): MiscRow => ({
 export const newYeast = (): YeastRow => ({ name: '', form: 'dry', amount: 1, unit: 'pkg', attenuation: null })
 export const newWaterAddition = (agent: WaterAgent): WaterAdditionRow => ({ agent, name: '', amount: null, target: 'mash' })
 export const blankWater = (): WaterDraft => ({
-  ratio: 3, source: { ca: 0, mg: 0, na: 0, cl: 0, so4: 0, hco3: 0 }, additions: [],
+  ratio: 3, ph: null, source: { ca: 0, mg: 0, na: 0, cl: 0, so4: 0, hco3: 0 }, additions: [],
 })
 export const mashStep = (temp = 66, minutes = 60, name = ''): MashRow => ({ name, temp, minutes })
 export const fermentationStep = (temp = 18, days = 7, name = '', until: FermentationRow['until'] = 'days'): FermentationRow =>
@@ -87,6 +87,7 @@ export function toDraft(r: Recipe): RecipeDraft {
     })),
     water: {
       ratio: r.water?.ratio ?? null,
+      ph: r.water?.ph ?? null,
       source: { ...blankWater().source, ...r.water?.source },
       additions: (r.water?.additions ?? []).map(a => ({
         agent: a.agent, name: a.name ?? '', amount: a.amount ?? null, target: a.target ?? 'mash',
@@ -275,6 +276,7 @@ export function validateRecipe(d: RecipeDraft, l: Limits): string[] {
     if (over(y.amount, 100_000)) out.push(`«${y.name || 'дрожжи'}»: не больше 100 000`)
   }
   if (d.water.additions.some(a => over(a.amount, 100_000))) out.push('Вода: соли и кислоты — не больше 100 000')
+  if (d.water.ph != null && !(d.water.ph >= 4 && d.water.ph <= 7)) out.push('Вода: pH затора — от 4 до 7')
   d.fermentation.forEach((s, i) => {
     const name = s.name.trim() || `Этап ${i + 1}`
     if (s.until === 'gravity' && s.gravity == null) out.push(`Брожение: у этапа «${name}» — до какой плотности`)
