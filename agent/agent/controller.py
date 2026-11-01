@@ -113,6 +113,8 @@ class Controller:
 
     # ── реакция на DP ─────────────────────────────────────────────────────────
     def _on_change(self, changed):
+        # LOG_LEVEL=DEBUG — что пивоварня прислала (без программы рецепта: она длинная и пишется в state)
+        log.debug("DP %s", {k: v for k, v in changed.items() if k != RECIPE_DP_S})
         with self._lock:
             dps = self.dev.dps
             now = time.monotonic()

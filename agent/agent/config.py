@@ -34,6 +34,7 @@ class Config:
     brewery_ip: str | None            # BREWERY_IP, BREWERY_VERSION — адрес пивоварни и версия протокола
     brewery_version: str | None       # вместо автопоиска (из Docker широковещание не доходит)
     max_watts: int | None             # MAX_WATTS — потолок мощности, если модели нет в recipe.MODEL_MAX_WATTS
+    log_level: str                    # LOG_LEVEL — DEBUG: в журнал каждое изменение DP пивоварни (разбор её поведения)
 
     @classmethod
     def from_env(cls):
@@ -43,4 +44,5 @@ class Config:
                    brewery_id=env("BREWERY_ID"),
                    state=env("BREWAPP_STATE") or os.path.join(AGENT_DIR, "data", "state.json"),
                    brewery_ip=env("BREWERY_IP"), brewery_version=env("BREWERY_VERSION"),
-                   max_watts=int(max_watts) if max_watts else None)
+                   max_watts=int(max_watts) if max_watts else None,
+                   log_level=(env("LOG_LEVEL") or "INFO").upper())

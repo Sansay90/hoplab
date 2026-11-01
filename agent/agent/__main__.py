@@ -54,8 +54,8 @@ async def serve(controller, brewery, url, token, device):
 
 
 def main():
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s: %(message)s", datefmt="%H:%M:%S")
     cfg = Config.from_env()
+    logging.basicConfig(level=cfg.log_level, format="%(asctime)s %(name)s: %(message)s", datefmt="%H:%M:%S")
     if not cfg.token:
         raise SystemExit("не задан AGENT_TOKEN — токен агента выдаёт сервис (README.md, «Запуск»)")
     d = load_device(cfg.devices, cfg.brewery_id)
