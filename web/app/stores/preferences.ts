@@ -8,7 +8,9 @@ export const usePreferencesStore = defineStore('preferences', () => {
   const sound = preference<boolean>('brewapp.sound', false)
   const gravityUnit = preference<GravityUnit>('brewapp.gravityUnit', 'plato')
   const wcf = preference<string>('brewapp.wcf', '1.04')          // поправка рефрактометра на сусло — запоминается
-  return { sound, gravityUnit, wcf }
+  // чем мерил плотность сусла в прошлый раз — калькулятор откроется на нём
+  const gravityInstrument = preference<'hydrometer' | 'refractometer'>('brewapp.gravityInstrument', 'hydrometer')
+  return { sound, gravityUnit, wcf, gravityInstrument }
 })
 
 /** Настройка: пока её не меняли, cookie нет (гостю и поисковикам сервер её не ставит), значение — fallback. */

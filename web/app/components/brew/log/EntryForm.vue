@@ -62,7 +62,9 @@ async function save() {
       </UFormField>
       <UFormField v-if="input" :label="input.suffix === 'л' ? 'Литров' : 'Значение'">
         <div class="flex items-center gap-2">
+          <BrewGravityField v-if="ENTRY_KINDS[kind].unit === 'sg'" v-model="value" :kind="kind" />
           <UInputNumber
+            v-else
             v-model="value"
             :min="input.min"
             :max="input.max"

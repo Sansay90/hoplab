@@ -1,7 +1,8 @@
 <script setup lang="ts">
 // Пересчёт показания прибора в плотность для записи: ареометр — с поправкой на температуру пробы (откалиброван на
 // 20 °C), рефрактометр — Brix с поправкой на сусло (WCF; только несброженное — в пиве спирт искажает показание).
-// «Подставить» — значение уходит в поле замера и записывается.
+// «Подставить» — значение уходит в поле замера и записывается. Прибор запоминается. Кнопка, которая открывает
+// калькулятор, — слот (по умолчанию — значок калькулятора).
 import type { EntryKind } from '~/utils/brewlog'
 
 const props = defineProps<{ kind: EntryKind }>()
@@ -10,7 +11,8 @@ const prefs = usePreferencesStore()
 
 const open = ref(false)
 const canRefract = computed(() => UNFERMENTED.has(props.kind))
-const mode = ref<'hydrometer' | 'refractometer'>('hydrometer')
+type Instrument = 'hydrometer' | 'refractometer'
+const mode = ref<Instrument>('hydrometer')
 const MODES = [{ label: 'Ареометр', value: 'hydrometer' }, { label: 'Рефрактометр', value: 'refractometer' }]
 // поля — текстом: результат пересчитывается на каждый символ (числовое поле отдаёт значение только на blur)
 const readingText = ref('')
@@ -39,12 +41,13 @@ const result = computed(() => {
 watch(open, (on) => {
   if (!on) return
   readingText.value = ''
-  if (!canRefract.value) mode.value = 'hydrometer'
+  mode.value = canRefract.value && prefs.gravityInstrument === 'refractometer' ? 'refractometer' : 'hydrometer'
 })
 
 function use() {
   if (result.value == null) return
   if (mode.value === 'refractometer' && wcf.value) prefs.wcf = String(wcf.value)
+  if (canRefract.value) prefs.gravityInstrument = mode.value
   emit('use', result.value)
   open.value = false
 }
@@ -52,7 +55,9 @@ function use() {
 
 <template>
   <UPopover v-model:open="open">
-    <UButton icon="i-lucide-calculator" color="neutral" variant="ghost" size="lg" aria-label="Пересчитать показание прибора" />
+    <slot>
+      <UButton icon="i-lucide-calculator" color="neutral" variant="ghost" size="lg" aria-label="Пересчитать показание прибора" />
+    </slot>
     <template #content>
       <form class="w-72 space-y-3 p-4" @submit.prevent="use">
         <UTabs v-if="canRefract" v-model="mode" :items="MODES" :content="false" size="sm" class="w-full" />
