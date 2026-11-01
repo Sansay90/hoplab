@@ -4,7 +4,8 @@
 // шага есть время) и поля его замеров (не записаны — «Дальше» спрашивает: эти цифры потом не восстановить; кроме
 // рекомендуемых — pH: прибор есть не у всех). Пивоварня ведёт шаги — под её карточками замеры её шага. Звук
 // здесь же: время шага вышло — сигнал, не больше 4 раз (общее правило, useSound.ring); закладка на кипячении в свою
-// минуту — сигнал закладки (на пивоварне звучат её события).
+// минуту — сигнал закладки. Пока шаги ведёт пивоварня, своего отсчёта не звучит: её таймер идёт от выхода на
+// температуру и стоит на паузе — звучат её события (плагин уведомлений).
 // На подключённой пивоварне: до засыпи программа партии ещё не в ней — загрузить, загружена — запустить; позже
 // загружать незачем (программа начнётся с нагрева) — шаги рукой. Программа идёт — «Сейчас» и «Дальше» самой
 // пивоварни, шаги она ведёт сама.
@@ -48,9 +49,10 @@ const progress = computed(() => (remaining.value != null && step.value.minutes
   ? Math.min(100, Math.max(0, 100 * (1 - remaining.value / (step.value.minutes * 60))))
   : null))
 
-// время шага вышло — сигнал, не больше 4 раз
+// время шага вышло — сигнал, не больше 4 раз; пивоварня ведёт шаги — не наш отсчёт, молчим
+const ringing = computed(() => over.value && !props.view.byBrewery)
 let silence: (() => void) | undefined
-watch(over, (ring) => {
+watch(ringing, (ring) => {
   silence?.()
   silence = ring ? sound.ring('end') : undefined
 }, { immediate: true })
@@ -59,7 +61,7 @@ onBeforeUnmount(() => silence?.())
 const sounded = new Set<number>()
 watch(() => props.view.current, () => sounded.clear())
 watch(remaining, (left) => {
-  if (step.value.kind !== 'boil' || left == null || !step.value.minutes) return
+  if (props.view.byBrewery || step.value.kind !== 'boil' || left == null || !step.value.minutes) return
   const elapsed = step.value.minutes * 60 - left
   for (const a of step.value.additions) {
     const at = (step.value.minutes - a.minutes) * 60
