@@ -12,22 +12,33 @@ const open = ref(false)
 const canRefract = computed(() => UNFERMENTED.has(props.kind))
 const mode = ref<'hydrometer' | 'refractometer'>('hydrometer')
 const MODES = [{ label: 'Ареометр', value: 'hydrometer' }, { label: 'Рефрактометр', value: 'refractometer' }]
-const reading = ref<number | null>(null)
-const sampleC = ref<number | null>(20)
-const wcf = ref<number | null>(Number(prefs.wcf) || DEFAULT_WCF)
+// поля — текстом: результат пересчитывается на каждый символ (числовое поле отдаёт значение только на blur)
+const readingText = ref('')
+const sampleText = ref('20')
+const wcfText = ref(String(Number(prefs.wcf) || DEFAULT_WCF).replace('.', ','))
+const num = (t: string) => {
+  const n = Number(t.trim().replace(',', '.'))
+  return t.trim() === '' || !Number.isFinite(n) ? null : n
+}
+const reading = computed(() => num(readingText.value))
+const sampleC = computed(() => num(sampleText.value))
+const wcf = computed(() => num(wcfText.value))
 const plato = computed(() => prefs.gravityUnit === 'plato')
 
 const result = computed(() => {
   const r = reading.value
   if (r == null) return null
-  if (mode.value === 'refractometer') return wcf.value ? sgFromPlato(refractometerPlato(r, wcf.value)) : null
+  if (mode.value === 'refractometer') {
+    return wcf.value && wcf.value >= 0.9 && wcf.value <= 1.2 && r > 0 && r < 40 ? sgFromPlato(refractometerPlato(r, wcf.value)) : null
+  }
   const sg = plato.value ? sgFromPlato(r) : r
-  return sg > 0.98 && sampleC.value != null ? hydrometerSg(sg, sampleC.value) : null
+  const t = sampleC.value
+  return sg > 0.98 && sg < 1.2 && t != null && t >= 0 && t <= 80 ? hydrometerSg(sg, t) : null
 })
 
 watch(open, (on) => {
   if (!on) return
-  reading.value = null
+  readingText.value = ''
   if (!canRefract.value) mode.value = 'hydrometer'
 })
 
@@ -46,26 +57,13 @@ function use() {
       <form class="w-72 space-y-3 p-4" @submit.prevent="use">
         <UTabs v-if="canRefract" v-model="mode" :items="MODES" :content="false" size="sm" class="w-full" />
         <UFormField :label="mode === 'refractometer' ? 'Показание, Brix' : `Показание, ${plato ? '°P' : 'SG'}`">
-          <UInputNumber
-            v-model="reading"
-            :min="mode === 'refractometer' || plato ? 0 : 0.98"
-            :max="mode === 'refractometer' || plato ? 40 : 1.2"
-            :step="mode === 'refractometer' || plato ? 0.1 : 0.001"
-            :step-snapping="false"
-            :format-options="{ maximumFractionDigits: mode === 'refractometer' || plato ? 1 : 3 }"
-            :increment="false"
-            :decrement="false"
-            placeholder="—"
-            size="lg"
-            class="w-full"
-            autofocus
-          />
+          <UInput v-model="readingText" inputmode="decimal" placeholder="—" size="lg" class="w-full" :ui="{ base: 'num' }" autofocus />
         </UFormField>
         <UFormField v-if="mode === 'hydrometer'" label="Температура пробы, °C">
-          <UInputNumber v-model="sampleC" :min="0" :max="80" :step="0.5" :step-snapping="false" :increment="false" :decrement="false" size="lg" class="w-full" />
+          <UInput v-model="sampleText" inputmode="decimal" size="lg" class="w-full" :ui="{ base: 'num' }" />
         </UFormField>
         <UFormField v-else label="Поправка на сусло (WCF)" hint="обычно 1,04">
-          <UInputNumber v-model="wcf" :min="0.9" :max="1.2" :step="0.01" :step-snapping="false" :format-options="{ maximumFractionDigits: 2 }" :increment="false" :decrement="false" size="lg" class="w-full" />
+          <UInput v-model="wcfText" inputmode="decimal" size="lg" class="w-full" :ui="{ base: 'num' }" />
         </UFormField>
         <div class="num text-lg" :class="result == null ? 'text-dimmed' : 'text-highlighted'">
           = {{ result == null ? '—' : fmtGravity(result, prefs.gravityUnit) }}
