@@ -3219,14 +3219,21 @@
             "title": "Minutes"
           },
           "watts": {
-            "type": "integer",
-            "title": "Watts"
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Watts",
+            "description": "мощность ТЭНа, W — только у рецепта партии: её задают при «Сварить» под пивоварню, у рецепта не хранится"
           }
         },
         "type": "object",
         "required": [
-          "minutes",
-          "watts"
+          "minutes"
         ],
         "title": "Boil"
       },
@@ -3300,6 +3307,18 @@
             ],
             "title": "Minutes",
             "description": "пауза или кипячение — сколько держать; таймер"
+          },
+          "watts": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Watts",
+            "description": "мощность ТЭНа на шаге, W — у партии на пивоварне (нагрев — как у первой паузы)"
           },
           "measures": {
             "items": {
@@ -3879,6 +3898,24 @@
             ],
             "title": "Equipmentid",
             "description": "на чём варят; не указано — основное оборудование. Рецепт партии пересчитывается под его объём и эффективность"
+          },
+          "watts": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "integer",
+                  "maximum": 100000.0,
+                  "minimum": 1.0
+                },
+                "type": "array",
+                "maxItems": 40
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Watts",
+            "description": "мощность ТЭНа на шагах программы, W: по одной на каждую паузу затирания, затем на кипячение — для пивоварни; не указана — при загрузке потолок модели"
           }
         },
         "type": "object",
@@ -4701,6 +4738,17 @@
             "type": "boolean",
             "title": "Main",
             "description": "основная варочная система — для новых рецептов и расчётов"
+          },
+          "watts": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ProgramWatts"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "мощность ТЭНа последней партии на нём — подставить в «Сварить» (только в списке оборудования)"
           }
         },
         "type": "object",
@@ -5623,15 +5671,22 @@
             "title": "Minutes"
           },
           "watts": {
-            "type": "integer",
-            "title": "Watts"
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Watts",
+            "description": "мощность ТЭНа, W — только у рецепта партии: её задают при «Сварить» под пивоварню, у рецепта не хранится"
           }
         },
         "type": "object",
         "required": [
           "temp",
-          "minutes",
-          "watts"
+          "minutes"
         ],
         "title": "MashStep"
       },
@@ -6012,6 +6067,35 @@
         ],
         "title": "Photo",
         "description": "Фото пива по рецепту; сама картинка — GET /api/photos/{id}."
+      },
+      "ProgramWatts": {
+        "properties": {
+          "mash": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Mash",
+            "description": "по паузам затирания, W"
+          },
+          "boil": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Boil",
+            "description": "кипячение, W"
+          }
+        },
+        "type": "object",
+        "required": [
+          "mash"
+        ],
+        "title": "ProgramWatts"
       },
       "PushEndpoint": {
         "properties": {

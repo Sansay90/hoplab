@@ -35,16 +35,16 @@ def steps_of(recipe):
     chill_to = next((st.get("temp") for st in recipe.get("fermentation") or [] if st.get("temp") is not None), None)
     steps = [{"kind": "prepare", "name": "Подготовка"}]
     if mash:
-        steps.append({"kind": "heat", "name": "Нагрев", "temp": mash[0]["temp"]})
+        steps.append({"kind": "heat", "name": "Нагрев", "temp": mash[0]["temp"], "watts": mash[0].get("watts")})
         steps.append({"kind": "mash_in", "name": "Засыпать солод", "measures": ["ph", "mash_temp"]})
     for i, st in enumerate(mash):
         steps.append({"kind": "rest", "name": st.get("name") or f"Пауза {i + 1}", "temp": st["temp"],
-                      "minutes": st["minutes"]})
+                      "minutes": st["minutes"], "watts": st.get("watts")})
     if mash:
         steps.append({"kind": "sparge", "name": "Промывка",
                       "measures": ["first_wort", "preboil_volume", "preboil_gravity"]})
     if boil:
-        steps.append({"kind": "boil", "name": "Кипячение", "minutes": boil["minutes"],
+        steps.append({"kind": "boil", "name": "Кипячение", "minutes": boil["minutes"], "watts": boil.get("watts"),
                       "additions": [{"minutes": s["minutes"], "label": s["label"]} for s in addition_slots(recipe)]})
     steps.append({"kind": "chill", "name": "Охлаждение", "temp": chill_to, "measures": ["og", "fermenter_volume"]})
     steps.append({"kind": "pitch", "name": "Задать дрожжи", "measures": ["pitch_temp"]})

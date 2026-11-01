@@ -9,17 +9,15 @@ const props = defineProps<{ limits: Limits }>()
 
 const CELSIUS = { style: 'unit', unit: 'celsius', maximumFractionDigits: 1 } as const
 const MINUTES = { style: 'unit', unit: 'minute', unitDisplay: 'short' } as const
-const GRID = 'sm:grid sm:grid-cols-[1.75rem_minmax(0,1fr)_8.5rem_8rem_8rem_6rem]'
+const GRID = 'sm:grid sm:grid-cols-[1.75rem_minmax(0,1fr)_8.5rem_8rem_6rem]'
 
-const watts = computed(() => wattOptions(props.limits))
-const maxWatts = computed(() => watts.value[0]!.value)
 const steps = computed(() => programOf(draft.value, props.limits.boilTemp))
 const groups = computed(() => boilGroups(draft.value))
 const full = computed(() => steps.value.length >= props.limits.maxSteps)
 
 function addPause() {
   const last = draft.value.mash[draft.value.mash.length - 1]
-  draft.value.mash.push(mashStep(last?.watts ?? maxWatts.value, last ? Math.min(last.temp + 6, 78) : 66, last ? 10 : 60))
+  draft.value.mash.push(mashStep(last ? Math.min(last.temp + 6, 78) : 66, last ? 10 : 60))
 }
 
 function move(i: number, delta: number) {
@@ -30,7 +28,7 @@ function move(i: number, delta: number) {
 }
 
 function setBoil(on: boolean) {
-  draft.value.boil = on ? { minutes: 60, watts: maxWatts.value } : null
+  draft.value.boil = on ? { minutes: 60 } : null
 }
 </script>
 
@@ -44,8 +42,7 @@ function setBoil(on: boolean) {
 
     <div class="space-y-2">
       <div class="hidden items-center gap-2 px-0.5 text-xs text-dimmed" :class="GRID">
-        <span /><span>Шаг</span><span class="text-center">Температура</span><span class="text-center">Длительность</span>
-        <span>Мощность</span><span />
+        <span /><span>Шаг</span><span class="text-center">Температура</span><span class="text-center">Длительность</span><span />
       </div>
 
       <div v-for="(s, i) in draft.mash" :key="i" class="flex flex-wrap items-center gap-2" :class="GRID">
@@ -53,7 +50,6 @@ function setBoil(on: boolean) {
         <UInput v-model="s.name" :placeholder="`Пауза ${i + 1}`" size="sm" class="min-w-40 flex-1" />
         <UInputNumber v-model="s.temp" :min="limits.minTemp" :max="limits.maxTemp" :step="0.5" :step-snapping="false" :format-options="CELSIUS" size="sm" aria-label="Температура" />
         <UInputNumber v-model="s.minutes" :min="1" :step="1" :format-options="MINUTES" size="sm" aria-label="Длительность" />
-        <USelect v-model="s.watts" :items="watts" size="sm" aria-label="Мощность" />
         <div class="flex justify-end">
           <UButton icon="i-lucide-arrow-up" color="neutral" variant="ghost" size="sm" :disabled="i === 0" aria-label="Выше" @click="move(i, -1)" />
           <UButton icon="i-lucide-arrow-down" color="neutral" variant="ghost" size="sm" :disabled="i === draft.mash.length - 1" aria-label="Ниже" @click="move(i, 1)" />
@@ -67,7 +63,6 @@ function setBoil(on: boolean) {
         <template v-if="draft.boil">
           <span class="text-center text-sm text-muted">кипение</span>
           <UInputNumber v-model="draft.boil.minutes" :min="1" :step="1" :format-options="MINUTES" size="sm" aria-label="Длительность кипячения" />
-          <USelect v-model="draft.boil.watts" :items="watts" size="sm" aria-label="Мощность кипячения" />
           <span />
         </template>
       </div>

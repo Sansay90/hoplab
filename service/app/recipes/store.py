@@ -1,4 +1,5 @@
 """Рецепты глазами одного человека: что ему видно и что можно (права — access.py)."""
+import copy
 import re
 
 from sqlalchemy import func, or_
@@ -13,7 +14,7 @@ from ..db import session
 from ..errors import Conflict, Forbidden, Invalid, NotFound
 from ..models import Brew, Favorite, Recipe, RecipePhoto, RecipeVote, User, parse_id, unix, utcnow
 from .discussion import comment_counts, tally, votes_of
-from .program import program_steps
+from .program import program_steps, without_watts
 
 
 def excerpt(text, limit=220):
@@ -98,7 +99,7 @@ class RecipeStore:
                     "comments": comment_counts(s, [r.id]).get(r.id, 0),
                     "brewsTotal": brews_total(s, [r.id]).get(r.id, 0),
                     "canEdit": can_edit(self.viewer, r), "canModerate": can_moderate(self.viewer, r)}
-            return {**r.data, "meta": meta}
+            return {**without_watts(copy.deepcopy(r.data)), "meta": meta}   # сохранённый до — тоже без мощности
 
     def set_favorite(self, rid, on):
         """В избранное или из него — любой видимый рецепт, свой тоже. Повторное действие ничего не меняет."""

@@ -2,8 +2,9 @@
 import { describe, expect, it } from 'vitest'
 import type { BrewDayStep, BrewEntry, Recipe } from '~/types'
 import type { Phase } from '~/utils/brew'
+import { sgFromPlato } from '~/utils/beer'
 import { phaseOf } from '~/utils/brew'
-import { additionWhen, brewDay, breweryStep, lastMeasures, stepDetails, stepLine, stepRemaining } from '~/utils/brewday'
+import { additionWhen, brewDay, breweryStep, lastMeasures, spargeLine, stepDetails, stepLine, stepRemaining } from '~/utils/brewday'
 import { dots, snapshot } from './fixtures'
 
 const STEPS: BrewDayStep[] = [
@@ -20,7 +21,7 @@ const STEPS: BrewDayStep[] = [
 const at = (i: number, t: number) => STEPS.map(s => (s.index === i ? { ...s, at: t } : s))
 const entry = (kind: BrewEntry['kind'], t: number, value: number | null = null): BrewEntry => ({ id: `${kind}-${t}`, at: t, kind, value, text: null })
 const brew = (over: Partial<Parameters<typeof brewDay>[0]> = {}): Parameters<typeof brewDay>[0] => ({
-  id: 'b1', brewDay: STEPS, currentStep: 0, phase: 'brewday', snapshot: null, fermentStart: null, status: 'running', manual: true,
+  id: 'b1', brewDay: STEPS, currentStep: 0, phase: 'brewday', snapshot: null, fermentStart: null, status: 'running', manual: true, entries: [],
   ...over,
 })
 const idle: Phase = phaseOf(null)
@@ -124,11 +125,36 @@ describe('что приготовить', () => {
     expect(stepDetails(STEPS[3]!, recipe)).toEqual([])
     expect(stepDetails(STEPS[0]!, null)).toEqual([])
   })
+
+  it('промывка по экстракту: хватает — стоп и долить до объёма до кипячения, нет — промывать дальше', () => {
+    const target = sgFromPlato(10)
+    const p = (plato: number) => sgFromPlato(plato)
+    expect(spargeLine({ volume: 20, sg: p(11.6) }, 23, target)).toBe('набрано на 10,1 °P при 23 л — хватает: промывку стоп, долейте воды до 23 л')
+    expect(spargeLine({ volume: 23, sg: p(10) }, 23, target)).toBe('набрано на 10,0 °P при 23 л — хватает: промывку стоп')
+    expect(spargeLine({ volume: 20, sg: p(11) }, 23, target)).toBe('набрано на 9,6 °P при 23 л, нужно 10,0 °P — промывайте дальше')
+    expect(spargeLine({ volume: 25, sg: p(9) }, 23, target)).toBe('набрано на 9,8 °P при 23 л, нужно 10,0 °P')   // объём набран — только недобор
+    expect(spargeLine({ volume: 22.97, sg: p(9.9) }, 23, target)).toBe('набрано на 9,9 °P при 23 л, нужно 10,0 °P')   // 30 мл — уже набран
+    // объём перебран, а экстракта хватает — стоп и кипятить дольше: 2 л при 3 л/ч — 40 мин
+    expect(spargeLine({ volume: 25, sg: p(9.5) }, 23, target, 'plato', 3)).toBe('набрано на 10,3 °P при 23 л — хватает: промывку стоп; в котле лишние 2 л — кипятить на ~40 мин дольше')
+    expect(spargeLine({ volume: 25, sg: p(9.5) }, 23, target)).toBe('набрано на 10,3 °P при 23 л — хватает: промывку стоп; в котле лишние 2 л — кипятить дольше')
+    expect(spargeLine({ volume: 20, sg: p(11) }, 23, target, 'sg')).toBe('набрано на 1,038 при 23 л, нужно 1,040 — промывайте дальше')
+  })
+
+  it('замеры в котле — на идущей промывке; на прошедшей не подсказываем', () => {
+    const entries = [entry('preboil_volume', 100, 20), entry('preboil_gravity', 101, sgFromPlato(11))]
+    const now = brewDay(brew({ currentStep: 5, snapshot: recipe as never, entries }), null, idle).steps[5]!
+    expect(now.details).toContain('набрано на 9,6 °P при 23 л, нужно 10,0 °P — промывайте дальше')
+    const later = brewDay(brew({ currentStep: 6, snapshot: recipe as never, entries }), null, idle).steps[5]!
+    expect(later.details.some(d => d.startsWith('набрано'))).toBe(false)
+    const noGravity = brewDay(brew({ currentStep: 5, snapshot: recipe as never, entries: entries.slice(0, 1) }), null, idle).steps[5]!
+    expect(noGravity.details.some(d => d.startsWith('набрано'))).toBe(false)
+  })
 })
 
 describe('подписи шагов', () => {
   it('температура и время шага, закладки по минутам кипячения', () => {
     expect(stepLine(STEPS[3]!)).toBe(dots('66,0 °C · 1 ч'))
+    expect(stepLine({ ...STEPS[3]!, watts: 2000 })).toBe(dots('66,0 °C · 1 ч · 2000 W'))      // партия на пивоварне
     expect(stepLine(STEPS[5]!)).toBe('')
     expect([60, 10, 0].map(m => additionWhen(m, 60))).toEqual(['старт', 'за 10 мин', 'конец'])
   })

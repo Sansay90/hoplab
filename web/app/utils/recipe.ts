@@ -1,6 +1,6 @@
 // Рецепт: форма редактора ↔ API, проверка по ограничениям пивоварни (/api/limits), программа и напоминания.
 // Программа и закладки выводятся из рецепта так же, как в сервисе (program.py).
-import type { Addition, AdditionKind, Equipment, Limits, Recipe, WaterAgent } from '~/types'
+import type { Addition, AdditionKind, Equipment, Limits, ProgramWatts, Recipe, WaterAgent } from '~/types'
 import type {
   FermentableRow, FermentationRow, HopRow, MashRow, MiscRow, RecipeDraft, WaterAdditionRow, WaterDraft, YeastRow,
 } from '~/types/recipe'
@@ -39,13 +39,13 @@ export const newWaterAddition = (agent: WaterAgent): WaterAdditionRow => ({ agen
 export const blankWater = (): WaterDraft => ({
   ratio: 3, source: { ca: 0, mg: 0, na: 0, cl: 0, so4: 0, hco3: 0 }, additions: [],
 })
-export const mashStep = (watts: number, temp = 66, minutes = 60, name = ''): MashRow => ({ name, temp, minutes, watts })
+export const mashStep = (temp = 66, minutes = 60, name = ''): MashRow => ({ name, temp, minutes })
 export const fermentationStep = (temp = 18, days = 7, name = '', until: FermentationRow['until'] = 'days'): FermentationRow =>
   ({ name, temp, days, until, gravity: null })
 
-/** Новый рецепт: объём партии и эффективность — из основного оборудования (нет — объём задаёт пивовар). */
-export function blankRecipe(limits: Limits, equipment: Pick<Equipment, 'volume' | 'efficiency'> | null): RecipeDraft {
-  const w = wattOptions(limits)[0]!.value
+/** Новый рецепт: объём партии и эффективность — из основного оборудования (нет — объём задаёт пивовар). Мощности
+ *  ТЭНа у рецепта нет — её задают при «Сварить» под пивоварню. */
+export function blankRecipe(equipment: Pick<Equipment, 'volume' | 'efficiency'> | null): RecipeDraft {
   return {
     name: 'Новый рецепт',
     style: null,
@@ -55,8 +55,8 @@ export function blankRecipe(limits: Limits, equipment: Pick<Equipment, 'volume' 
     miscs: [],
     yeasts: [],
     water: blankWater(),
-    mash: [mashStep(w, 66, 60, 'Осахаривание'), mashStep(w, 78, 10, 'Мэш-аут')],
-    boil: { minutes: 60, watts: w },
+    mash: [mashStep(66, 60, 'Осахаривание'), mashStep(78, 10, 'Мэш-аут')],
+    boil: { minutes: 60 },
     fermentation: [],
     notes: '',
   }
@@ -92,8 +92,10 @@ export function toDraft(r: Recipe): RecipeDraft {
         agent: a.agent, name: a.name ?? '', amount: a.amount ?? null, target: a.target ?? 'mash',
       })),
     },
-    mash: (r.mash ?? []).map(s => ({ ...s, name: s.name ?? '' })),
-    boil: r.boil ? { ...r.boil } : null,                 // копией: иначе «Отмена» оставит правку на странице рецепта
+    // мощность ТЭНа, если рецепт сохранили с ней раньше, — не в черновик: она у партии; кипячение — копией: иначе
+    // «Отмена» оставит правку на странице рецепта
+    mash: (r.mash ?? []).map(s => ({ name: s.name ?? '', temp: s.temp, minutes: s.minutes })),
+    boil: r.boil ? { minutes: r.boil.minutes } : null,
     fermentation: (r.fermentation ?? []).map(s => ({ ...s, name: s.name ?? '', until: s.until ?? 'days', gravity: s.gravity ?? null })),
     notes: r.notes ?? '',
   }
@@ -143,7 +145,7 @@ export interface ProgramStep {
   name: string
   temp: number
   minutes: number
-  watts: number
+  watts: number | null       // у рецепта партии на пивоварне; у рецепта — нет
   boil: boolean
 }
 
@@ -154,9 +156,9 @@ export interface AdditionGroup {
 
 export function programOf(r: ProgramSource, boilTemp = 100.1): ProgramStep[] {
   const steps = (r.mash ?? []).map((s, i) => ({
-    name: s.name || `Пауза ${i + 1}`, temp: s.temp, minutes: s.minutes, watts: s.watts, boil: false,
+    name: s.name || `Пауза ${i + 1}`, temp: s.temp, minutes: s.minutes, watts: s.watts ?? null, boil: false,
   }))
-  if (r.boil) steps.push({ name: 'Кипячение', temp: boilTemp, minutes: r.boil.minutes, watts: r.boil.watts, boil: true })
+  if (r.boil) steps.push({ name: 'Кипячение', temp: boilTemp, minutes: r.boil.minutes, watts: r.boil.watts ?? null, boil: true })
   return steps
 }
 
@@ -212,10 +214,6 @@ export function whenInBoil(minutes: number, boilMinutes: number | undefined) {
 /** Ошибки рецепта человеческим языком; пустой список — можно сохранять. */
 export function validateRecipe(d: RecipeDraft, l: Limits): string[] {
   const out: string[] = []
-  // потолок мощности неизвестен (модель ещё не видели) — проверит агент при загрузке в пивоварню
-  const maxWatts = l.maxWatts ?? Infinity
-  const wattsOk = (w: number) => w >= l.minWatts && w <= maxWatts && w % (l.wattsStep ?? 100) === 0
-  const wattsRange = l.maxWatts ? `${l.minWatts}…${l.maxWatts} W` : `от ${l.minWatts} W, кратно ${l.wattsStep}`
   if (!d.name.trim()) out.push('Нужно название рецепта')
 
   const steps = d.mash.length + (d.boil ? 1 : 0)
@@ -224,12 +222,8 @@ export function validateRecipe(d: RecipeDraft, l: Limits): string[] {
     const n = `Пауза ${i + 1}`
     if (!(s.temp >= l.minTemp && s.temp <= l.maxTemp)) out.push(`${n}: температура ${l.minTemp}…${l.maxTemp} °C`)
     if (!(Number.isInteger(s.minutes) && s.minutes >= 1)) out.push(`${n}: длительность — целые минуты от 1`)
-    if (!wattsOk(s.watts)) out.push(`${n}: мощность ${wattsRange}`)
   })
-  if (d.boil) {
-    if (!(Number.isInteger(d.boil.minutes) && d.boil.minutes >= 1)) out.push('Кипячение: длительность — целые минуты от 1')
-    if (!wattsOk(d.boil.watts)) out.push(`Кипячение: мощность ${wattsRange}`)
-  }
+  if (d.boil && !(Number.isInteger(d.boil.minutes) && d.boil.minutes >= 1)) out.push('Кипячение: длительность — целые минуты от 1')
 
   const timedRows = [
     ...d.hops.filter(h => h.use === 'boil').map(h => ({ name: h.name || 'хмель', minutes: h.minutes })),
@@ -300,6 +294,17 @@ export function share(amount: number | null | undefined, total: number) {
 export function programSummary(r: ProgramSource) {
   const steps = programOf(r)
   return steps.length ? `${steps.length} ${plural(steps.length, 'шаг', 'шага', 'шагов')}${SEP}${fmtMinutes(programMinutes(r))}` : 'без программы'
+}
+
+/** Мощность ТЭНа на шагах программы для «Сварить» — по одной на паузу, затем на кипячение: как в прошлой партии на
+ *  этой пивоварне (пауз теперь больше — как у последней из них), иначе — потолок модели; чего пивоварня не примет —
+ *  тоже потолок. */
+export function defaultWatts(r: ProgramSource, last: ProgramWatts | null | undefined, options: { value: number }[]): number[] {
+  if (!options.length) return []
+  const top = options[0]!.value
+  const pick = (w: number | null | undefined) => (w != null && options.some(o => o.value === w) ? w : top)
+  const mash = (r.mash ?? []).map((_, i) => pick(last?.mash[i] ?? last?.mash.at(-1)))
+  return r.boil ? [...mash, pick(last?.boil)] : mash
 }
 
 /** Варианты мощности для выпадающего списка: от потолка модели вниз с её шагом мощности. */

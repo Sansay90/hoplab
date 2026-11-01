@@ -7,7 +7,7 @@ from fastapi import Depends
 
 from ..auth.dependencies import CurrentUser, Viewer
 from ..deps import DevicesDep, HubDep
-from ..errors import AppError
+from ..errors import AppError, Invalid
 from ..recipes.program import build_program, check_boil_items, check_program, program_steps
 from ..schemas import Ok
 
@@ -48,6 +48,20 @@ class Brewery:
         check_boil_items(recipe)
         if program_steps(recipe):
             check_program(build_program("", recipe), self.limits())
+
+    def program(self, recipe_id, recipe, brew_id):
+        """Программа рецепта партии для загрузки, проверенная под пивоварню. Шагу без мощности (партию сварили без неё)
+        — потолок модели; потолок ещё неизвестен — Invalid."""
+        check_boil_items(recipe)
+        limits = self.limits()
+        program = build_program(recipe_id, recipe, brew_id)
+        for s in program["steps"]:
+            if s["watts"] is None:
+                if not limits.get("maxWatts"):
+                    raise Invalid("мощность ТЭНа не задана, а потолок мощности пивоварни ещё неизвестен")
+                s["watts"] = limits["maxWatts"]
+        check_program(program, limits)
+        return program
 
 
 def user_device(user: CurrentUser, devices: DevicesDep) -> uuid.UUID | None:

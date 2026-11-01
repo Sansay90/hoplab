@@ -119,16 +119,19 @@ class Yeast(BaseModel):
     attenuation: float | None = Field(None, ge=0, le=100, description="степень сбраживания, %")
 
 
+WATTS_NOTE = "мощность ТЭНа, W — только у рецепта партии: её задают при «Сварить» под пивоварню, у рецепта не хранится"
+
+
 class MashStep(BaseModel):
     name: str | None = None
     temp: float
     minutes: int
-    watts: int
+    watts: int | None = Field(None, description=WATTS_NOTE)
 
 
 class Boil(BaseModel):
     minutes: int
-    watts: int
+    watts: int | None = Field(None, description=WATTS_NOTE)
 
 
 class FermentationStep(BaseModel):

@@ -30,11 +30,11 @@ from ..db import session
 from ..errors import Conflict, Invalid, NotFound
 from ..models import Brew, BrewEntry, Equipment, Event, Reading, Recipe, from_unix, parse_id, unix, utcnow
 from ..recipes.calc import abv_of
-from ..recipes.program import ru_num
+from ..recipes.program import ru_num, with_watts, without_watts
 from ..recipes.scale import scale_recipe
 from .brewday import end_day, progress, reopen_day, steps_of
 from .equipment import main_of, own
-from .kinds import is_system
+from .kinds import HEATED, is_system
 
 MANUAL, DEVICE = "manual", "device"
 BREWDAY, FERMENTING, PACKAGED, DUMPED = "brewday", "fermenting", "packaged", "dumped"   # фазы партии
@@ -94,14 +94,17 @@ def plan_of(data):
     return {k: v for k, v in plan.items() if v is not None}
 
 
-def batch_recipe(data, equipment):
+def batch_recipe(data, equipment, watts=None):
     """Рецепт партии: рецепт (JSONB recipes.data) под объём и эффективность оборудования, с его испарением — по нему
-    вода на варку; оборудования нет — как есть."""
+    вода на варку, и мощностью ТЭНа watts на шагах программы (with_watts) — для пивоварни; оборудования нет — как есть.
+    Мощность из рецепта (сохранённого до того, как её убрали из рецептов) в партию не идёт."""
+    if watts and (equipment is None or equipment.kind not in HEATED):
+        raise Invalid("мощность ТЭНа задают только для пивоварни")
     if equipment is None:
-        return scale_recipe(data, None, None)
-    r = scale_recipe(data, equipment.volume, equipment.efficiency)
+        return without_watts(scale_recipe(data, None, None))
+    r = without_watts(scale_recipe(data, equipment.volume, equipment.efficiency))
     r["batch"]["evaporation"] = equipment.evaporation
-    return r
+    return with_watts(r, watts) if watts else r
 
 
 def event_view(e):
@@ -252,10 +255,11 @@ class Logbook:
                 raise Conflict("варочный день этой партии позади")
             return (str(b.recipe_id) if b.recipe_id else None), b.snapshot
 
-    def create(self, recipe_id, started_at=None, equipment_id=None):
+    def create(self, recipe_id, started_at=None, equipment_id=None, watts=None):
         """Сварить: новая партия по рецепту, который пивовару виден, на указанном или основном оборудовании.
-        Рецепт партии — пересчитанный под его объём и эффективность (без оборудования — как есть). День
-        и оборудование задаются один раз: рецепт партии посчитан под них, ошиблись — удалить и сварить заново."""
+        Рецепт партии — пересчитанный под его объём и эффективность (без оборудования — как есть), на пивоварне —
+        с мощностью ТЭНа watts на шагах. День и оборудование задаются один раз: рецепт партии посчитан под них,
+        ошиблись — удалить и сварить заново."""
         at = check_at(started_at)
         with session() as s:
             r = s.get(Recipe, rid) if (rid := parse_id(recipe_id)) else None
@@ -264,7 +268,7 @@ class Logbook:
             e = self._equipment(s, equipment_id) if equipment_id else main_of(s, self.user.id)
             if e is not None and not is_system(e.kind):
                 raise Invalid("варят на варочной системе — кастрюле, котле или пивоварне")
-            snapshot = batch_recipe(r.data, e)
+            snapshot = batch_recipe(r.data, e, watts)
             b = Brew(user_id=self.user.id, source=MANUAL, recipe_id=r.id, name=r.data.get("name") or "Варка",
                      equipment_id=e.id if e else None, snapshot=snapshot, plan=plan_of(snapshot),
                      status="running" if started_at is None else "finished", started_at=at,

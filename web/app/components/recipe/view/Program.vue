@@ -24,7 +24,7 @@ const groups = computed(() => boilGroups(props.recipe))
             <template v-else>{{ i + 1 }}</template>
           </span>
           <span class="min-w-0 flex-1 truncate text-highlighted">{{ s.name }}</span>
-          <span class="num text-sm text-muted">{{ s.boil ? 'кипение' : `${fmtNumber(s.temp, 1)} °C` }}{{ SEP }}{{ s.minutes }} мин{{ SEP }}{{ s.watts }} W</span>
+          <span class="num text-sm text-muted">{{ s.boil ? 'кипение' : `${fmtNumber(s.temp, 1)} °C` }}{{ SEP }}{{ s.minutes }} мин<template v-if="s.watts != null">{{ SEP }}{{ fmtWatts(s.watts) }}</template></span>
         </li>
       </ul>
       <div v-if="groups.length" class="mt-4 space-y-2 rounded-lg bg-elevated/50 p-4">

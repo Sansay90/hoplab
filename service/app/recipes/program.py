@@ -6,6 +6,9 @@
 с use = boil (minutes — за сколько до конца кипячения), вирпул — в конце кипячения (0 мин). Таймер пивоварни есть только
 у закладок строго внутри кипячения (0 < мин < длительности); о закладках в начале и в конце напоминает приложение.
 
+Мощность ТЭНа — свойство пивоварни, а не пива: у рецепта её нет (without_watts), у партии её задают при «Сварить»
+(with_watts); шагу без мощности при загрузке достаётся потолок модели (brewery/control.py).
+
 Агенту программа уходит в общем виде (build_program); как записать её в свою пивоварню, решает агент.
 """
 from ..errors import Invalid
@@ -25,13 +28,42 @@ def ru_num(v, digits=None):
 
 def program_steps(recipe):
     """Шаги программы для пивоварни и экрана: паузы затирания, затем кипячение."""
-    steps = [{"name": s.get("name"), "temp": s["temp"], "minutes": s["minutes"], "watts": s["watts"], "boil": False}
-             for s in recipe.get("mash") or []]
+    steps = [{"name": s.get("name"), "temp": s["temp"], "minutes": s["minutes"], "watts": s.get("watts"),
+              "boil": False} for s in recipe.get("mash") or []]
     boil = recipe.get("boil")
     if boil:
-        steps.append({"name": "Кипячение", "temp": BOIL_TEMP, "minutes": boil["minutes"], "watts": boil["watts"],
+        steps.append({"name": "Кипячение", "temp": BOIL_TEMP, "minutes": boil["minutes"], "watts": boil.get("watts"),
                       "boil": True})
     return steps
+
+
+def without_watts(recipe):
+    """Рецепт без мощности ТЭНа (правит на месте): рецепт не зависит от оборудования."""
+    for s in recipe.get("mash") or []:
+        s.pop("watts", None)
+    if recipe.get("boil"):
+        recipe["boil"].pop("watts", None)
+    return recipe
+
+
+def with_watts(recipe, watts):
+    """Рецепт партии с мощностью ТЭНа (правит на месте): watts — по одной на каждую паузу затирания, затем на
+    кипячение, W. Не по числу шагов — Invalid."""
+    mash, boil = recipe.get("mash") or [], recipe.get("boil")
+    if len(watts) != len(mash) + (1 if boil else 0):
+        raise Invalid("мощность — по одной на каждую паузу и на кипячение")
+    for s, w in zip(mash, watts, strict=False):
+        s["watts"] = w
+    if boil:
+        boil["watts"] = watts[-1]
+    return recipe
+
+
+def program_watts(recipe):
+    """Мощность на шагах рецепта партии — {"mash": [W…], "boil": W | None}; не задана ни на одном шаге — None."""
+    mash = [s["watts"] for s in recipe.get("mash") or [] if s.get("watts") is not None]
+    boil = (recipe.get("boil") or {}).get("watts")
+    return {"mash": mash, "boil": boil} if mash or boil is not None else None
 
 
 def boil_items(recipe):
@@ -100,14 +132,15 @@ def check_program(program, limits):
     lo, hi, step_w = limits["minWatts"], limits.get("maxWatts"), limits.get("wattsStep") or 1
     for k, s in enumerate(steps, 1):
         try:
-            temp, minutes, watts = float(s["temp"]), int(s["minutes"]), int(s["watts"])
+            temp, minutes = float(s["temp"]), int(s["minutes"])
+            watts = None if s.get("watts") is None else int(s["watts"])    # у рецепта мощности нет
         except (KeyError, TypeError, ValueError) as e:
             raise Invalid(f"шаг {k}: неполные данные ({e})") from None
         if not s["boil"] and not limits["minTemp"] <= temp <= limits["maxTemp"]:
             raise Invalid(f"шаг {k}: температура {temp:g} вне {limits['minTemp']:g}…{limits['maxTemp']:g} °C")
         if minutes < 1:
             raise Invalid(f"шаг {k}: длительность {minutes} мин")
-        if watts < lo or (hi and watts > hi) or watts % step_w:
+        if watts is not None and (watts < lo or (hi and watts > hi) or watts % step_w):
             raise Invalid(f"шаг {k}: мощность {watts} W — нужно {lo}…{hi or '∞'} кратно {step_w}")
     if len(program["timers"]) > limits["maxAdditions"]:
         raise Invalid(f"больше {limits['maxAdditions']} времён закладок на кипячении")

@@ -33,7 +33,7 @@ const ready = computed(() => !!limits.value && settled(status.value) && settled(
 function init() {
   const base = source.value
   if (!props.id) {
-    draft.value = base ? { ...toDraft(base), name: `${base.name} (копия)` } : blankRecipe(limits.value!, equipment.value ?? null)
+    draft.value = base ? { ...toDraft(base), name: `${base.name} (копия)` } : blankRecipe(equipment.value ?? null)
     saved.value = base ? '' : JSON.stringify(draft.value)   // копия — уже правка, пустой новый — ещё нет
     return
   }

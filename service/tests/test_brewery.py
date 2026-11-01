@@ -4,6 +4,9 @@ import json
 
 import websockets
 
+from app.db import session
+from app.models import Recipe, parse_id
+
 from .conftest import new_agent_token
 from .support import eventually
 
@@ -44,9 +47,50 @@ def test_limits_from_agent(service, brewer, agents, recipe):
     online(service, brewer, agents)
     limits = brewer.get("/limits")[1]
     assert limits["maxWatts"] == 2500 and limits["wattsStep"] == 100
-    too_strong = {**recipe, "boil": {**recipe["boil"], "watts": 2600}}
-    status, err = brewer.post("/recipes", too_strong)
+    rid = brewer.ok("POST", "/recipes", {**recipe, "boil": {**recipe["boil"], "watts": 2600}})["id"]
+    assert brewer.ok("GET", f"/recipes/{rid}")["boil"]["watts"] is None       # у рецепта мощности нет
+    with session() as s:                                                     # сохранённый с мощностью до — тоже
+        s.get(Recipe, parse_id(rid)).data = {**recipe, "targets": {}}
+        s.commit()
+    shown = brewer.ok("GET", f"/recipes/{rid}")
+    assert shown["boil"]["watts"] is None and all(st["watts"] is None for st in shown["mash"])
+    bid = brewer.ok("POST", "/brews", {"recipeId": rid, "watts": [2500, 1500, 1000, 2600]})["id"]
+    status, err = brewer.post(f"/brews/{bid}/upload")
     assert status == 400 and "мощность 2600" in err["detail"]          # пивоварня такую программу не примет
+
+
+def loaded(brewer, bid):
+    """Программа партии bid — в пивоварне (так её видит сервис)."""
+    return eventually(lambda: (r := brewer.get("/state")[1]["deviceRecipe"]) and r.get("brewId") == bid and r)
+
+
+def test_batch_power(service, brewer, agents, recipe):
+    """Мощность ТЭНа задают при «Сварить»: она — у партии, на шагах варочного дня и в программе пивоварни;
+    в следующую «Сварить» подставляется прошлая. Без мощности — потолок модели."""
+    online(service, brewer, agents)
+    rid = brewer.ok("POST", "/recipes", recipe)["id"]
+    batch = brewer.ok("POST", "/brews", {"recipeId": rid, "watts": [1500, 1500, 2000, 2400]})
+    assert [st["watts"] for st in batch["snapshot"]["mash"]] == [1500, 1500, 2000]
+    assert {st["kind"]: st["watts"] for st in batch["brewDay"] if st["watts"]} == {"heat": 1500, "rest": 2000,
+                                                                                      "boil": 2400}
+    brewer.ok("POST", f"/brews/{batch['id']}/upload")
+    program = loaded(brewer, batch["id"])
+    assert [st["watts"] for st in program["steps"]] == [1500, 1500, 2000, 2400]
+    [eq] = brewer.ok("GET", "/equipment")
+    assert eq["watts"] == {"mash": [1500, 1500, 2000], "boil": 2400}
+
+    status, err = brewer.post("/brews", {"recipeId": rid, "watts": [1500, 2400]})
+    assert status == 400 and "по одной на каждую паузу" in err["detail"]
+    plain = brewer.ok("POST", "/brews", {"recipeId": rid})                  # без мощности — при загрузке потолок
+    assert all(st["watts"] is None for st in plain["brewDay"])
+    assert brewer.ok("GET", "/equipment")[0]["watts"]["boil"] == 2400        # подставляется последняя заданная
+    brewer.ok("POST", f"/brews/{plain['id']}/upload")
+    program = loaded(brewer, plain["id"])
+    assert [st["watts"] for st in program["steps"]] == [2500] * 4
+
+    pot = brewer.ok("POST", "/equipment", {"name": "Кастрюля", "kind": "manual", "volume": 20, "efficiency": 75})
+    status, err = brewer.post("/brews", {"recipeId": rid, "equipmentId": pot["id"], "watts": [1500, 1500, 2000, 2400]})
+    assert status == 400 and "только для пивоварни" in err["detail"]
 
 
 def test_command_errors(service, brewer, agents):

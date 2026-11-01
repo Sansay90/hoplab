@@ -2,28 +2,38 @@ import { describe, expect, it } from 'vitest'
 import type { Recipe } from '~/types'
 import { calcRecipe, DEFAULT_EFFICIENCY } from '~/utils/calc'
 import {
-  blankRecipe, boilGroups, boilItems, deviceTimers, fermentationStep, mashStep, newMisc, options, programMinutes, programOf, programSummary,
+  blankRecipe, boilGroups, boilItems, defaultWatts, deviceTimers, fermentationStep, mashStep, newMisc, options, programMinutes, programOf, programSummary,
   newYeast, share, toDraft, toRecipe, totalKg, validateRecipe, wattOptions, whenInBoil, whenLabel, HOP_USES,
 } from '~/utils/recipe'
 import { dots, draft, hop, LIMITS, malt } from './fixtures'
 
 describe('новый рецепт', () => {
-  it('объём и эффективность — из основного оборудования, мощность — потолок модели', () => {
-    const d = blankRecipe(LIMITS, { volume: 23, efficiency: 82 })
+  it('объём и эффективность — из основного оборудования; мощности ТЭНа нет — она у партии', () => {
+    const d = blankRecipe({ volume: 23, efficiency: 82 })
     expect(d.batch).toEqual({ volume: 23, efficiency: 82 })
-    expect(d.mash.map(s => [s.temp, s.minutes, s.watts])).toEqual([[66, 60, 2500], [78, 10, 2500]])
-    expect(d.boil).toEqual({ minutes: 60, watts: 2500 })
+    expect(d.mash).toEqual([{ name: 'Осахаривание', temp: 66, minutes: 60 }, { name: 'Мэш-аут', temp: 78, minutes: 10 }])
+    expect(d.boil).toEqual({ minutes: 60 })
     expect(validateRecipe(d, LIMITS)).toEqual([])
   })
 
   it('без профиля — эффективность по умолчанию', () => {
-    expect(blankRecipe(LIMITS, null).batch.efficiency).toBe(DEFAULT_EFFICIENCY)
+    expect(blankRecipe(null).batch.efficiency).toBe(DEFAULT_EFFICIENCY)
   })
 
   it('добавки — когда их обычно кладут', () => {
     expect(newMisc('spice')).toMatchObject({ use: 'boil', minutes: 5 })
     expect(newMisc('fining')).toMatchObject({ use: 'boil', minutes: 15 })
     expect(newMisc('adjunct')).toMatchObject({ use: 'boil', minutes: 10 })
+  })
+
+  it('мощность в «Сварить»: как в прошлой партии на пивоварне, иначе потолок; чего пивоварня не примет — потолок', () => {
+    const r = draft({ mash: [mashStep(52, 15), mashStep(66, 60), mashStep(78, 10)], boil: { minutes: 60 } })
+    const opts = wattOptions({ ...LIMITS, minWatts: 1000 })
+    expect(defaultWatts(r, null, opts)).toEqual([2500, 2500, 2500, 2500])
+    expect(defaultWatts(r, { mash: [1500, 2000], boil: 2400 }, opts)).toEqual([1500, 2000, 2000, 2400])   // пауз больше — как у последней
+    expect(defaultWatts(r, { mash: [900, 2550], boil: null }, opts)).toEqual([2500, 2500, 2500, 2500])
+    expect(defaultWatts({ ...r, boil: null }, { mash: [1500], boil: 2400 }, opts)).toEqual([1500, 1500, 1500])
+    expect(defaultWatts(r, null, [])).toEqual([])
   })
 
   it('варианты мощности — от потолка вниз с шагом', () => {
@@ -51,7 +61,7 @@ describe('форма ↔ API', () => {
         { agent: 'other', name: ' Фосфорная ', amount: null, target: 'mash' },
       ],
     },
-    mash: [mashStep(2000, 52, 10, ' '), mashStep(2000, 64, 45, 'Осахаривание')],
+    mash: [mashStep(52, 10, ' '), mashStep(64, 45, 'Осахаривание')],
     notes: '  Светлый лагер.  ',
   })
 
@@ -103,33 +113,35 @@ describe('форма ↔ API', () => {
   it('пустые поля ответа сервиса — значения формы по умолчанию', () => {
     const d = toDraft({
       name: 'Минимум', fermentables: [{ name: 'Pale', kind: 'grain', use: 'mash' }], hops: [], miscs: [], yeasts: [],
-      mash: [{ temp: 66, minutes: 60, watts: 2000 }], fermentation: [], notes: '',
+      mash: [{ temp: 66, minutes: 60, watts: 2000 }], boil: { minutes: 60, watts: 2500 }, fermentation: [], notes: '',
     } as Recipe)
     expect(d.batch).toEqual({ volume: null, efficiency: null })
     expect(d.fermentables[0]).toEqual({ name: 'Pale', kind: 'grain', amount: null, ebc: null, use: 'mash', minutes: null })
     expect(d.water).toEqual({ ratio: null, source: { ca: 0, mg: 0, na: 0, cl: 0, so4: 0, hco3: 0 }, additions: [] })
-    expect(d.mash[0]!.name).toBe('')
-    expect(d.boil).toBeNull()
+    expect(d.mash[0]).toEqual({ name: '', temp: 66, minutes: 60 })        // мощность, сохранённая раньше, — не в черновик
+    expect(d.boil).toEqual({ minutes: 60 })
     expect(d.style).toBeNull()
   })
 })
 
 describe('программа пивоварни и закладки', () => {
   const recipe = () => draft({
-    mash: [mashStep(2000, 52, 15), mashStep(2000, 66, 60, 'Осахаривание')],
-    boil: { minutes: 60, watts: 2500 },
+    mash: [mashStep(52, 15), mashStep(66, 60, 'Осахаривание')],
+    boil: { minutes: 60 },
     hops: [hop(30, 10, 60, { name: 'Magnum' }), hop(20, 5, 10, { name: 'Saaz' }), hop(40, 5, 15, { name: 'Saaz', use: 'whirlpool' }),
       hop(50, 5, null, { name: 'Citra', use: 'dry_hop', day: 3 }), hop(10, 5, 75, { name: 'Лишний' })],
     miscs: [{ ...newMisc('fining'), name: 'Мох', amount: 5, minutes: 10 }, { ...newMisc('spice'), name: 'Кориандр', amount: 15, use: 'fermentation' }],
     fermentables: [malt(5, 5), malt(0.5, 0, { name: 'Декстроза', kind: 'sugar', use: 'boil', minutes: 30 })],
   })
 
-  it('шаги: паузы затирания, затем кипячение', () => {
+  it('шаги: паузы затирания, затем кипячение; мощность — какая есть (у рецепта партии)', () => {
     expect(programOf(recipe())).toEqual([
-      { name: 'Пауза 1', temp: 52, minutes: 15, watts: 2000, boil: false },
-      { name: 'Осахаривание', temp: 66, minutes: 60, watts: 2000, boil: false },
-      { name: 'Кипячение', temp: 100.1, minutes: 60, watts: 2500, boil: true },
+      { name: 'Пауза 1', temp: 52, minutes: 15, watts: null, boil: false },
+      { name: 'Осахаривание', temp: 66, minutes: 60, watts: null, boil: false },
+      { name: 'Кипячение', temp: 100.1, minutes: 60, watts: null, boil: true },
     ])
+    const batch = { ...recipe(), mash: [{ temp: 66, minutes: 60, watts: 2000 }], boil: { minutes: 60, watts: 2500 } }
+    expect(programOf(batch).map(st => st.watts)).toEqual([2000, 2500])               // рецепт партии на пивоварне
     expect(programOf(recipe(), 99.5).at(-1)!.temp).toBe(99.5)
     expect(programMinutes(recipe())).toBe(135)
     expect(programOf({ ...recipe(), boil: null })).toHaveLength(2)
@@ -174,7 +186,7 @@ describe('программа пивоварни и закладки', () => {
 
 describe('validateRecipe', () => {
   const ok = () => draft({
-    mash: [mashStep(2000, 66, 60)],
+    mash: [mashStep(66, 60)],
     hops: [hop(30, 10, 60)],
     fermentables: [malt(5, 5)],
   })
@@ -183,32 +195,20 @@ describe('validateRecipe', () => {
     expect(validateRecipe(ok(), LIMITS)).toEqual([])
   })
 
-  it('название, температура, длительность и мощность пауз', () => {
+  it('название, температура и длительность пауз', () => {
     const d = ok()
     d.name = ' '
-    d.mash = [mashStep(2000, 10, 60), mashStep(2000, 66, 0.5), mashStep(2550, 66, 60), mashStep(3000, 66, 60)]
+    d.mash = [mashStep(10, 60), mashStep(66, 0.5), mashStep(66, 60)]
     expect(validateRecipe(d, LIMITS)).toEqual([
       'Нужно название рецепта',
       'Пауза 1: температура 20…100 °C',
       'Пауза 2: длительность — целые минуты от 1',
-      'Пауза 3: мощность 100…2500 W',
-      'Пауза 4: мощность 100…2500 W',
-    ])
-  })
-
-  it('потолок мощности неизвестен — любая кратная шагу', () => {
-    const d = ok()
-    d.mash = [mashStep(5000, 66, 60), mashStep(1050, 66, 60), mashStep(1025, 66, 60)]
-    expect(validateRecipe(d, { ...LIMITS, maxWatts: null, wattsStep: 50 })).toEqual(['Пауза 3: мощность от 100 W, кратно 50'])
-    expect(validateRecipe(d, { ...LIMITS, maxWatts: null })).toEqual([
-      'Пауза 2: мощность от 100 W, кратно 100',
-      'Пауза 3: мощность от 100 W, кратно 100',
     ])
   })
 
   it('шагов больше, чем помнит пивоварня', () => {
     const d = ok()
-    d.mash = Array.from({ length: 9 }, () => mashStep(2000, 66, 10))
+    d.mash = Array.from({ length: 9 }, () => mashStep(66, 10))
     expect(validateRecipe(d, LIMITS)).toEqual(['Программа: не больше 9 шагов вместе с кипячением'])
   })
 

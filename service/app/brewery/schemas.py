@@ -1,6 +1,6 @@
 """Схемы API пивоварни: состояние и события (их присылает агент), ограничения, команды, история варок,
 профиль оборудования."""
-from typing import Literal
+from typing import Annotated, Literal
 
 from pydantic import BaseModel, Field
 
@@ -179,6 +179,8 @@ class BrewDayStep(BaseModel):
     name: str
     temp: float | None = None
     minutes: int | None = Field(None, description="пауза или кипячение — сколько держать; таймер")
+    watts: int | None = Field(None, description="мощность ТЭНа на шаге, W — у партии на пивоварне (нагрев — как "
+                                                "у первой паузы)")
     measures: list[EntryKind] = Field([], description="замеры, которые делают на этом шаге")
     additions: list[BrewDayAddition] = Field([], description="закладки на кипячении, от ранних к поздним")
     at: float | None = Field(None, description="когда начат по факту (последний переход к нему), unix-время")
@@ -213,6 +215,9 @@ class BrewIn(BaseModel):
     startedAt: float | None = Field(None, description="день варки, unix-время; не указан — сейчас")
     equipmentId: str | None = Field(None, description="на чём варят; не указано — основное оборудование. Рецепт партии "
                                                       "пересчитывается под его объём и эффективность")
+    watts: list[Annotated[int, Field(ge=1, le=100_000)]] | None = Field(
+        None, max_length=40, description="мощность ТЭНа на шагах программы, W: по одной на каждую паузу затирания, "
+                                         "затем на кипячение — для пивоварни; не указана — при загрузке потолок модели")
 
 
 class BrewDetail(BrewSummary):
@@ -254,6 +259,11 @@ class EquipmentNew(EquipmentIn):
                                                       "Easy Brew Connect, fermenter — ферментер…")
 
 
+class ProgramWatts(BaseModel):
+    mash: list[int] = Field(description="по паузам затирания, W")
+    boil: int | None = Field(None, description="кипячение, W")
+
+
 class Equipment(EquipmentNew):
     id: str
     kind: str = Field(description="вид из каталога; вида там уже нет — видно как «Другое» (category other)")
@@ -263,6 +273,8 @@ class Equipment(EquipmentNew):
     connected: bool = Field(description="пивоварня привязана к сайту (агент её завёл)")
     controlled: bool = Field(description="пивоварня, которой сейчас управляет сайт: её связь, калибровка, команды")
     main: bool = Field(description="основная варочная система — для новых рецептов и расчётов")
+    watts: ProgramWatts | None = Field(None, description="мощность ТЭНа последней партии на нём — подставить "
+                                                         "в «Сварить» (только в списке оборудования)")
 
 
 class EquipmentOption(BaseModel):

@@ -10,7 +10,6 @@ from fastapi.responses import StreamingResponse
 from ..auth.dependencies import CurrentUser
 from ..deps import BrewDayDep, HubDep, JournalDep, StreamsDep
 from ..errors import Invalid
-from ..recipes.program import build_program
 from ..schemas import Ok
 from .control import UserBrewery, ViewerBrewery
 from .equipment import EquipmentStore
@@ -171,7 +170,7 @@ def list_brews(logbook: UserLogbook, recipe: str | None = None,
              description="По рецепту, который виден: свой или опубликованный. Партия получает рецепт, "
                          "пересчитанный под объём и эффективность оборудования (snapshot), и план по нему.")
 def create_brew(body: BrewIn, logbook: UserLogbook):
-    return logbook.create(body.recipeId, body.startedAt, body.equipmentId)
+    return logbook.create(body.recipeId, body.startedAt, body.equipmentId, body.watts)
 
 
 @router.get("/brews/{bid}", response_model=BrewDetail, tags=["варки"],
@@ -192,8 +191,8 @@ async def upload_brew(bid: str, logbook: UserLogbook, brewery: UserBrewery):
     recipe_id, snapshot = await asyncio.to_thread(logbook.snapshot, bid)
     if not snapshot:
         raise Invalid("у этой варки нет рецепта партии")
-    await asyncio.to_thread(brewery.check, snapshot)
-    return await brewery.run("upload", program=build_program(recipe_id or "", snapshot, bid))
+    program = await asyncio.to_thread(brewery.program, recipe_id or "", snapshot, bid)
+    return await brewery.run("upload", program=program)
 
 
 @router.post("/brews/{bid}/finish", response_model=BrewDetail, tags=["варки"], summary="Закончить варочный день",

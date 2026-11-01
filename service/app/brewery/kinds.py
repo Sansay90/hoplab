@@ -135,6 +135,7 @@ CATEGORIES = [
 KINDS = {k["id"]: {**k, "category": c["id"]} for c in CATEGORIES for k in c["kinds"]}
 KIND_IDS = tuple(KINDS)
 SYSTEMS = tuple(k for k, v in KINDS.items() if v["system"])
+HEATED = ("easybrew", "allinone")      # пивоварни с ТЭНом: у партии на них — мощность на шагах программы
 
 
 def is_system(kind_id):

@@ -12,6 +12,7 @@ from ..schemas import Ok
 from . import photos as photo
 from .calc import targets
 from .discussion import Discussion
+from .program import without_watts
 from .schemas import (
     CommentEdit,
     CommentIn,
@@ -72,7 +73,7 @@ def get_recipe(rid: str, recipes: ViewerRecipes):
 
 
 async def save(recipes, brewery, rid, body):
-    recipe = body.model_dump(exclude_none=True)
+    recipe = without_watts(body.model_dump(exclude_none=True))   # мощность — у партии, не у рецепта
     # показатели — посчитанные сервисом по ингредиентам, присланные не сохраняются
     recipe["targets"] = {k: v for k, v in targets(recipe).items() if v is not None}
     await run_in_threadpool(brewery.check, recipe)          # до записи: пивоварня должна принять программу

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 // «Сварить»: новая партия по рецепту. На каком оборудовании (основное выбрано; нет ни одного — добавить тут же),
 // что меняется в рецепте под его объём и эффективность — предпросмотр пересчёта, сервис посчитает так же, —
+// мощность ТЭНа на паузах и кипячении (на подключённой пивоварне; как в прошлой партии на ней, иначе потолок модели)
 // и день варки (по умолчанию сегодня). Сварили — страница партии: рецепт партии, журнал, брожение.
 // На странице рецепта рецепт уже есть; из «Моих варок» — сначала выбрать.
 import type { Recipe } from '~/types'
@@ -11,6 +12,7 @@ const { $api } = useNuxtApp()
 const { exec, pending } = useCommand()
 const { exec: load, pending: loading } = useCommand()
 const prefs = usePreferencesStore()
+const { data: limits } = useLimits()
 
 const today = () => localInput(Date.now() / 1000)
 const day = ref(today())
@@ -57,6 +59,16 @@ const scaled = computed(() => (recipe.value && chosen.value ? scaleRecipe(recipe
 const factors = computed(() => (recipe.value && chosen.value ? scaleFactors(recipe.value, chosen.value) : null))
 const unchanged = computed(() => !!factors.value && factors.value.kv === 1 && factors.value.kg === 1)
 const warnings = computed(() => (scaled.value && chosen.value ? kettleWarnings(scaled.value, chosen.value) : []))
+
+// мощность ТЭНа — у партии на пивоварне, которой управляет сайт, когда её потолок известен (модель сообщил агент);
+// у рецепта её нет
+const powered = computed(() => !!chosen.value?.connected && limits.value?.maxWatts != null)
+const program = computed(() => (scaled.value && powered.value ? programOf(scaled.value, limits.value?.boilTemp) : []))
+const wattItems = computed(() => wattOptions(limits.value ?? null))
+const watts = ref<number[]>([])
+watch([program, () => chosen.value?.watts, wattItems], () => {
+  watts.value = scaled.value && program.value.length ? defaultWatts(scaled.value, chosen.value?.watts, wattItems.value) : []
+}, { immediate: true })
 const packs = (r: Recipe) => (r.yeasts ?? []).filter(y => y.amount != null)
   .map(y => `${fmtNumber(y.amount, 1)} ${unitLabel(y.unit)}`).join(' + ')
 const rows = computed(() => {
@@ -87,7 +99,8 @@ async function create() {
   if (!picked.value) return
   // сегодня — время записи; другой день — его полдень по местному времени
   const startedAt = day.value === today() ? undefined : new Date(`${day.value}T12:00`).getTime() / 1000
-  const brew = await exec(() => $api('/api/brews', { method: 'POST', body: { recipeId: picked.value!, startedAt, equipmentId: equipmentId.value } }))
+  const body = { recipeId: picked.value!, startedAt, equipmentId: equipmentId.value, watts: watts.value.length ? watts.value : undefined }
+  const brew = await exec(() => $api('/api/brews', { method: 'POST', body }))
   if (!brew) return
   // подключённая пивоварня: программа партии — сразу в неё; не вышло (не в сети, программа идёт) — со страницы партии
   if (chosen.value?.connected && startedAt === undefined) {
@@ -133,6 +146,16 @@ async function create() {
           <div v-if="figures" class="num text-sm text-muted">{{ figures }}</div>
           <UAlert v-for="w in warnings" :key="w" :title="w" color="warning" variant="subtle" icon="i-lucide-triangle-alert" />
         </div>
+
+        <UFormField v-if="program.length && watts.length === program.length" label="Мощность ТЭНа">
+          <div class="space-y-2">
+            <div v-for="(s, i) in program" :key="i" class="flex flex-wrap items-center gap-x-3 gap-y-1">
+              <span class="min-w-0 flex-1 text-base text-highlighted">{{ s.name }}</span>
+              <span class="num text-sm text-muted">{{ s.boil ? 'кипение' : `${fmtNumber(s.temp, 1)} °C` }}{{ SEP }}{{ s.minutes }} мин</span>
+              <USelect v-model="watts[i]" :items="wattItems" size="lg" class="w-32" :aria-label="`Мощность: ${s.name}`" />
+            </div>
+          </div>
+        </UFormField>
 
         <UFormField label="День варки">
           <UInput v-model="day" type="date" :max="today()" size="lg" />

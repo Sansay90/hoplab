@@ -9,7 +9,8 @@ export type FermentableRow = Row<Fermentable>
 export type HopRow = Row<Hop>
 export type MiscRow = Row<Misc>
 export type YeastRow = Row<Yeast>
-export type MashRow = Row<MashStep> & { name: string }
+// мощности ТЭНа у рецепта нет — она у партии («Сварить»)
+export type MashRow = Omit<Row<MashStep>, 'watts'> & { name: string }
 export type FermentationRow = Row<FermentationStep> & { name: string }
 export type WaterAdditionRow = Row<WaterAddition>
 
@@ -29,7 +30,7 @@ export interface RecipeDraft {
   yeasts: YeastRow[]
   water: WaterDraft
   mash: MashRow[]
-  boil: Boil | null
+  boil: Omit<Boil, 'watts'> | null
   fermentation: FermentationRow[]
   notes: string
 }

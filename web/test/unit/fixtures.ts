@@ -20,7 +20,7 @@ export function draft(over: Partial<RecipeDraft> = {}): RecipeDraft {
     yeasts: [],
     water: blankWater(),
     mash: [],
-    boil: { minutes: 60, watts: 2000 },
+    boil: { minutes: 60 },
     fermentation: [],
     notes: '',
     ...over,

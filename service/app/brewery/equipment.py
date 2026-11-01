@@ -8,13 +8,15 @@
 завёл агент, оборудованием делает attach_device; пока она привязана, это оборудование не удалить. Сайт управляет
 одной пивоварней пользователя — последней заведённой (controlled_device): связь и калибровка — у её оборудования.
 """
-from sqlalchemy import func
+from sqlalchemy import func, or_
+from sqlalchemy.dialects.postgresql import distinct_on
 from sqlmodel import select
 
 from ..db import session
 from ..errors import Conflict, Invalid, NotFound
-from ..models import Device, Equipment, User, parse_id
-from .kinds import KINDS, SYSTEM_DEFAULTS, SYSTEMS, check_params, is_system
+from ..models import Brew, Device, Equipment, User, parse_id
+from ..recipes.program import program_watts
+from .kinds import HEATED, KINDS, SYSTEM_DEFAULTS, SYSTEMS, check_params, is_system
 
 MANUAL, EASYBREW = "manual", "easybrew"
 MAX = 100
@@ -46,6 +48,18 @@ def view(e, controlled=None):
             "connected": e.device_id is not None, "controlled": e.device_id is not None and e.device_id == controlled,
             "main": e.main, "volume": e.volume, "efficiency": e.efficiency, "evaporation": e.evaporation,
             "kettle": e.kettle, "props": e.props or {}, "notes": e.notes}
+
+
+def last_watts(s, ids):
+    """Мощность ТЭНа последней партии, где она задана, на каждой из пивоварен ids — подставить в следующую «Сварить»
+    (партия, которую завёл агент, или от старой вкладки — без мощности: такую пропускаем)."""
+    if not ids:
+        return {}
+    has_watts = or_(Brew.snapshot["boil"].has_key("watts"), Brew.snapshot[("mash", 0)].has_key("watts"))
+    rows = s.exec(select(Brew.equipment_id, Brew.snapshot)
+                  .where(Brew.equipment_id.in_(ids), Brew.snapshot.is_not(None), has_watts)
+                  .order_by(Brew.equipment_id, Brew.started_at.desc()).ext(distinct_on(Brew.equipment_id))).all()
+    return {eid: w for eid, snap in rows if (w := program_watts(snap))}
 
 
 def own(s, user_id, equipment_id):
@@ -105,7 +119,8 @@ class EquipmentStore:
             rows = s.exec(select(Equipment).where(Equipment.user_id == self.user.id)
                           .order_by(Equipment.main.desc(), Equipment.created_at)).all()
             controlled = controlled_device(s, self.user.id)
-        return [view(e, controlled) for e in rows]
+            last = last_watts(s, [e.id for e in rows if e.kind in HEATED])
+        return [{**view(e, controlled), "watts": last.get(e.id)} for e in rows]
 
     def create(self, name, kind, volume=None, efficiency=None, evaporation=None, kettle=None, props=None, notes=None):
         with session() as s:
