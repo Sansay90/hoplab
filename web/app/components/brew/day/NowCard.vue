@@ -183,7 +183,7 @@ async function upload() {
     </UCard>
 
     <div v-if="step.minutes || step.measures.length" class="flex flex-col gap-4 sm:gap-6">
-      <UCard v-if="step.minutes" :ui="{ body: 'p-5 sm:p-6' }">
+      <UCard v-if="step.minutes" :ui="{ body: 'p-5 sm:p-6' }" :class="!step.measures.length && 'flex-1'">
         <template #header>
           <div class="flex flex-wrap items-center justify-between gap-2">
             <h2 class="text-xl font-semibold text-highlighted">Таймер</h2>
@@ -199,7 +199,7 @@ async function upload() {
         </div>
       </UCard>
       <!-- замеры шага — и под таймером паузы (pH на первой паузе) -->
-      <UCard v-if="step.measures.length" :ui="{ body: 'p-5 sm:p-6' }">
+      <UCard v-if="step.measures.length" :ui="{ body: 'p-5 sm:p-6' }" class="flex-1">
         <template #header>
           <h2 class="text-xl font-semibold text-highlighted">Замеры</h2>
         </template>
