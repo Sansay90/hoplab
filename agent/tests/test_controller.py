@@ -111,10 +111,11 @@ def test_brew_with_addition_and_end(idle, brewery, recorder, memory):
     idle.ack_addition(2)
     assert idle.snapshot()["additionsPending"] == []
 
-    brewery.push({"6": 0})
-    brewery.push({"1": False, "104": 0, "144": 0})       # конец программы: пивоварня сама выключается
+    brewery.push({"6": 0})                               # таймер 0 на последнем шаге — конец, не дожидаясь писка
     finished = recorder.of("brewFinished")
-    assert finished[-1]["id"] == brew_id and finished[-1]["status"] == "finished"
+    assert finished[-1]["id"] == brew_id and finished[-1]["status"] == "finished" and idle.brew_id is None
+    brewery.push({"1": False, "104": 0, "144": 0})       # через ~30 с писка пивоварня сама выключается
+    assert len(recorder.of("brewFinished")) == 1 and "powerOff" not in recorder.events()
     assert memory.get("brew") is None and idle.brew_id is None
     events = recorder.events()
     for kind in ("step", "addition", "added", "end"):
@@ -124,6 +125,24 @@ def test_brew_with_addition_and_end(idle, brewery, recorder, memory):
     assert readings[0]["brewId"] is None                 # до запуска программы — температура без варки
     assert {r["brewId"] for r in readings[1:]} == {brew_id}
     assert any(r["temp"] == 100.0 and r["target"] == 100.0 for r in readings)
+
+
+def test_reading_while_temperature_holds(idle, brewery, recorder):
+    """Кипячение: пивоварня весь шаг шлёт ровно 100.1 — DP молчат, а точка на график всё равно раз в минуту."""
+    start_program(idle, brewery)
+    brewery.push({"144": 2, "6": 3, "10": 1001})
+    before = len(recorder.of("reading"))
+    idle.tick()
+    assert len(recorder.of("reading")) == before                 # минута ещё не прошла
+    idle._last_reading -= 61
+    idle.tick()
+    last = recorder.of("reading")[-1]
+    assert len(recorder.of("reading")) == before + 1 and last["temp"] == 100.1 and last["brewId"] == idle.brew_id
+    brewery.push({"1": False, "104": 0, "144": 0, "6": 0})        # программа кончилась — по таймеру не пишем
+    before = len(recorder.of("reading"))
+    idle._last_reading -= 61
+    idle.tick()
+    assert len(recorder.of("reading")) == before
 
 
 def test_end_in_one_packet(idle, brewery, recorder):

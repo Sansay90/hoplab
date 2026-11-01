@@ -39,6 +39,7 @@ STATUS = {0: "idle", 1: "paused", 2: "running"}
 MODE = {0: "manual", 1: "recipe"}
 ALERT = {1: "malt", 2: "mashEnd"}
 READING_STEP_S = 2                   # не чаще одной точки температуры за 2 с
+READING_HOLD_S = 60                  # программа идёт, а температура стоит (кипячение: 100.1 весь шаг) — точка в минуту
 ENERGY_SAVE_S = 30                   # как часто сообщать и запоминать расход текущей варки
 ENERGY_EMIT_S = 5                    # снимок интерфейсу, пока ТЭН работает, а DP молчат (кипячение)
 # после включения пивоварня сама сбрасывает режим на ручной: команды, отправленные сразу, теряются
@@ -80,6 +81,7 @@ class Controller:
         self._timer = {"anchor_t": None, "anchor_rem": None, "counting": False}
         self._additions_fired = set()
         self._additions_pending = []     # закладки, о которых напомнили, а человек ещё не нажал «Заложил»
+        self._ended = False              # конец программы засчитан по таймеру — выключение после него не «выключена»
         self._prev = {}
         brewery.subscribe(self._on_change)
 
@@ -139,18 +141,14 @@ class Controller:
             if started_from_idle:
                 self.energy.reset()
                 self._additions_pending = []
+                self._ended = False
             self._track_brew(started_from_idle)
             self._track_timer(changed, now)
             self._track_energy(now, with_temp=DP_TEMP in changed)
             self._track_events(changed, prev)
 
             if DP_TEMP in changed and self.dev.online and now - self._last_reading >= self.reading_interval:
-                self._last_reading = now
-                # цель — только пока программа идёт: в ожидании уставка просто лежит в пивоварне
-                target = self._current_target() if dps.get(DP_STATUS) in (1, 2) else None
-                self._emit({"type": "reading", "brewId": self.brew_id, "at": time.time(), "temp": dps[DP_TEMP] / 10,
-                            "target": target, "step": dps.get(DP_STEP) or None,
-                            "status": STATUS.get(dps.get(DP_STATUS))})
+                self._reading(now)
             self._check_additions()
             self._prev = dict(dps)
             self._emit_state()
@@ -289,13 +287,18 @@ class Controller:
             name = (self._active_step_name(changed[DP_STEP]) or
                     ("Кипячение" if step and step.is_boil else f"{step.temp:g} °C" if step else ""))
             self._event("step", f"Шаг {changed[DP_STEP]}: {name}".strip(), step=changed[DP_STEP])
+        # таймер 0 на последнем шаге — программа кончилась: дальше пивоварня ~30 с пищит «End», ничего не присылая,
+        # и выключается сама (PROTOCOL.md) — конец засчитываем сразу, а не после писка
+        d, last = self.dev.dps, len(self.device_steps())
+        if (changed.get(DP_TIMER, -1) == 0 and prev.get(DP_TIMER) and not self._ended and d.get(DP_STATUS) == 2
+                and last and d.get(DP_STEP) == last):
+            self._end(last)
         if DP_SWITCH in changed and not changed[DP_SWITCH] and prev.get(DP_SWITCH):
-            # по окончании программы контроллер сам выключается при таймере 0 (PROTOCOL.md)
             # таймер 0 мог прийти одним пакетом с выключением — смотрим текущий, а не прошлый снимок
-            if prev.get(DP_STEP) and changed.get(DP_TIMER, prev.get(DP_TIMER)) == 0:
-                self._fire_flameout(prev[DP_STEP])
-                self._event("end", "Программа завершена")
-                self._finish_brew("finished")
+            if self._ended:
+                pass                                        # конец уже засчитан по таймеру — это его выключение
+            elif prev.get(DP_STEP) and changed.get(DP_TIMER, prev.get(DP_TIMER)) == 0:
+                self._end(prev[DP_STEP])
             else:
                 self._event("powerOff", "Пивоварня выключена")
                 self._finish_brew("stopped")
@@ -315,6 +318,13 @@ class Controller:
         for slot in self.addition_schedule():
             if (n, slot["minutes"]) not in self._additions_fired and rem <= slot["minutes"] * 60:
                 self._fire_addition(n, slot)
+
+    def _end(self, n):
+        """Программа дошла до конца на шаге n: закладки «в конце кипячения», событие end, варка завершена."""
+        self._ended = True
+        self._fire_flameout(n)
+        self._event("end", "Программа завершена")
+        self._finish_brew("finished")
 
     def _fire_flameout(self, n):
         """Таймер 0 и выключение пивоварня может прислать одним пакетом — закладки «в конце кипячения» не теряем."""
@@ -338,10 +348,23 @@ class Controller:
             self._event("added", f"Заложено: {slot['label']}", addition=slot)
             self._emit_state()
 
+    def _reading(self, now):
+        """Точка температуры; цель — только пока программа идёт: в ожидании уставка просто лежит в пивоварне."""
+        dps = self.dev.dps
+        self._last_reading = now
+        target = self._current_target() if dps.get(DP_STATUS) in (1, 2) else None
+        self._emit({"type": "reading", "brewId": self.brew_id, "at": time.time(), "temp": dps[DP_TEMP] / 10,
+                    "target": target, "step": dps.get(DP_STEP) or None, "status": STATUS.get(dps.get(DP_STATUS))})
+
     def tick(self):
-        """Вызывать раз в секунду: закладки и расход электричества идут и без новых DP."""
+        """Вызывать раз в секунду: закладки и расход электричества идут и без новых DP; пока программа идёт, а
+        температура стоит, — точка раз в READING_HOLD_S, иначе на графике кипячения дыра."""
         with self._lock:
             now = time.monotonic()
+            d = self.dev.dps
+            holding = self.dev.online and d.get(DP_STATUS) in (1, 2) and DP_TEMP in d
+            if holding and now - self._last_reading >= READING_HOLD_S:
+                self._reading(now)
             before = len(self._additions_fired)
             self._check_additions()
             self._track_energy(now, with_temp=False)
