@@ -70,7 +70,7 @@ docker compose exec -T db pg_restore -U hoplab -d hoplab --clean < hoplab-2026-1
 
 **Сайт не открывается.** `docker compose ps`: `app` (сервис) или `web` (интерфейс) не `healthy` → `docker compose logs app` / `logs web` — чаще всего упала миграция или нет переменной в `.env`. nginx отвечает 502 на страницы — не слушает `web` (`127.0.0.1:3000`), на `/api` — `app` (`127.0.0.1:8000`). Страницы открываются, а рецептов нет — `web` не достучался до сервиса (`NUXT_API_SERVER` в `compose.yaml`).
 
-**CI красный.** Job «Сервис и агент» — линтер ruff, тесты или устаревший `web/openapi.json` (в `web`: `npm run api:types`). Job «Интерфейс» — ESLint, vitest или типы. Пока проверка красная, образ не собирается и на сервер ничего не уходит.
+**CI красный.** Job «Сервис и агент» — линтер ruff, тесты или устаревший `apps/web/openapi.json` (в `apps/web`: `pnpm api:types`). Job «Node» — ESLint (в том числе границы слоёв api), типы, vitest, knip или `pnpm audit`; job «Секреты в истории» — gitleaks нашёл ключ или пароль в коммите. Пока проверка красная, образ не собирается и на сервер ничего не уходит.
 
 **Агент не подключается.** Журнал агента (`docker compose logs -f` в `agent/` или окно `python -m agent`):
 - «сервис не принял агента — проверьте AGENT_TOKEN» — токен неверный или отозван;
