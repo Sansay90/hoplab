@@ -41,6 +41,8 @@ describe('apps/api: SQL и Drizzle — только в queries.ts и src/db', ()
   it('драйвер базы — тоже нельзя', bad('api', IMPORT, 'src/recipes/service.ts', 'import pg from \'pg\'\nexport default pg\n'))
   it('queries.ts — можно', ok('api', 'src/recipes/queries.ts', DRIZZLE))
   it('src/db — можно', ok('api', 'src/db/schema.ts', DRIZZLE))
+  it('src/cli — нельзя: SQL переноса живёт в src/db/legacy', bad('api', IMPORT, 'src/cli/import-legacy.ts', DRIZZLE))
+  it('src/db/legacy — можно', ok('api', 'src/db/legacy/users.ts', DRIZZLE))
 })
 
 describe('apps/api: слои раздела', () => {
@@ -58,6 +60,9 @@ describe('apps/api: разделы видят друг друга только �
   it('публичный вход раздела — можно', ok('api', from, 'import { health } from \'../health\'\nexport const f = health\n'))
   it('index.ts явно — можно', ok('api', from, 'import { health } from \'../health/index\'\nexport const f = health\n'))
   it('queries.ts может тянуть схему из src/db', ok('api', 'src/recipes/queries.ts', 'import { recipes } from \'../db/schema\'\nexport const f = recipes\n'))
+  it('«./../» вместо «../» — нельзя', bad('api', IMPORT, from, 'import { q } from \'./../health/queries\'\nexport const f = q\n'))
+  it('из корня раздела во внутренности своей подпапки — нельзя', bad('api', IMPORT, 'src/brews/scheduler.ts', 'import { s } from \'./reminders/schedule\'\nexport const f = s\n'))
+  it('из корня раздела в index своей подпапки — можно', ok('api', 'src/brews/scheduler.ts', 'import { a } from \'./reminders\'\nimport { b } from \'./reminders/index\'\nexport const f = [a, b]\n'))
   it('service.ts в src/db не лезет', bad('api', IMPORT, from, 'import { recipes } from \'../db/schema\'\nexport const f = recipes\n'))
 })
 

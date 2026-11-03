@@ -16,6 +16,8 @@ const sectionGroup = (...allow) => [
   ...[1, 2, 3].map(d => `!${up(d)}*/index`),
   // файл или папка в корне src (../../errors, ../../recipes) — это не внутренности раздела
   '!../../*', '!../../../*',
+  // подпапка своего раздела — тоже только через её index.ts (из корня раздела: ./reminders, не ./reminders/schedule)
+  './*/**', '!./*/index',
   ...allow,
 ]
 const CROSS = {
@@ -35,7 +37,10 @@ const ENV_PATHS = ['process', 'node:process'].map(name => ({
   message: 'process.env читается только в src/config.ts.',
 }))
 
-const restrict = (...patterns) => ['error', { patterns, paths: ENV_PATHS }]
+// «./../x» — тот же «../x», но мимо паттернов выше: такой путь не пишем вовсе
+const DOT_UP = { group: ['./../**'], message: 'Пишите путь без ./ перед ../ (./../x → ../x).' }
+
+const restrict = (...patterns) => ['error', { patterns: [...patterns, DOT_UP], paths: ENV_PATHS }]
 
 const TOP_LEVEL_STATE = [
   {

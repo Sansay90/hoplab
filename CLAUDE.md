@@ -59,9 +59,9 @@ MCP-серверы проекта (`.mcp.json`): **nuxt-ui** — компоне�
 Общее: `src/app.ts` — `buildApp(deps)` (плагины, ошибки → `{detail}`, CORS, Origin, OpenAPI, регистрация разделов); `src/main.ts` — запуск и остановка; `src/config.ts` — настройки из env через zod (имена — как у `service/app/config.py`); `src/errors.ts` — ошибки предметной области (`Invalid` 400, `Forbidden` 403, `NotFound` 404, `Conflict` 409, `Unsupported` 415, `Offline` 503…): сервис бросает, общий обработчик отдаёт `{ detail }`, а 422 от zod — список `{ type, loc, msg }`, как у FastAPI.
 
 **Запрещено** (ESLint, `pnpm lint`):
-- Drizzle, `pg` и SQL — вне `queries.ts` и `src/db/**`;
+- Drizzle, `pg` и SQL — вне `queries.ts` и `src/db/**` (в том числе в `src/cli/**`: SQL переноса данных — в `src/db/legacy/`, CLI зовёт функции оттуда);
 - `routes.ts` импортирует `queries.ts`; `service.ts` импортирует `fastify`;
-- раздел лезет во внутренности другого: можно только `../<раздел>` или `../<раздел>/index`;
+- раздел лезет во внутренности другого: можно только `../<раздел>` или `../<раздел>/index`; путь `./../…` не пишем вовсе;
 - `process.env` вне `src/config.ts`;
 - `let`/`var` и `new Map/Set` на уровне модуля — это глобальное состояние: зависимости идут через `buildApp(deps)`;
 - `any` — только с комментарием-обоснованием: `// eslint-disable-next-line … -- причина` (без причины — ошибка);
@@ -77,7 +77,8 @@ MCP-серверы проекта (`.mcp.json`): **nuxt-ui** — компоне�
 - Маршрут берёт `app.deps` и передаёт сервису нужную часть. Сервис — **функции** `(deps, viewer, input)`: `deps` — подмножество (`Pick<Deps, 'db' | 'mailer'>`), `viewer` — кто спрашивает (с шага 3 это `request.viewer`; сервис получает его аргументом, а не из запроса). Queries — функции `(db, …)`, где `db` — пул или транзакция Drizzle.
 - Классов-сервисов и синглтонов нет; тесты передают подмены в `buildApp(deps)`.
 - `index.ts` раздела экспортирует только плагин маршрутов и публичные функции и типы сервиса для других разделов — не queries и не внутренние хелперы.
-- Подпапки разделов допустимы (`src/brews/reminders/service.ts`): правила слоёв действуют и там, чужой раздел виден только через его `index.ts`.
+- Подпапки разделов допустимы (`src/brews/reminders/service.ts`): подпапка — мини-раздел со своим `index.ts`, правила слоёв действуют и в ней. Чужой раздел виден только через его `index.ts`, **соседняя подпапка того же раздела — тоже только через её `index.ts`** (`../logbook`, не `../logbook/service`; из корня раздела — `./reminders`, не `./reminders/schedule`).
+- Права — `src/access.ts`, функции по образцу `service/app/access.py` (`isAdmin(user)`, `canView(user, recipe)`, `canEdit`, `canModerate`, `canPublish`). `viewer` — пользователь или `null` для гостя (как `user` в `access.py`); хуки маршрутов `requireUser` / `requireAdmin` экспортирует `src/auth/index.ts` (появятся на шаге 3).
 
 **Контракт API** (то, что пишется в `schemas.ts`; сверено с `service/app/schemas.py` и `recipes/schemas.py`):
 - ключи JSON — camelCase; время — unix-секунды числом (в Python это `float`, например `updatedAt`); id — строки;
