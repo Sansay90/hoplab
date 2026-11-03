@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import type { DropdownMenuItem } from '@nuxt/ui'
-import type { KindOption, MiscRow } from '~/types/recipe'
+import type { KindOption } from '~/types/recipe'
+import type { MiscRow } from '@hoplab/core'
+import { ADDITION_UNITS, MISC_KINDS, newMisc } from '@hoplab/core'
 
 const rows = defineModel<MiscRow[]>({ required: true })
 
-const KINDS: KindOption<MiscRow['kind']>[] = MISC_KINDS.map(k => ({ value: k, ...ADDITION_KINDS[k] }))
+const KINDS: KindOption<MiscRow['kind']>[] = MISC_KINDS.map(k => ({ value: k, ...ADDITION_VIEW[k] }))
 const USES = options(MISC_USES)
 const GRID = 'sm:grid sm:grid-cols-[2rem_minmax(0,1fr)_9.5rem_17rem_2rem]'
 
@@ -29,8 +31,8 @@ const addItems: DropdownMenuItem[] = KINDS.map(k => ({
       <div v-for="(m, i) in rows" :key="i" class="flex flex-wrap items-center gap-2" :class="GRID">
         <RecipeEditorKindButton v-model="m.kind" :options="KINDS" />
         <!-- у оборудования количества нет — название занимает и его колонку -->
-        <UInput v-model="m.name" :placeholder="ADDITION_KINDS[m.kind].placeholder" size="sm" class="min-w-40 flex-1" :class="{ 'sm:col-span-2': !ADDITION_KINDS[m.kind].measured }" />
-        <UFieldGroup v-if="ADDITION_KINDS[m.kind].measured" size="sm" class="w-38 sm:w-auto">
+        <UInput v-model="m.name" :placeholder="ADDITION_VIEW[m.kind].placeholder" size="sm" class="min-w-40 flex-1" :class="{ 'sm:col-span-2': !ADDITION_VIEW[m.kind].measured }" />
+        <UFieldGroup v-if="ADDITION_VIEW[m.kind].measured" size="sm" class="w-38 sm:w-auto">
           <UInputNumber v-model="m.amount" :min="0" :step="1" :step-snapping="false" :format-options="{ maximumFractionDigits: 2 }" :increment="false" :decrement="false" placeholder="—" class="min-w-0 flex-1" aria-label="Количество" />
           <USelect v-model="m.unit" :items="ADDITION_UNITS" class="w-16" aria-label="Единица" />
         </UFieldGroup>

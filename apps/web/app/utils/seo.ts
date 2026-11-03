@@ -1,9 +1,8 @@
 // Тексты для превью ссылок и поисковиков (useSeoMeta): одной строкой, без разметки.
 import type { StyleRef } from '~/types'
-import { fmtGravity } from '~/utils/beer'
-import type { RecipeCalc } from '~/utils/calc'
-import { fmtNumber, SEP } from '~/utils/format'
 import { styleLabel } from '~/utils/styles'
+import type { RecipeCalc } from '@hoplab/core'
+import { fmtGravity, fmtNumber, SEP } from '@hoplab/core'
 
 /** Длина описания: дальше поисковики и мессенджеры всё равно обрежут. */
 export const DESCRIPTION_MAX = 200

@@ -2,7 +2,7 @@
 // Параметры оборудования по каталогу вида: числа — с единицей и пределами, выбор — списком, «да/нет» — переключателем.
 // Подсказки — под полями: разной длины, над полями они сдвигали поля по высоте.
 import type { EquipmentKindInfo } from '~/types'
-import type { EquipmentValue, EquipmentValues } from '~/utils/equipment'
+import type { EquipmentValue, EquipmentValues } from '@hoplab/core'
 
 defineProps<{ kind: EquipmentKindInfo }>()
 const values = defineModel<EquipmentValues>({ required: true })

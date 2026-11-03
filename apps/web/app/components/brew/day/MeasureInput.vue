@@ -4,7 +4,8 @@
 // новой записью. fresh — замер по дням (брожение): поле пустое, прошлое значение подсказкой, после записи снова пустое.
 // «Сейчас» может попросить дописать введённое сразу (MEASURE_FLUSH) — перед «Дальше».
 import type { BrewEntry } from '~/types'
-import type { EntryKind } from '~/utils/brewlog'
+import type { EntryKind } from '@hoplab/core'
+import { fmtNumber, SEP } from '@hoplab/core'
 
 // hint — подсказка под полем (цель pH по рецепту); рекомендуемый замер (ENTRY_KINDS optional) — с пометкой
 const props = defineProps<{ brewId: string; kind: EntryKind; last?: BrewEntry | null; fresh?: boolean; hint?: string | null }>()

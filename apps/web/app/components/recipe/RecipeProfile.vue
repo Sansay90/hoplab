@@ -2,7 +2,8 @@
 // Температурный профиль рецепта: паузы ступеньками, кипячение, точки закладок (одна точка — одна минута).
 // Подъёмы между паузами нарисованы условной ширины — реальное время нагрева зависит от объёма.
 import type { Addition } from '~/types'
-import type { AdditionGroup, ProgramStep } from '~/utils/recipe'
+import type { AdditionGroup, ProgramStep } from '@hoplab/core'
+import { additionAmount, additionName, additionNote, whenInBoil } from '@hoplab/core'
 
 // groups — закладки кипячения (boilGroups): точки на отрезке кипячения
 const props = defineProps<{ steps: ProgramStep[]; groups?: AdditionGroup[] }>()
@@ -57,7 +58,7 @@ const tip = computed(() => {
   return {
     ...tipPlace(slot.cx, slot.cy, W, H),
     when: whenInBoil(slot.minutes, slot.boil),
-    items: slot.items.map(a => ({ ...additionKind(a), name: additionName(a), amount: additionAmount(a), note: additionNote(a) })),
+    items: slot.items.map(a => ({ ...additionView(a), name: additionName(a), amount: additionAmount(a), note: additionNote(a) })),
   }
 })
 </script>

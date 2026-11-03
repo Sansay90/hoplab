@@ -2,8 +2,9 @@
 // Показатели рецепта против рамок стиля BJCP: зелёная полоса — рамки стиля, риска — рецепт.
 // У цвета полоса и шкала — в цвет пива (ebcGradient).
 // adjustable — в редакторе: показатель с ручкой подгоняется перетаскиванием (adjust — цель, commit — конец);
-// ингредиенты под цель меняет редактор (utils/calc.ts). ABV не подгоняется — он из OG и FG.
+// ингредиенты под цель меняет редактор (calc.ts в @hoplab/core). ABV не подгоняется — он из OG и FG.
 import type { BjcpStyle } from '~/utils/styles'
+import { gravityIn, sgFromPlato } from '@hoplab/core'
 
 type Key = 'og' | 'fg' | 'ibu' | 'ebc'
 

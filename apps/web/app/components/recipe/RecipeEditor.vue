@@ -1,6 +1,7 @@
 <script setup lang="ts">
+import type { RecipeDraft } from '@hoplab/core'
+import { blankRecipe, calcRecipe, toDraft, toRecipe, validateRecipe, waterVolumes } from '@hoplab/core'
 // Создание и правка рецепта. id = null — новый (from — копия существующего). Разделы формы — editor/.
-import type { RecipeDraft } from '~/types/recipe'
 
 const props = defineProps<{ id: string | null; from?: string | null }>()
 

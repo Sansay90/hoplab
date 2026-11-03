@@ -2,7 +2,8 @@
 // Программа пивоварни: паузы затирания и кипячение. Закладки на кипячении здесь только видны —
 // задаются в хмеле, засыпи и «Другом» (use = кипячение).
 import type { Limits } from '~/types'
-import type { RecipeDraft } from '~/types/recipe'
+import type { RecipeDraft } from '@hoplab/core'
+import { additionAmount, additionName, additionNote, boilGroups, mashStep, programOf, whenInBoil } from '@hoplab/core'
 
 const draft = defineModel<RecipeDraft>({ required: true })
 const props = defineProps<{ limits: Limits }>()
@@ -74,7 +75,7 @@ function setBoil(on: boolean) {
         <span class="num w-44 shrink-0 text-sm text-muted">{{ whenInBoil(g.minutes, draft.boil?.minutes) }}</span>
         <div class="flex flex-wrap gap-x-4 gap-y-1">
           <span v-for="(item, k) in g.items" :key="k" class="inline-flex items-center gap-1.5 text-sm">
-            <UIcon :name="additionKind(item).icon" class="size-4" :class="additionKind(item).tint" />
+            <UIcon :name="additionView(item).icon" class="size-4" :class="additionView(item).tint" />
             <span class="text-highlighted">{{ additionName(item) }}</span>
             <span v-if="additionAmount(item)" class="num text-muted">{{ additionAmount(item) }}</span>
             <span v-if="additionNote(item)" class="num text-xs text-muted">·&ensp;{{ additionNote(item) }}</span>

@@ -5,6 +5,7 @@
 // и день варки (по умолчанию сегодня). Сварили — страница партии: рецепт партии, журнал, брожение.
 // На странице рецепта рецепт уже есть; из «Моих варок» — сначала выбрать.
 import type { Recipe } from '~/types'
+import { defaultHeat, defaultWatts, fmtGravity, fmtNumber, hopGrams, kettleWarnings, programOf, scaleFactors, scaleRecipe, SEP, totalKg, unitLabel, waterVolumes, wattOptions } from '@hoplab/core'
 
 const props = defineProps<{ recipeId?: string; recipe?: Recipe | null }>()
 const open = defineModel<boolean>('open', { default: false })

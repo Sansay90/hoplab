@@ -4,7 +4,7 @@
 // только время (к какому — решают кнопки, название шага — его текст). preset — вид, выбранный со шага варочного
 // дня (каждый выбор — новый объект, даже того же вида).
 import type { BrewEntry } from '~/types'
-import type { EntryKind } from '~/utils/brewlog'
+import type { EntryKind } from '@hoplab/core'
 
 const props = defineProps<{ brewId: string; entry?: BrewEntry; preset?: { kind: EntryKind } | null }>()
 const emit = defineEmits<{ saved: [entry: BrewEntry]; cancel: [] }>()

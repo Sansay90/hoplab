@@ -1,7 +1,7 @@
 <script setup lang="ts">
+import type { RecipeCalc, RecipeDraft } from '@hoplab/core'
+import { fmtGravity } from '@hoplab/core'
 // Название, стиль, партия и описание; под ними — показатели, посчитанные по ингредиентам.
-import type { RecipeDraft } from '~/types/recipe'
-import type { RecipeCalc } from '~/utils/calc'
 
 const draft = defineModel<RecipeDraft>({ required: true })
 const props = defineProps<{ calc: RecipeCalc | null }>()

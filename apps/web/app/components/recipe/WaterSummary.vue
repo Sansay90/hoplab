@@ -1,7 +1,8 @@
 <script setup lang="ts">
 // Вода рецепта для просмотра: гидромодуль и объёмы, соли и кислоты, профиль ионов.
 import type { Water } from '~/types'
-import type { Ions, WaterVolumes } from '~/utils/water'
+import type { Ions, WaterVolumes } from '@hoplab/core'
+import { additionEffect, chlorideSulfate, ION_LABELS, IONS, SEP, WATER_AGENTS, waterAmount, waterProfiles } from '@hoplab/core'
 
 const props = defineProps<{ water: Water; volumes: WaterVolumes }>()
 

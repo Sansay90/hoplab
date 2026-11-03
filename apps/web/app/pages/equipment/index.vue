@@ -4,6 +4,7 @@
 // и калибровка. В группе основная варочная система — первой. Каталог не загрузился или вида в нём нет — оборудование
 // всё равно видно: в группе «Другое» (без каталога — одним списком).
 import type { Equipment } from '~/types'
+import { equipmentFacts, SEP } from '@hoplab/core'
 
 definePageMeta({ auth: 'user', title: 'Оборудование' })
 

@@ -2,6 +2,7 @@
 // Фото пива крупно: листание стрелками и клавишами, подпись автора и лицензии чужого снимка.
 // index — какое открыто (null — закрыто); to — ссылка «К рецепту»; removable — кнопка «Удалить» (событие remove).
 import type { Photo } from '~/types'
+import { SEP } from '@hoplab/core'
 
 const props = defineProps<{ photos: Photo[]; title?: string; to?: string; removable?: boolean }>()
 const index = defineModel<number | null>('index', { default: null })

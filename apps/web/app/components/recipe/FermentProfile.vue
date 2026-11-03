@@ -4,6 +4,7 @@
 // «2 дн.» — выдержка); сухое охмеление — точкой в свой (примерный) день, при наведении — что закладывать и когда.
 // Переходы между этапами нарисованы условной ширины; этап без дней — шириной в сутки.
 import type { FermentationStep } from '~/types'
+import { fmtGravity, SEP } from '@hoplab/core'
 
 const props = defineProps<{ steps: FermentationStep[]; dryHops?: { day: number | null; gravity?: number | null; items: string[] }[] }>()
 const prefs = usePreferencesStore()

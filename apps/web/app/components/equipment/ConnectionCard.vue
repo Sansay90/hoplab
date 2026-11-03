@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { SEP } from '@hoplab/core'
+
 const brewery = useBreweryStore()
 
 const device = computed(() => brewery.snapshot?.settings)

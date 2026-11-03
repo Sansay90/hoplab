@@ -1,10 +1,10 @@
 <script setup lang="ts">
-// Вода: гидромодуль, соли и кислоты, профиль ионов. Литры заторной и промывочной воды считаются (utils/water.ts).
+// Вода: гидромодуль, соли и кислоты, профиль ионов. Литры заторной и промывочной воды считаются (water.ts в @hoplab/core).
 // Исходная вода по умолчанию — осмос (нули).
 import type { DropdownMenuItem } from '@nuxt/ui'
 import type { WaterAgent } from '~/types'
-import type { WaterDraft } from '~/types/recipe'
-import type { WaterAgentMeta, WaterVolumes } from '~/utils/water'
+import type { WaterAgentMeta, WaterDraft, WaterVolumes } from '@hoplab/core'
+import { additionEffect, chlorideSulfate, ION_LABELS, IONS, newWaterAddition, SEP, WATER_AGENTS, waterProfiles } from '@hoplab/core'
 
 const water = defineModel<WaterDraft>({ required: true })
 // evaporation — из профиля оборудования, undefined — профиль ещё не загружен

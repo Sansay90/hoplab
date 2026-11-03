@@ -1,6 +1,7 @@
 <script setup lang="ts">
 // Программа пивоварни по рецепту: профиль температуры, паузы и кипячение, закладки на кипячении.
 import type { Recipe } from '~/types'
+import { additionAmount, additionName, additionNote, boilGroups, fmtNumber, programOf, SEP, whenInBoil } from '@hoplab/core'
 
 const props = defineProps<{ recipe: Recipe }>()
 
@@ -33,7 +34,7 @@ const groups = computed(() => boilGroups(props.recipe))
           <span class="num w-44 shrink-0 text-sm text-muted">{{ whenInBoil(g.minutes, recipe.boil?.minutes) }}</span>
           <div class="flex flex-wrap gap-x-4 gap-y-1">
             <span v-for="(item, k) in g.items" :key="k" class="inline-flex items-center gap-1.5 text-sm">
-              <UIcon :name="additionKind(item).icon" class="size-4" :class="additionKind(item).tint" />
+              <UIcon :name="additionView(item).icon" class="size-4" :class="additionView(item).tint" />
               <span class="text-highlighted">{{ additionName(item) }}</span>
               <span v-if="additionAmount(item)" class="num text-muted">{{ additionAmount(item) }}</span>
               <span v-if="additionNote(item)" class="num text-xs text-muted">·&ensp;{{ additionNote(item) }}</span>

@@ -1,6 +1,6 @@
 // Стили BJCP 2021 и их рамки (data/bjcp-2021.json, генерирует scripts/bjcp.py).
 import data from '~/data/bjcp-2021.json'
-import { SEP } from '~/utils/format'
+import { SEP } from '@hoplab/core'
 
 type Span = [number, number] | null
 

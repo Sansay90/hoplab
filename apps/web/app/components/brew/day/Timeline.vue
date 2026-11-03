@@ -6,8 +6,8 @@
 // день — брожения нет, только «Вылито»). Замеры брожения — в карточке «Брожение» (они по дням, а не по этапам).
 // Пока варочный день идёт, у брожения дат нет.
 import type { BrewDetail } from '~/types'
-import type { BrewDayView, StepState } from '~/utils/brewday'
-import type { EntryKind } from '~/utils/brewlog'
+import type { BrewDayView, EntryKind, StepState } from '@hoplab/core'
+import { COLD, fermentPlan, fmtNumber, lastMeasures, SEP } from '@hoplab/core'
 
 const props = defineProps<{ brew: BrewDetail; view: BrewDayView; now: number }>()
 const emit = defineEmits<{ measure: [kind: EntryKind]; stage: [index: number]; entry: [kind: 'dry_hop' | 'package', text?: string] }>()

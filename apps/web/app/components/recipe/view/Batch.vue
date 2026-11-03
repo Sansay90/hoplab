@@ -1,6 +1,7 @@
 <script setup lang="ts">
 // Партия: объём, эффективность и сколько всего засыпи и хмеля.
 import type { Recipe } from '~/types'
+import { fmtNumber, totalKg } from '@hoplab/core'
 
 const props = defineProps<{ recipe: Recipe }>()
 

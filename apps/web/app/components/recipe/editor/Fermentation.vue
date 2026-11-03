@@ -1,8 +1,9 @@
 <script setup lang="ts">
+import type { FermentationRow } from '@hoplab/core'
+import { fermentationStep, fmtNumber } from '@hoplab/core'
 // Этапы брожения: температура и когда переходить к следующему — плотность дошла до цели, плотность перестала падать
 // (FG) или выдержка столько дней. У «до плотности» и «до FG» дни — примерная подсказка: для графика и напоминания
 // замерить; у выдержки — само условие.
-import type { FermentationRow } from '~/types/recipe'
 
 const rows = defineModel<FermentationRow[]>({ required: true })
 const prefs = usePreferencesStore()

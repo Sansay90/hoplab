@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { ManualMode } from '~/types'
+import { wattOptions } from '@hoplab/core'
 
 const open = defineModel<boolean>('open', { default: false })
 

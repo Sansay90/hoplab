@@ -2,6 +2,7 @@
 // Стиль рецепта: BJCP 2021 (поиск по коду и названию) или авторский — без рамок стиля, с необязательным названием.
 import type { SelectMenuItem } from '@nuxt/ui'
 import type { StyleRef } from '~/types'
+import { SEP } from '@hoplab/core'
 
 const model = defineModel<StyleRef | null>({ required: true })
 

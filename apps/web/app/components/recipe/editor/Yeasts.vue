@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import type { YeastRow } from '~/types/recipe'
+import type { YeastRow } from '@hoplab/core'
+import { ADDITION_UNITS, newYeast } from '@hoplab/core'
 
 const rows = defineModel<YeastRow[]>({ required: true })
 

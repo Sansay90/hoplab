@@ -1,6 +1,7 @@
 <script setup lang="ts">
 // Пользователи и их роли — только администратору (права — service/app/access.py).
 import type { AdminUser, Role } from '~/types'
+import { plural, SEP } from '@hoplab/core'
 
 definePageMeta({ auth: 'admin', title: 'Пользователи' })
 

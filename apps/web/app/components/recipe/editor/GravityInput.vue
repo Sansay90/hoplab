@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { gravityIn, sgFromPlato } from '@hoplab/core'
 // Плотность в единицах пивовара (°P или SG), хранится в SG — как все плотности.
 const value = defineModel<number | null | undefined>({ required: true })
 defineProps<{ placeholder?: string; label?: string }>()

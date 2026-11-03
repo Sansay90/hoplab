@@ -2,7 +2,8 @@
 // Добавить оборудование: сначала вид — из каталога по группам (в окне «Сварить» — только варочные системы), затем
 // название и параметры вида. Править добавленное — на его странице (pages/equipment/[id].vue).
 import type { Equipment, EquipmentKindInfo } from '~/types'
-import type { EquipmentValues } from '~/utils/equipment'
+import type { EquipmentValues } from '@hoplab/core'
+import { equipmentBody, equipmentDefaults } from '@hoplab/core'
 
 const props = defineProps<{ systemsOnly?: boolean }>()
 const open = defineModel<boolean>('open', { default: false })

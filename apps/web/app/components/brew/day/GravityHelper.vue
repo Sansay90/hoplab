@@ -1,9 +1,10 @@
 <script setup lang="ts">
+import type { EntryKind } from '@hoplab/core'
+import { DEFAULT_WCF, fmtGravity, hydrometerSg, refractometerPlato, sgFromPlato } from '@hoplab/core'
 // Пересчёт показания прибора в плотность для записи: ареометр — с поправкой на температуру пробы (откалиброван на
 // 20 °C), рефрактометр — Brix с поправкой на сусло (WCF; только несброженное — в пиве спирт искажает показание).
 // «Подставить» — значение уходит в поле замера и записывается. Прибор запоминается. Кнопка, которая открывает
 // калькулятор, — слот (по умолчанию — значок калькулятора).
-import type { EntryKind } from '~/utils/brewlog'
 
 const props = defineProps<{ kind: EntryKind }>()
 const emit = defineEmits<{ use: [sg: number] }>()

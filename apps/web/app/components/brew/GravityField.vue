@@ -1,7 +1,7 @@
 <script setup lang="ts">
+import type { EntryKind } from '@hoplab/core'
 // Поле плотности замера: значение — только через калькулятор (ареометр с температурой пробы, рефрактометр с WCF),
 // чтобы поправки не забывались; показывает плотность в единицах пивовара. picked — значение выбрано.
-import type { EntryKind } from '~/utils/brewlog'
 
 const props = defineProps<{ kind: EntryKind; placeholder?: string }>()
 const value = defineModel<number | null>({ default: null })   // в единицах пивовара: °P или SG
