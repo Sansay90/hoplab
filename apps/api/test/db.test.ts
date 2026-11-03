@@ -1,9 +1,9 @@
 // Схема базы на настоящем Postgres: миграции, ключи, ограничения, каскады, закрытие пула.
 import { eq, sql } from 'drizzle-orm'
-import { expect, it } from 'vitest'
+import { afterAll, expect, it } from 'vitest'
 import { createDb, migrateDb } from '../src/db'
 import * as t from '../src/db/schema'
-import { databaseName, describeDb, ensureDatabase, resetSchema, testDatabaseUrl, truncateAll, useTestDb, withDatabase } from './db'
+import { databaseName, describeDb, dropDatabase, ensureDatabase, resetSchema, testDatabaseUrl, truncateAll, useTestDb, withDatabase } from './db'
 import { makeApp } from './helpers'
 
 const V7 = /^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/
@@ -27,9 +27,12 @@ describeDb('схема базы', () => {
     return ''
   }
 
+  // без TEST_DATABASE_URL describe пропускается, но тело всё равно выполняется (сбор тестов) — адрес-заглушка
+  const url = testDatabaseUrl() ?? 'postgresql://hoplab@127.0.0.1:1/none_test'
+  const scratch = withDatabase(url, `${databaseName(url).replace(/_test$/, '')}_migrate_test`)
+  afterAll(() => dropDatabase(scratch))
+
   it('миграции применяются на пустой базе: все таблицы на месте, повторный запуск ничего не ломает', async () => {
-    const url = testDatabaseUrl() ?? ''
-    const scratch = withDatabase(url, `${databaseName(url).replace(/_test$/, '')}_migrate_test`)
     await ensureDatabase(scratch)
     await resetSchema(scratch)
     const db = createDb(scratch)
@@ -81,10 +84,14 @@ describeDb('схема базы', () => {
   it('журнал напоминаний: ключ в партии один раз; у партии удаляется вместе с ней', async () => {
     const u = await user('A')
     const [brew] = await getDb().insert(t.brews).values({ userId: u.id, name: 'П', source: 'manual' }).returning()
-    await getDb().insert(t.brewReminders).values({ brewId: brew!.id, key: 'dry-g1' })
+    await getDb().insert(t.brewReminders).values({ brewId: brew!.id, key: 'dry-g1', sentAt: new Date(), silent: false })
     const [row] = await getDb().select().from(t.brewReminders)
     expect(row).toMatchObject({ key: 'dry-g1', silent: false })
     expect(row?.sentAt).toBeInstanceOf(Date)
+    // у перенесённых строк «когда» и «молча ли» неизвестны — NULL, значений по умолчанию нет
+    await getDb().insert(t.brewReminders).values({ brewId: brew!.id, key: 'dry-g2' })
+    const { rows: migrated } = await getDb().$client.query('select sent_at, silent from brew_reminders where key = $1', ['dry-g2'])
+    expect(migrated).toEqual([{ sent_at: null, silent: null }])
     expect(await failure(() => getDb().insert(t.brewReminders).values({ brewId: brew!.id, key: 'dry-g1' })))
       .toContain('brew_reminders_pkey')
     await getDb().delete(t.brews).where(eq(t.brews.id, brew!.id))

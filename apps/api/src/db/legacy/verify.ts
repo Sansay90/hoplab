@@ -1,115 +1,220 @@
-// Сверка старой и новой базы: счётчики всех таблиц, контрольные суммы ключевых колонок и SHA-256 байтов каждого фото
-// и аватара. Один и тот же запрос выполняется в обеих базах (где колонки названы иначе — свой для каждой).
+// Сверка старой и новой базы: каждая таблица — построчно и по всем колонкам. Набор колонок берётся из Drizzle-схемы
+// новой таблицы (getTableColumns), а не руками; соответствие «новая колонка → выражение в старой базе» — одноимённая
+// колонка, а где схема изменилась, — явная карта SPECS ниже. У колонки без пары в старой базе и без записи в карте
+// сверка не запускается (VerifyConfigError): колонка, которую никто не сверяет, — ошибка механизма, а не тишина.
+//
+// Обе базы читаются параллельно, страницами по ключу (keyset) и в одном порядке; строки сливаются по ключу: нет в
+// одной из баз — расхождение «строка», иначе сравниваются колонки. Ни таблица целиком, ни string_agg по ней в
+// память не попадают. Значения приводятся к общему виду в самом SQL (kind колонки — по её типу в новой схеме):
+//   время  — миллисекунды (новая база хранит timestamptz(3));
+//   число  — float8; real в новой схеме — и там, и там через real (см. norm);
+//   JSON   — jsonb, сравнивается по смыслу (25.0 ≡ 25, порядок ключей не важен); JSON null ≡ SQL NULL;
+//   байты  — SHA-256 (фото, превью, аватары);
+//   прочее — текстом.
 import { isDeepStrictEqual } from 'node:util'
-import { sql } from 'drizzle-orm'
+import { getTableColumns, getTableName, sql } from 'drizzle-orm'
 import type { SQL } from 'drizzle-orm'
+import { getTableConfig } from 'drizzle-orm/pg-core'
+import type { AnyPgColumn, PgTable } from 'drizzle-orm/pg-core'
 import type { Db } from '../client'
 import type { LegacySource, Row } from './source'
+import { TABLES } from './tables'
 
-/** Строка SQL без экранирования: кавычки внутри — обычные одинарные. */
-const S = String.raw
+/** Что умеет выполнять запросы в новой базе: пул или транзакция (при переносе сверка идёт до commit). */
+export type Target = Pick<Db, 'execute'>
 
+/** Одно расхождение: таблица, ключ строки, колонка ('(строка)' — строки нет в одной из баз) и значения. */
+interface Mismatch {
+  table: string
+  key: string
+  column: string
+  legacy: string
+  target: string
+}
+
+/** Итог по таблице: legacy и target — число строк в каждой базе; ok — строки и значения сошлись. */
 export interface CheckResult {
   name: string
   legacy: string
   target: string
   ok: boolean
+  /** Всего расхождений значений и строк. */
+  mismatchCount: number
+  /** Первые примеры (не больше examples на таблицу). */
+  mismatches: Mismatch[]
 }
 
-/** Что умеет выполнять запросы в новой базе: пул или транзакция (при переносе сверка идёт до commit). */
-export type Target = Pick<Db, 'execute'>
+export interface VerifyOptions {
+  /** Сверить только эти таблицы (имена в новой базе) — для тестов; по умолчанию все. */
+  tables?: string[]
+  /** Сколько примеров расхождений хранить на таблицу (по умолчанию 5); счётчик считает все. */
+  examples?: number
+}
 
-interface Check {
+export class VerifyConfigError extends Error {}
+
+/** Откуда читать таблицу в старой базе и чем отличается от новой. map — только где схема изменилась: ключ — колонка
+ *  новой таблицы, значение — выражение над колонками старого отношения (оно доступно как l). */
+interface Spec {
+  /** Таблица старой базы или подзапрос в скобках (колонки подзапроса названы как в новой таблице). */
+  from: string
+  map?: Record<string, string>
+}
+
+/** Ключи reminded — как их читает перенос: только массив, повторы схлопнуты. */
+const REMINDED = `jsonb_array_elements_text(case when jsonb_typeof(b.reminded) = 'array' then b.reminded else '[]'::jsonb end)`
+
+const SPECS: Record<string, Spec> = {
+  users: { from: 'users' },
+  // users.avatar → user_avatars.data
+  user_avatars: { from: '(select id as user_id, avatar as data from users where avatar is not null)' },
+  sessions: { from: 'sessions' },
+  auth_tokens: { from: 'auth_tokens' },
+  agents: { from: 'agents' },
+  devices: { from: 'devices' },
+  equipment: { from: 'equipment' },
+  // recipes.data → doc; doc_version у перенесённых — 1
+  recipes: { from: 'recipes', map: { doc: 'l.data', doc_version: '1' } },
+  recipe_photos: { from: 'recipe_photos' },
+  favorites: { from: 'favorites' },
+  recipe_votes: { from: 'recipe_votes' },
+  comments: { from: 'comments' },
+  comment_votes: { from: 'comment_votes' },
+  // brews.recipe → program ({} ↔ NULL: у ручной партии программы нет), brews.snapshot → batch_recipe
+  brews: { from: 'brews', map: { program: `nullif(l.recipe, '{}'::jsonb)`, batch_recipe: 'l.snapshot' } },
+  brew_entries: { from: 'brew_entries' },
+  // brews.reminded (массив ключей) → строки brew_reminders; когда и молча ли — в старой базе не хранилось: NULL
+  brew_reminders: {
+    from: `(select distinct b.id as brew_id, k as key from brews b, ${REMINDED} as k)`,
+    map: { sent_at: 'null::timestamptz', silent: 'null::boolean' },
+  },
+  // readings.temp и target — double precision → real: сужение намеренное (план, раздел 4: точности датчика хватает),
+  // поэтому оба значения сравниваются как real
+  readings: { from: 'readings' },
+  events: { from: 'events' },
+  // notifications.data: где в старой базе не было (SQL NULL, JSON null — комментарии, ответы), в новой — {}
+  notifications: {
+    from: 'notifications',
+    map: { data: `case when l.data is null or jsonb_typeof(l.data) = 'null' then '{}'::jsonb else l.data end` },
+  },
+  push_subscriptions: { from: 'push_subscriptions' },
+}
+
+type Kind = 'text' | 'num' | 'json' | 'time' | 'bytes'
+
+interface Column {
   name: string
+  kind: Kind
+  /** Нормализованное выражение для старой и новой базы. */
   legacy: string
   target: string
 }
 
-const COUNTED = [
-  'users', 'sessions', 'auth_tokens', 'agents', 'devices', 'equipment', 'recipes', 'recipe_photos', 'favorites',
-  'recipe_votes', 'comments', 'comment_votes', 'brews', 'brew_entries', 'readings', 'events', 'notifications',
-  'push_subscriptions',
-]
+interface Key {
+  name: string
+  type: 'uuid' | 'bigint' | 'text'
+  legacy: string
+  target: string
+}
 
-const count = (name: string, legacy: string, target = legacy): Check => ({
-  name: `${name}: строк`, legacy: `select count(*)::text from ${legacy}`, target: `select count(*)::text from ${target}`,
-})
+interface Plan {
+  table: string
+  from: string
+  columns: Column[]
+  keys: Key[]
+}
 
-/** Колонки через « | »: одна строка на запись, null — пустой. */
-const join = (...parts: string[]) => parts.join(S` || '|' || `)
+const quote = (name: string) => `"${name}"`
 
-/** Контрольная сумма: md5 от строк expr по всем записям в порядке order; targetExpr — если в новой базе колонки иные. */
-const digest = (table: string, expr: string, targetExpr = expr, order = 'id'): Check => ({
-  name: `${table}: сумма`,
-  legacy: `select md5(coalesce(string_agg(${expr}, ',' order by ${order}), '')) from ${table}`,
-  target: `select md5(coalesce(string_agg(${targetExpr}, ',' order by ${order}), '')) from ${table}`,
-})
+/** Вид колонки — по её типу в новой схеме. */
+function kindOf(column: AnyPgColumn): Kind {
+  const type = column.getSQLType()
+  if (type.startsWith('timestamp')) return 'time'
+  if (type === 'jsonb') return 'json'
+  if (type === 'bytea') return 'bytes'
+  if (['integer', 'smallint', 'bigint', 'double precision', 'real'].includes(type)) return 'num'
+  if (['uuid', 'text', 'boolean'].includes(type)) return 'text'
+  throw new VerifyConfigError(`сверка не знает тип ${type} (${column.name})`)
+}
 
-const orEmpty = (column: string) => `coalesce(${column}, '')`
+/** Привести выражение к общему виду: оно одинаково для обеих баз, различается только само выражение. */
+function norm(kind: Kind, expr: string, type: string): string {
+  switch (kind) {
+    case 'time': return `floor(extract(epoch from ${expr}) * 1000)::bigint::text`
+    case 'num': return type === 'real' ? `((${expr})::real)::float8` : `(${expr})::float8`
+    case 'json': return `case when jsonb_typeof(${expr}) = 'null' then null else (${expr})::jsonb end`
+    case 'bytes': return `encode(sha256(${expr}), 'hex')`
+    case 'text': return `(${expr})::text`
+  }
+}
 
-const CHECKS: Check[] = [
-  ...COUNTED.map(table => count(table, table)),
-  count('user_avatars', 'users where avatar is not null', 'user_avatars'),
-  count('brew_reminders', '(select distinct id, k from brews, jsonb_array_elements_text(reminded) as k) as r', 'brew_reminders'),
-  digest('users', join('id::text', orEmpty('email'), orEmpty('password_hash'), orEmpty('name_key'), 'role', 'avatar_version::text')),
-  digest('sessions', join('id::text', 'user_id::text', 'token_hash')),
-  digest('auth_tokens', join('id::text', 'kind', 'token_hash', '(used_at is null)::text')),
-  digest('agents', join('id::text', 'token_hash', 'name')),
-  digest('devices', join('id::text', 'tuya_id', orEmpty('agent_id::text'))),
-  digest('equipment', join('id::text', 'name', 'kind', 'main::text', orEmpty('volume::text'))),
-  digest('push_subscriptions', join('id::text', 'endpoint', 'p256dh', 'auth')),
-  digest('recipes', join('id::text', 'name', 'visibility')),
-  digest('comments', join('id::text', 'text', orEmpty('parent_id::text'), '(deleted_at is null)::text')),
-  digest('notifications', join('id::text', 'kind', 'user_id::text', '(read_at is null)::text')),
-  digest('brew_entries', join('id::text', 'kind', orEmpty('value::text'), orEmpty('text'))),
-  digest('brews', join('id::text', 'name', 'source', 'status', 'energy_wh::text', orEmpty('recipe_id::text'))),
-  {
-    name: 'brew_reminders: сумма',
-    legacy: S`select md5(coalesce(string_agg(brew || ':' || k, ',' order by brew, k), '')) from (select distinct id::text as brew, k from brews, jsonb_array_elements_text(reminded) as k) as r`,
-    target: S`select md5(coalesce(string_agg(brew_id::text || ':' || key, ',' order by brew_id::text, key), '')) from brew_reminders`,
-  },
-  digest('readings', join('id::text', 'device_id::text', 'temp::real::text', orEmpty('target::real::text'), orEmpty('step::text'), orEmpty('status'))),
-  digest('events', join('id::text', 'kind', 'text')),
-]
+/** Колонки ключа: первичный ключ таблицы (составной или одиночный). */
+function keyColumns(table: PgTable): AnyPgColumn[] {
+  const composite = getTableConfig(table).primaryKeys[0]
+  const columns = composite ? composite.columns : Object.values(getTableColumns(table)).filter(c => c.primary)
+  if (columns.length === 0) throw new VerifyConfigError(`у таблицы ${getTableName(table)} нет первичного ключа`)
+  return columns
+}
 
-// документы JSONB сравниваются по смыслу, а не по тексту: через JS число 25.0 становится 25 — то же значение, другая запись;
-// JSON null и SQL NULL (старая база писала None как JSON null) — «нет значения», такие строки пропускаются
-const j = (name: string, table: string, legacy: string, target = legacy) => ({
-  name: `JSON ${name}`,
-  legacy: `select id::text as id, ${legacy} as j from ${table} where jsonb_typeof(${legacy}) <> 'null'`,
-  target: `select id::text as id, ${target} as j from ${table} where jsonb_typeof(${target}) <> 'null'`,
-})
-const JSONS = [
-  j('recipes.data → doc', 'recipes', 'data', 'doc'),
-  j('brews.snapshot → batch_recipe', 'brews', 'snapshot', 'batch_recipe'),
-  // у ручной партии программа была «{}», теперь null — по смыслу то же
-  j('brews.recipe → program', 'brews', `nullif(recipe, '{}'::jsonb)`, 'program'),
-  j('brews.plan', 'brews', 'plan'),
-  j('devices.limits', 'devices', 'limits'),
-  j('equipment.props', 'equipment', 'props'),
-  j('events.data', 'events', 'data'),
-]
+async function planOf(table: PgTable, source: LegacySource): Promise<Plan> {
+  const name = getTableName(table)
+  const spec = SPECS[name]
+  if (!spec) throw new VerifyConfigError(`для таблицы ${name} нет записи в SPECS (verify.ts)`)
+  const map = spec.map ?? {}
+  const own = getTableColumns(table)
+  const dbNames = Object.values(own).map(c => c.name)
+  for (const extra of Object.keys(map).filter(k => !dbNames.includes(k))) {
+    throw new VerifyConfigError(`${name}: в карте колонка ${extra}, которой нет в новой таблице`)
+  }
+  const legacyColumns = await source.columns(spec.from)
+  const legacyExpr = (column: AnyPgColumn) => {
+    const mapped = map[column.name]
+    if (mapped !== undefined) return mapped
+    if (legacyColumns.includes(column.name)) return `l.${quote(column.name)}`
+    throw new VerifyConfigError(
+      `${name}.${column.name}: нет пары в старой базе — объявите её в SPECS (verify.ts), иначе колонка не сверяется`,
+    )
+  }
+  const columns = Object.values(own).map((column): Column => {
+    const kind = kindOf(column)
+    const type = column.getSQLType()
+    return {
+      name: column.name, kind,
+      legacy: norm(kind, legacyExpr(column), type),
+      target: norm(kind, `t.${quote(column.name)}`, type),
+    }
+  })
+  const keys = keyColumns(table).map((column): Key => {
+    const type = column.getSQLType()
+    if (type !== 'uuid' && type !== 'bigint' && type !== 'text') throw new VerifyConfigError(`ключ ${name}.${column.name}: тип ${type}`)
+    return { name: column.name, type, legacy: legacyExpr(column), target: `t.${quote(column.name)}` }
+  })
+  return { table: name, from: spec.from, columns, keys }
+}
 
-// пары «id → SHA-256 байтов»: расходящиеся id называем поимённо
-const HASHES = [
-  {
-    name: 'фото',
-    legacy: S`select id::text, encode(sha256(data), 'hex') as h from recipe_photos`,
-    target: S`select id::text, encode(sha256(data), 'hex') as h from recipe_photos`,
-  },
-  {
-    name: 'превью фото',
-    legacy: S`select id::text, encode(sha256(thumb), 'hex') as h from recipe_photos where thumb is not null`,
-    target: S`select id::text, encode(sha256(thumb), 'hex') as h from recipe_photos where thumb is not null`,
-  },
-  {
-    name: 'аватары',
-    legacy: S`select id::text, encode(sha256(avatar), 'hex') as h from users where avatar is not null`,
-    target: S`select user_id::text as id, encode(sha256(data), 'hex') as h from user_avatars`,
-  },
-]
+const PAGE = 1000
 
-const firstValue = (rows: Row[]) => String(Object.values(rows[0] ?? {})[0] ?? '')
+/** Текст запроса страницы: выбранные колонки и ключи (как текст) после ключа `after`; параметры — $1… */
+function pageQuery(plan: Plan, side: 'legacy' | 'target', after: string[] | null) {
+  const from = side === 'legacy' ? `${plan.from} as l` : `${quote(plan.table)} as t`
+  const selected = plan.columns.map((c, i) => `${c[side]} as c${i}`)
+  // text-ключ сравнивается побайтно (collate "C"): порядок не зависит от настроек баз
+  const ordered = plan.keys.map(k => k.type === 'text' ? `${k[side]} collate "C"` : k[side])
+  const keyed = plan.keys.map((k, i) => `(${k[side]})::text as k${i}`)
+  const where = after
+    ? `where (${ordered.join(', ')}) > (${plan.keys.map((k, i) => `$${i + 1}::${k.type}`).join(', ')})`
+    : ''
+  return {
+    text: `select ${[...selected, ...keyed].join(', ')} from ${from} ${where} order by ${ordered.join(', ')} limit ${PAGE}`,
+    params: after ?? [],
+  }
+}
+
+/** Запрос с параметрами $n → SQL Drizzle (target.execute принимает только SQL). */
+function toSql(text: string, params: unknown[]): SQL {
+  const parts = text.split(/\$(\d+)/)
+  return sql.join(parts.map((part, i) => i % 2 === 0 ? sql.raw(part) : sql`${params[Number(part) - 1]}`))
+}
 
 /** Строки результата запроса к новой базе (драйвер для нескольких команд отдаёт массив результатов). */
 export async function rowsOf(target: Target, query: SQL): Promise<Row[]> {
@@ -117,37 +222,90 @@ export async function rowsOf(target: Target, query: SQL): Promise<Row[]> {
   return Array.isArray(result) ? result.flatMap(r => r.rows) : result.rows
 }
 
-const targetRows = (target: Target, query: string) => rowsOf(target, sql.raw(query))
+interface Item {
+  key: string[]
+  values: unknown[]
+}
+
+/** Строки одной базы по порядку ключа, страница за страницей. */
+async function* stream(plan: Plan, fetch: (query: { text: string; params: unknown[] }) => Promise<Row[]>, side: 'legacy' | 'target'): AsyncGenerator<Item> {
+  let after: string[] | null = null
+  for (;;) {
+    const rows = await fetch(pageQuery(plan, side, after))
+    for (const row of rows) {
+      yield { key: plan.keys.map((_, i) => String(row[`k${i}`])), values: plan.columns.map((_, i) => row[`c${i}`]) }
+    }
+    if (rows.length < PAGE) return
+    const tail: Row = rows[rows.length - 1]!
+    after = plan.keys.map((_, i) => String(tail[`k${i}`]))
+  }
+}
+
+/** Порядок ключей в базе: uuid — как его текст (шестнадцатеричные цифры), bigint — число, text — побайтно. */
+function compareKeys(plan: Plan, a: string[], b: string[]): number {
+  for (const [i, key] of plan.keys.entries()) {
+    const x = a[i]!
+    const y = b[i]!
+    const order = key.type === 'bigint'
+      ? (BigInt(x) < BigInt(y) ? -1 : BigInt(x) > BigInt(y) ? 1 : 0)
+      : key.type === 'uuid' ? (x < y ? -1 : x > y ? 1 : 0) : Buffer.compare(Buffer.from(x), Buffer.from(y))
+    if (order !== 0) return order
+  }
+  return 0
+}
+
+const same = (kind: Kind, a: unknown, b: unknown) => kind === 'json' ? isDeepStrictEqual(a, b) : a === b
+
+const show = (value: unknown) => {
+  if (value === null || value === undefined) return 'NULL'
+  const text = typeof value === 'object' ? JSON.stringify(value) : String(value)
+  return text.length > 80 ? `${text.slice(0, 79)}…` : text
+}
+
+async function verifyTable(plan: Plan, target: Target, source: LegacySource, examples: number): Promise<CheckResult> {
+  const before = stream(plan, q => source.query(q.text, q.params), 'legacy')
+  const after = stream(plan, q => rowsOf(target, toSql(q.text, q.params)), 'target')
+  const found: Mismatch[] = []
+  let total = 0
+  const counts = { legacy: 0, target: 0 }
+  const report = (item: Item, column: string, legacy: unknown, fresh: unknown) => {
+    total++
+    if (found.length < examples) found.push({ table: plan.table, key: item.key.join(' / '), column, legacy: show(legacy), target: show(fresh) })
+  }
+  let x = await before.next()
+  let y = await after.next()
+  while (!x.done || !y.done) {
+    const order = x.done ? 1 : y.done ? -1 : compareKeys(plan, x.value.key, y.value.key)
+    if (order < 0 && !x.done) {
+      counts.legacy++
+      report(x.value, '(строка)', 'есть', 'нет')
+      x = await before.next()
+    } else if (order > 0 && !y.done) {
+      counts.target++
+      report(y.value, '(строка)', 'нет', 'есть')
+      y = await after.next()
+    } else if (!x.done && !y.done) {
+      counts.legacy++
+      counts.target++
+      for (const [i, column] of plan.columns.entries()) {
+        if (!same(column.kind, x.value.values[i], y.value.values[i])) report(x.value, column.name, x.value.values[i], y.value.values[i])
+      }
+      x = await before.next()
+      y = await after.next()
+    }
+  }
+  return {
+    name: plan.table, legacy: String(counts.legacy), target: String(counts.target),
+    ok: total === 0, mismatchCount: total, mismatches: found,
+  }
+}
 
 /** Сравнить старую и новую базу; все ok — перенос верный. */
-export async function verifyLegacy(target: Target, source: LegacySource): Promise<CheckResult[]> {
+export async function verifyLegacy(target: Target, source: LegacySource, options: VerifyOptions = {}): Promise<CheckResult[]> {
   const results: CheckResult[] = []
-  for (const check of CHECKS) {
-    const legacy = firstValue(await source.query(check.legacy))
-    const fresh = firstValue(await targetRows(target, check.target))
-    results.push({ name: check.name, legacy, target: fresh, ok: legacy === fresh })
-  }
-  for (const doc of JSONS) {
-    const before = new Map((await source.query(doc.legacy)).map(r => [String(r.id), r.j]))
-    const after = new Map((await targetRows(target, doc.target)).map(r => [String(r.id), r.j]))
-    const bad = [...new Set([...before.keys(), ...after.keys()])].filter(id => !isDeepStrictEqual(before.get(id), after.get(id)))
-    results.push({
-      name: doc.name,
-      legacy: String(before.size),
-      target: bad.length === 0 ? String(after.size) : `расходятся id: ${bad.slice(0, 10).join(', ')}`,
-      ok: bad.length === 0,
-    })
-  }
-  for (const hashes of HASHES) {
-    const before = new Map((await source.query(hashes.legacy)).map(r => [String(r.id), String(r.h)]))
-    const after = new Map((await targetRows(target, hashes.target)).map(r => [String(r.id), String(r.h)]))
-    const bad = [...new Set([...before.keys(), ...after.keys()])].filter(id => before.get(id) !== after.get(id))
-    results.push({
-      name: `SHA-256 байтов: ${hashes.name}`,
-      legacy: String(before.size),
-      target: bad.length === 0 ? String(after.size) : `расходятся id: ${bad.join(', ')}`,
-      ok: bad.length === 0,
-    })
+  const tables = Object.values(TABLES).filter(table => !options.tables || options.tables.includes(getTableName(table)))
+  for (const table of tables) {
+    results.push(await verifyTable(await planOf(table, source), target, source, options.examples ?? 5))
   }
   return results
 }

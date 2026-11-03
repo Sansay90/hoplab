@@ -17,9 +17,11 @@ r"""Синтетическая «старая» база для теста пе�
 --url — база для сборки (имя обязано кончаться на _test: её очищают); создаётся сама. pg_dump берётся из PATH, а если
 его нет — из контейнера с Postgres: --docker ИМЯ (docker exec ИМЯ pg_dump). Дамп: --no-owner --no-privileges
 --column-inserts (INSERT, а не COPY), строки psql-метакоманд (\restrict и т. п.) вырезаются: тест грузит файл
-клиентом pg, без psql. Схема старой базы в дампе тоже есть — тест поднимает её без Alembic. UUID и время при каждой
-сборке новые: тест читает значения из самой базы, а не сверяет с константами. Результат — --out (по умолчанию
-../apps/api/test/fixtures/legacy.sql). Сервис в этом скрипте не меняется.
+клиентом pg, без psql; строка SET transaction_timeout (её знает только pg_dump 17+) вырезается — дамп грузится и в
+Postgres 16. Одно фото в дампе — без превью (thumb = NULL, как до миграции photo_thumbs), у одного напоминания в
+ленте data — SQL NULL (у комментариев и ответов там JSON null). Схема старой базы в дампе тоже есть — тест поднимает
+её без Alembic. UUID и время при каждой сборке новые: тест читает значения из самой базы, а не сверяет с
+константами. Результат — --out (по умолчанию ../apps/api/test/fixtures/legacy.sql). Сервис в этом скрипте не меняется.
 """
 import argparse
 import io
@@ -37,6 +39,7 @@ from urllib.parse import quote
 from PIL import Image
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import make_url
+from sqlmodel import select
 
 SERVICE_DIR = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(SERVICE_DIR))
@@ -269,6 +272,13 @@ def scenario(service, url):
         s.add(models.UserSession(user_id=reader_id, token_hash="0" * 63 + "1", user_agent="Старый браузер",
                                  created_at=at(now - 60 * DAY), last_seen_at=at(now - 45 * DAY),
                                  expires_at=at(now - 15 * DAY)))
+        # фото без превью — как до миграции photo_thumbs: у него thumb = NULL
+        old_photo = s.exec(select(models.RecipePhoto).where(models.RecipePhoto.recipe_id == uuid.UUID(r_short))).first()
+        old_photo.thumb = None
+        s.add(old_photo)
+        s.flush()
+        s.execute(text("update notifications set data = null "
+                       "where id = (select id from notifications where kind = 'brew' order by id limit 1)"))
         s.commit()
         local_id = local.id
 
@@ -290,7 +300,9 @@ def dump(url, out, docker):
     result = subprocess.run(args, capture_output=True, env=env, check=True)
     sql = result.stdout.decode("utf-8")
     # метакоманды psql (\restrict, \unrestrict…): тест грузит файл клиентом pg
-    lines = [line for line in sql.replace("\r\n", "\n").split("\n") if not line.startswith("\\")]
+    # SET transaction_timeout (pg_dump 17+) тоже убирается: без неё дамп грузится и в Postgres 16
+    lines = [line for line in sql.replace("\r\n", "\n").split("\n")
+             if not line.startswith("\\") and not line.startswith("SET transaction_timeout")]
     Path(out).parent.mkdir(parents=True, exist_ok=True)
     Path(out).write_text("\n".join(lines), encoding="utf-8", newline="\n")
     return len(lines)

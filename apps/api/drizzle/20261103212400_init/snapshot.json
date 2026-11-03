@@ -2,7 +2,7 @@
   "type": "base",
   "version": "9",
   "dialect": "postgres",
-  "id": "e44dfc9c-30b2-45be-a445-683f8eeaad05",
+  "id": "801b66e1-9f42-4bb7-8d14-15cfb9ec2332",
   "prevIds": [
     "00000000-0000-0000-0000-000000000000"
   ],
@@ -2319,9 +2319,9 @@
       "name": "sent_at",
       "type": "timestamp(3) with time zone",
       "typeSchema": null,
-      "notNull": true,
+      "notNull": false,
       "dimensions": 0,
-      "default": "now()",
+      "default": null,
       "generated": null,
       "identity": null,
       "entityType": "columns"
@@ -2332,9 +2332,9 @@
       "name": "silent",
       "type": "boolean",
       "typeSchema": null,
-      "notNull": true,
+      "notNull": false,
       "dimensions": 0,
-      "default": "false",
+      "default": null,
       "generated": null,
       "identity": null,
       "entityType": "columns"

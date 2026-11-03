@@ -45,6 +45,19 @@ export async function ensureDatabase(url: string) {
   }
 }
 
+/** Удалить служебную базу, созданную тестом (*_test; соединения с ней должны быть закрыты — на всякий случай force). */
+export async function dropDatabase(url: string) {
+  const name = databaseName(url)
+  if (!name.endsWith('_test')) throw new TestDbError(`удаляются только базы *_test, а не ${name}`)
+  const admin = new pg.Client({ connectionString: withDatabase(url, 'postgres') })
+  await admin.connect()
+  try {
+    await admin.query(`drop database if exists "${name}" with (force)`)
+  } finally {
+    await admin.end()
+  }
+}
+
 /** Пустая схема: всё, что было, удаляется (и журнал миграций drizzle). */
 export async function resetSchema(url: string) {
   const client = new pg.Client({ connectionString: url })

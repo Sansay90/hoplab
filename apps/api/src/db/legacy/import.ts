@@ -1,16 +1,18 @@
 // Перенос данных из старой базы (Python-сервис) в новую схему: читаем старую сырым SQL (source.ts), пишем через Drizzle
-// в одной транзакции приёмника. Приёмник — с применёнными миграциями и пустой; иначе отказ. Что изменилось по
-// плану (раздел 4 node-migration.md): аватар уходит в user_avatars; recipes.data → doc (как есть, без нормализации,
-// каждый документ проверяется recipeSchema); brews.recipe → program ({} → null), snapshot → batch_recipe;
-// brews.reminded → brew_reminders; у уведомлений о комментариях data заполняется как у push.
+// в одной транзакции приёмника. Приёмник — с применёнными миграциями и пустой; иначе отказ (миграции перед переносом
+// применяет CLI). Что изменилось по плану (раздел 4 node-migration.md): аватар уходит в user_avatars; recipes.data →
+// doc (как есть, без нормализации, каждый документ проверяется recipeSchema); brews.recipe → program ({} → null),
+// snapshot → batch_recipe; brews.reminded → brew_reminders (времён в старой базе не было: sent_at и silent — NULL);
+// у уведомлений без data — data = {}.
 import { recipeSchema } from '@hoplab/core'
 import { getTableName, sql } from 'drizzle-orm'
 import type { Db, Tx } from '../client'
 import * as t from '../schema'
 import { connectLegacy } from './source'
 import type { LegacySource, Row } from './source'
+import { TABLES } from './tables'
 import { rowsOf, verifyLegacy } from './verify'
-import type { CheckResult, Target } from './verify'
+import type { CheckResult, Target, VerifyOptions } from './verify'
 
 export { connectLegacy }
 export type { CheckResult, LegacySource }
@@ -44,18 +46,10 @@ export interface ImportReport {
   dryRun: boolean
 }
 
+/** Старую базу читаем страницами по PAGE строк, пишем порциями по CHUNK: в одном insert не больше 65 535 параметров. */
 const PAGE = 2000
 const PHOTO_PAGE = 20
-const EXCERPT = 140
-
-/** Таблицы приёмника, которые заполняет перенос, — в порядке записи (родители раньше детей). */
-const TABLES = {
-  users: t.users, userAvatars: t.userAvatars, sessions: t.sessions, authTokens: t.authTokens, agents: t.agents,
-  devices: t.devices, equipment: t.equipment, recipes: t.recipes, recipePhotos: t.recipePhotos,
-  favorites: t.favorites, recipeVotes: t.recipeVotes, comments: t.comments, commentVotes: t.commentVotes,
-  brews: t.brews, brewEntries: t.brewEntries, brewReminders: t.brewReminders, readings: t.readings, events: t.events,
-  notifications: t.notifications, pushSubscriptions: t.pushSubscriptions,
-}
+const CHUNK = 500
 
 const camel = (key: string) => key.replace(/_([a-z])/g, (_, letter: string) => letter.toUpperCase())
 
@@ -67,31 +61,13 @@ function mapRow<T>(row: Row, rename: Record<string, string> = {}, drop: string[]
   return Object.fromEntries(entries) as T
 }
 
-/** Начало комментария для уведомления — как excerpt() старого сервиса: пробелы схлопнуты, обрезка с «…». */
-function excerpt(text: string, limit = EXCERPT) {
-  const flat = text.split(/\s+/).filter(Boolean).join(' ')
-  return flat.length <= limit ? flat : `${flat.slice(0, limit - 1).trimEnd()}…`
-}
-
-/** data уведомления: у напоминаний — как было; у комментариев и ответов раньше не было, заполняем заголовком и
- *  началом текста — теми же словами, что получил push (title, text). */
-function notificationData(row: Row): Record<string, unknown> {
-  if (row.kind === 'brew') {
-    const data = row.data as { title?: string; text?: string } | null
-    return { ...data, title: data?.title ?? 'Напоминание о брожении', text: data?.text ?? '' }
-  }
-  const name = (row.recipe_name as string | null) || 'Без названия'
-  const title = row.kind === 'reply' ? `Вам ответили в рецепте «${name}»` : `Новый комментарий к рецепту «${name}»`
-  return { title, text: excerpt(String(row.comment_text ?? '')) }
-}
-
 /** Приёмник готов: все таблицы на месте (миграции применены) и пусты. */
 async function assertTargetReady(tx: Tx) {
   const names = Object.values(TABLES).map(table => getTableName(table))
   for (const name of names) {
     const [found] = await rowsOf(tx, sql`select to_regclass(${`public.${name}`}) as found`)
     if (found?.found == null) {
-      throw new LegacyImportError(`в новой базе нет таблицы ${name}: сначала примените миграции (их применяет запуск сервиса)`)
+      throw new LegacyImportError(`в новой базе нет таблицы ${name}: сначала примените миграции`)
     }
   }
   const filled: string[] = []
@@ -107,11 +83,13 @@ async function assertTargetReady(tx: Tx) {
 /** Каждый документ рецепта должен проходить схему core — иначе отказ со списком id и ошибок. */
 async function assertRecipesValid(source: LegacySource) {
   const bad: string[] = []
-  for (const row of await source.query('select id, name, data from recipes order by id')) {
-    const parsed = recipeSchema.safeParse(row.data)
-    if (!parsed.success) {
-      const issues = parsed.error.issues.map(issue => `${issue.path.join('.') || '(документ)'}: ${issue.message}`)
-      bad.push(`  ${String(row.id)} «${String(row.name)}»: ${issues.join('; ')}`)
+  for await (const rows of source.pages('recipes', ['id'], PAGE)) {
+    for (const row of rows) {
+      const parsed = recipeSchema.safeParse(row.data)
+      if (!parsed.success) {
+        const issues = parsed.error.issues.map(issue => `${issue.path.join('.') || '(документ)'}: ${issue.message}`)
+        bad.push(`  ${String(row.id)} «${String(row.name)}»: ${issues.join('; ')}`)
+      }
     }
   }
   if (bad.length) {
@@ -124,99 +102,106 @@ async function copyAll(tx: Tx, source: LegacySource): Promise<Record<string, num
   const add = (table: keyof typeof TABLES, n: number) => {
     counts[getTableName(TABLES[table])] = (counts[getTableName(TABLES[table])] ?? 0) + n
   }
-  /** Скопировать страницы строк: write вставляет порцию и возвращает, сколько строк записано. */
-  async function copy(table: keyof typeof TABLES, pages: AsyncIterable<Row[]> | Row[][], write: (rows: Row[]) => Promise<void>) {
-    for await (const rows of pages) {
-      await write(rows)
-      add(table, rows.length)
+  /** Скопировать страницы строк: write вставляет порцию (не больше CHUNK строк). Пустая таблица — ни одной вставки
+   *  (values([]) в Drizzle — ошибка). */
+  async function copy(table: keyof typeof TABLES, pages: AsyncIterable<Row[]>, write: (rows: Row[]) => Promise<void>) {
+    for await (const page of pages) {
+      for (let from = 0; from < page.length; from += CHUNK) {
+        const rows = page.slice(from, from + CHUNK)
+        await write(rows)
+        add(table, rows.length)
+      }
     }
   }
-  /** Таблица целиком одной порцией — для небольших. */
-  const whole = async (table: string, order = 'id') => [await source.query(`select * from ${table} order by ${order}`)]
+  /** Вся таблица страницами по ключу. */
+  const whole = (table: string, keys = ['id'], where?: string) => source.pages(table, keys, PAGE, where)
 
-  await copy('users', await whole('users', 'created_at, id'), async (rows) => {
+  await copy('users', whole('users'), async (rows) => {
     await tx.insert(t.users).values(rows.map(r => mapRow<typeof t.users.$inferInsert>(r, {}, ['avatar'])))
     const avatars = rows.filter(r => r.avatar != null)
       .map(r => ({ userId: r.id as string, data: r.avatar as Buffer }))
     if (avatars.length) await tx.insert(t.userAvatars).values(avatars)
     add('userAvatars', avatars.length)
   })
-  await copy('sessions', await whole('sessions'), async (rows) => {
+  await copy('sessions', whole('sessions'), async (rows) => {
     await tx.insert(t.sessions).values(rows.map(r => mapRow<typeof t.sessions.$inferInsert>(r)))
   })
-  await copy('authTokens', await whole('auth_tokens'), async (rows) => {
+  await copy('authTokens', whole('auth_tokens'), async (rows) => {
     await tx.insert(t.authTokens).values(rows.map(r => mapRow<typeof t.authTokens.$inferInsert>(r)))
   })
-  await copy('agents', await whole('agents'), async (rows) => {
+  await copy('agents', whole('agents'), async (rows) => {
     await tx.insert(t.agents).values(rows.map(r => mapRow<typeof t.agents.$inferInsert>(r)))
   })
-  await copy('devices', await whole('devices'), async (rows) => {
+  await copy('devices', whole('devices'), async (rows) => {
     await tx.insert(t.devices).values(rows.map(r => mapRow<typeof t.devices.$inferInsert>(r)))
   })
-  await copy('equipment', await whole('equipment'), async (rows) => {
+  await copy('equipment', whole('equipment'), async (rows) => {
     await tx.insert(t.equipment).values(rows.map(r => mapRow<typeof t.equipment.$inferInsert>(r)))
   })
   // документ рецепта — как есть; номер формата у перенесённых — 1
-  await copy('recipes', await whole('recipes'), async (rows) => {
+  await copy('recipes', whole('recipes'), async (rows) => {
     await tx.insert(t.recipes).values(rows.map(r => ({ ...mapRow<typeof t.recipes.$inferInsert>(r, { data: 'doc' }), docVersion: 1 })))
   })
-  await copy('recipePhotos', source.pages('recipe_photos', 'id', PHOTO_PAGE), async (rows) => {
+  await copy('recipePhotos', source.pages('recipe_photos', ['id'], PHOTO_PAGE), async (rows) => {
     await tx.insert(t.recipePhotos).values(rows.map(r => mapRow<typeof t.recipePhotos.$inferInsert>(r)))
   })
-  await copy('favorites', await whole('favorites', 'user_id, recipe_id'), async (rows) => {
+  await copy('favorites', whole('favorites', ['user_id', 'recipe_id']), async (rows) => {
     await tx.insert(t.favorites).values(rows.map(r => mapRow<typeof t.favorites.$inferInsert>(r)))
   })
-  await copy('recipeVotes', await whole('recipe_votes', 'user_id, recipe_id'), async (rows) => {
+  await copy('recipeVotes', whole('recipe_votes', ['user_id', 'recipe_id']), async (rows) => {
     await tx.insert(t.recipeVotes).values(rows.map(r => mapRow<typeof t.recipeVotes.$inferInsert>(r)))
   })
-  // комментарии: сначала корневые, потом ответы — ссылка parent_id на уже записанную строку
-  const comments = await source.query('select * from comments order by created_at, id')
-  await copy('comments', [[...comments.filter(r => r.parent_id == null), ...comments.filter(r => r.parent_id != null)]],
-    async (rows) => {
-      await tx.insert(t.comments).values(rows.map(r => mapRow<typeof t.comments.$inferInsert>(r)))
-    })
-  await copy('commentVotes', await whole('comment_votes', 'user_id, comment_id'), async (rows) => {
+  // комментарии: сначала корневые, потом ответы (один уровень) — ссылка parent_id на уже записанную строку;
+  // страницы и порции этот порядок не ломают
+  const writeComments = async (rows: Row[]) => {
+    await tx.insert(t.comments).values(rows.map(r => mapRow<typeof t.comments.$inferInsert>(r)))
+  }
+  await copy('comments', whole('comments', ['id'], 'parent_id is null'), writeComments)
+  await copy('comments', whole('comments', ['id'], 'parent_id is not null'), writeComments)
+  await copy('commentVotes', whole('comment_votes', ['user_id', 'comment_id']), async (rows) => {
     await tx.insert(t.commentVotes).values(rows.map(r => mapRow<typeof t.commentVotes.$inferInsert>(r)))
   })
   // партии раньше уведомлений (у напоминаний ссылка на партию); reminded — в журнал напоминаний
-  const importedAt = new Date()
-  await copy('brews', await whole('brews', 'started_at, id'), async (rows) => {
+  await copy('brews', whole('brews'), async (rows) => {
     const empty = (value: unknown) => value == null || (typeof value === 'object' && Object.keys(value).length === 0)
     await tx.insert(t.brews).values(rows.map(r => ({
       ...mapRow<typeof t.brews.$inferInsert>(r, { recipe: 'program', snapshot: 'batchRecipe' }, ['reminded']),
       program: empty(r.recipe) ? null : r.recipe as Record<string, unknown>,
     })))
+    // в reminded хранились только ключи: когда и молча ли — неизвестно, NULL
     const reminders = rows.flatMap(r => [...new Set(Array.isArray(r.reminded) ? r.reminded as string[] : [])]
-      .map(key => ({ brewId: r.id as string, key, sentAt: importedAt, silent: false })))
-    if (reminders.length) await tx.insert(t.brewReminders).values(reminders)
+      .map(key => ({ brewId: r.id as string, key, sentAt: null, silent: null })))
+    for (let from = 0; from < reminders.length; from += CHUNK) {
+      await tx.insert(t.brewReminders).values(reminders.slice(from, from + CHUNK))
+    }
     add('brewReminders', reminders.length)
   })
-  await copy('brewEntries', await whole('brew_entries'), async (rows) => {
+  await copy('brewEntries', whole('brew_entries'), async (rows) => {
     await tx.insert(t.brewEntries).values(rows.map(r => mapRow<typeof t.brewEntries.$inferInsert>(r)))
   })
-  // bigint-ключи pg отдаёт строкой — в числа; явные id, а счётчик identity сдвигается ниже
-  await copy('readings', source.pages('readings', 'id', PAGE), async (rows) => {
+  // bigint-ключи pg отдаёт строкой — в числа; явные id, а счётчик identity сдвигается в конце, после сверки
+  await copy('readings', source.pages('readings', ['id'], PAGE), async (rows) => {
     await tx.insert(t.readings).values(rows.map(r => ({ ...mapRow<typeof t.readings.$inferInsert>(r), id: Number(r.id) })))
   })
-  await copy('events', source.pages('events', 'id', PAGE), async (rows) => {
+  await copy('events', source.pages('events', ['id'], PAGE), async (rows) => {
     await tx.insert(t.events).values(rows.map(r => ({ ...mapRow<typeof t.events.$inferInsert>(r), id: Number(r.id) })))
   })
-  const notices = await source.query(`
-    select n.*, r.data ->> 'name' as recipe_name, c.text as comment_text from notifications n
-    left join recipes r on r.id = n.recipe_id left join comments c on c.id = n.comment_id order by n.created_at, n.id`)
-  await copy('notifications', [notices], async (rows) => {
+  // data: у напоминаний — как было; где не было (комментарии, ответы, напоминание с data = null — SQL NULL или JSON
+  // null) — {}: текста не выдумываем, лента строит его живьём (см. комментарий у таблицы в schema.ts)
+  await copy('notifications', whole('notifications'), async (rows) => {
     await tx.insert(t.notifications).values(rows.map(r => ({
-      ...mapRow<typeof t.notifications.$inferInsert>(r, {}, ['recipe_name', 'comment_text']),
-      data: notificationData(r),
+      ...mapRow<typeof t.notifications.$inferInsert>(r),
+      data: (r.data ?? {}) as Record<string, unknown>,
     })))
   })
-  await copy('pushSubscriptions', await whole('push_subscriptions'), async (rows) => {
+  await copy('pushSubscriptions', whole('push_subscriptions'), async (rows) => {
     await tx.insert(t.pushSubscriptions).values(rows.map(r => mapRow<typeof t.pushSubscriptions.$inferInsert>(r)))
   })
   return counts
 }
 
-/** Identity у events и readings: после вставки с явными id следующая запись получит max(id) + 1, а не 1. */
+/** Identity у events и readings: после вставки с явными id следующая запись получит max(id) + 1, а не 1. Вызывается
+ *  только перед commit, после успешной сверки: setval не откатывается вместе с транзакцией. */
 async function syncIdentities(target: Target) {
   for (const table of ['events', 'readings']) {
     await target.execute(sql`
@@ -234,24 +219,19 @@ export async function importLegacy(db: Db, source: LegacySource, options: Import
       await assertTargetReady(tx)
       await assertRecipesValid(source)
       const counts = await copyAll(tx, source)
-      await syncIdentities(tx)
       const checks = options.verify || options.dryRun ? await verifyLegacy(tx, source) : undefined
-      const report: ImportReport = { counts, checks, dryRun: Boolean(options.dryRun) }
       if (checks && mismatches(checks).length) throw new LegacyVerifyError(checks)
-      if (options.dryRun) throw new DryRun(report)
-      return report
+      if (options.dryRun) throw new DryRun({ counts, checks, dryRun: true })
+      await syncIdentities(tx)
+      return { counts, checks, dryRun: false }
     })
   } catch (e) {
-    if (!(e instanceof DryRun)) throw e
-    // setval не откатывается вместе с транзакцией — возвращаем счётчики в исходное состояние (таблицы были пусты)
-    for (const table of ['events', 'readings']) {
-      await db.execute(sql`select setval(pg_get_serial_sequence(${table}, 'id'), 1, false)`)
-    }
-    return e.report
+    if (e instanceof DryRun) return e.report
+    throw e
   }
 }
 
 /** Сверка без переноса: уже перенесённое против старой базы. */
-export async function verifyOnly(db: Db, source: LegacySource): Promise<CheckResult[]> {
-  return verifyLegacy(db, source)
+export async function verifyOnly(db: Db, source: LegacySource, options?: VerifyOptions): Promise<CheckResult[]> {
+  return verifyLegacy(db, source, options)
 }

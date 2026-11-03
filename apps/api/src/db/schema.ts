@@ -10,7 +10,8 @@
 //        └─ notifications ─┬─ comments · brews
 //
 // Ключи — UUID: у новых записей v7 (uuidv7 из core, генерирует приложение), у перенесённых из старой базы — прежние
-// v4. Время — timestamptz с точностью до миллисекунды (как у Date в JS). Перечисления — text + check.
+// v4. Время — timestamptz с точностью до миллисекунды (как у Date в JS). Перечисления — text + check, кроме
+// equipment.kind, events.kind и readings.status (см. комментарии у таблиц).
 import { uuidv7 } from '@hoplab/core'
 import { sql } from 'drizzle-orm'
 import {
@@ -266,15 +267,17 @@ export const brewEntries = pgTable('brew_entries', {
 
 /** Журнал уже отработанных напоминаний по партии (ключи measure-…, stuck-N, stable-N, dry-gN, …), а не очередь:
  *  что пора напомнить, считается на каждом проходе из плана, записей журнала и времени. silent — отмечено без
- *  уведомления (этап начат по факту). */
+ *  уведомления (этап начат по факту). sentAt и silent — NULL только у перенесённых из старой базы строк: там
+ *  хранились одни ключи, «когда» и «молча ли» неизвестно. Новые строки планировщик заполняет всегда. */
 export const brewReminders = pgTable('brew_reminders', {
   brewId: uuid().notNull().references(() => brews.id, { onDelete: 'cascade' }),
   key: text().notNull(),
-  sentAt: time().notNull().defaultNow(),
-  silent: boolean().notNull().default(false),
+  sentAt: time(),
+  silent: boolean(),
 }, t => [primaryKey({ columns: [t.brewId, t.key] })])
 
-/** События пивоварни. Ключ — identity «by default»: при переносе id задаются явно, дальше выдаёт база. */
+/** События пивоварни. Ключ — identity «by default»: при переносе id задаются явно, дальше выдаёт база. kind — словарь
+ *  протокола агента, без check: расширение словаря не должно требовать миграции. */
 export const events = pgTable('events', {
   id: bigint({ mode: 'number' }).primaryKey().generatedByDefaultAsIdentity(),
   deviceId: uuid().notNull().references(() => devices.id, { onDelete: 'cascade' }),
@@ -285,7 +288,8 @@ export const events = pgTable('events', {
   data: json(),
 }, t => [index('ix_events_device_at').on(t.deviceId, t.at), index('ix_events_brew_id').on(t.brewId)])
 
-/** Температура во времени; real — точности датчика хватает. */
+/** Температура во времени; real — точности датчика хватает. status — словарь протокола агента, без check:
+ *  расширение словаря не должно требовать миграции. */
 export const readings = pgTable('readings', {
   id: bigint({ mode: 'number' }).primaryKey().generatedByDefaultAsIdentity(),
   deviceId: uuid().notNull().references(() => devices.id, { onDelete: 'cascade' }),
@@ -300,7 +304,11 @@ export const readings = pgTable('readings', {
 // ── уведомления и push ────────────────────────────────────────────────────────
 
 /** Уведомление на сайте. kind: comment — к моему рецепту, reply — ответ мне (actor, recipe, comment), brew —
- *  напоминание о брожении (brew). data — у всех видов: { title, text } — заголовок и текст, как в push. */
+ *  напоминание о брожении (brew). data — снимок для push: { title, text }, как ушёл в push; у новых уведомлений
+ *  заполняется всегда. У перенесённых из старой базы, где data не было (комментарии, ответы, напоминание с
+ *  data = null), data = {}: текст там не выдумывается. Лента, как и в Python (notifications/feed.py), строит
+ *  текст комментариев и ответов живьём — join с comments и recipes, чтобы правка комментария и переименование
+ *  рецепта были видны; data нужна только push. */
 export const notifications = pgTable('notifications', {
   id: id(),
   userId: owner(),

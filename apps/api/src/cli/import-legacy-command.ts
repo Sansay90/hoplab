@@ -2,24 +2,32 @@
 // Запуск — import-legacy.ts (в dev: pnpm --filter @hoplab/api import-legacy -- [--dry-run] [--verify]).
 import { parseArgs } from 'node:util'
 import type { Config } from '../config'
-import { createDb } from '../db'
+import { createDb, migrateDb } from '../db'
 import { connectLegacy, importLegacy, LegacyImportError, LegacyVerifyError, verifyOnly } from '../db/legacy'
 import type { CheckResult } from '../db/legacy'
 
 export const USAGE = `Перенос данных из старой базы (LEGACY_DATABASE_URL) в новую (DATABASE_URL).
-Новая база — с применёнными миграциями (запуск сервиса применяет их сам) и пустая; иначе отказ.
+Миграции новой базы команда применяет сама (идемпотентно), затем проверяет, что база пуста; иначе отказ. Сервис для
+этого запускать не нужно.
 
-  --dry-run      всё сделать и проверить (сверка включена), но транзакцию откатить; печатает счётчики
-  --verify       сверить старую и новую базу до commit: счётчики таблиц, контрольные суммы, SHA-256 фото и аватаров;
+  --dry-run      всё сделать и проверить (сверка включена), но транзакцию откатить; печатает счётчики.
+                 Миграции при этом применяются: они не часть переноса, а подготовка пустой базы
+  --verify       сверить старую и новую базу до commit: каждая таблица построчно, по всем колонкам;
                  расхождение — откат и ненулевой код выхода
-  --verify-only  только сверка уже перенесённых данных, без записи
+  --verify-only  только сверка уже перенесённых данных, без записи (миграции не применяются)
   --help         эта подсказка
 `
 
+const EXAMPLES = 5
+
 function printChecks(checks: CheckResult[], out: (line: string) => void) {
   const bad = checks.filter(c => !c.ok)
-  out(`Сверка: ${checks.length} проверок, ${bad.length === 0 ? 'расхождений нет' : `расхождений: ${bad.length}`}`)
-  for (const c of bad) out(`  РАСХОЖДЕНИЕ ${c.name}: старая ${c.legacy}, новая ${c.target}`)
+  out(`Сверка: ${checks.length} таблиц, ${bad.length === 0 ? 'расхождений нет' : `с расхождениями: ${bad.length}`}`)
+  for (const c of bad) {
+    out(`  РАСХОЖДЕНИЕ ${c.name}: строк в старой ${c.legacy}, в новой ${c.target}; расхождений ${c.mismatchCount}`
+      + (c.mismatchCount > c.mismatches.length ? ` (показаны первые ${c.mismatches.length})` : ''))
+    for (const m of c.mismatches) out(`    ${m.table} [${m.key}] ${m.column}: старая ${m.legacy}, новая ${m.target}`)
+  }
 }
 
 /** Выполнить команду; вернуть код выхода (0 — успех). */
@@ -49,10 +57,11 @@ export async function runImportLegacy(argv: string[], config: Config, out: (line
   const source = await connectLegacy(config.legacyDatabaseUrl)
   try {
     if (values['verify-only']) {
-      const checks = await verifyOnly(db, source)
+      const checks = await verifyOnly(db, source, { examples: EXAMPLES })
       printChecks(checks, out)
       return checks.every(c => c.ok) ? 0 : 1
     }
+    await migrateDb(db)
     const report = await importLegacy(db, source, { dryRun: values['dry-run'], verify: values.verify })
     out(report.dryRun ? 'Пробный перенос (dry-run): ничего не записано. Строк:' : 'Перенесено строк:')
     for (const [table, n] of Object.entries(report.counts)) out(`  ${table.padEnd(20)}${n}`)

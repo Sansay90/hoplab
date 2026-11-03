@@ -32,8 +32,8 @@ CREATE TABLE "brew_entries" (
 CREATE TABLE "brew_reminders" (
 	"brew_id" uuid,
 	"key" text,
-	"sent_at" timestamp(3) with time zone DEFAULT now() NOT NULL,
-	"silent" boolean DEFAULT false NOT NULL,
+	"sent_at" timestamp(3) with time zone,
+	"silent" boolean,
 	CONSTRAINT "brew_reminders_pkey" PRIMARY KEY("brew_id","key")
 );
 --> statement-breakpoint

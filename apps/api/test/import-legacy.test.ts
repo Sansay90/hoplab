@@ -1,17 +1,21 @@
 // Перенос данных из старой базы на синтетическом дампе (test/fixtures/legacy.sql — собран кодом старого сервиса,
 // service/scripts/legacy_fixture.py): старая база — *_legacy_test из дампа, новая — *_test с миграциями.
 import { readFileSync } from 'node:fs'
-import { sql } from 'drizzle-orm'
+import { getTableColumns, getTableName, sql } from 'drizzle-orm'
+import { getTableConfig } from 'drizzle-orm/pg-core'
 import pg from 'pg'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { loadConfig } from '../src/config'
 import { runImportLegacy, USAGE } from '../src/cli/import-legacy-command'
 import { createDb } from '../src/db'
-import { connectLegacy, importLegacy, LegacyImportError, verifyOnly } from '../src/db/legacy'
+import { connectLegacy, importLegacy, LegacyImportError, LegacyVerifyError, verifyOnly } from '../src/db/legacy'
 import type { ImportReport } from '../src/db/legacy'
+import { TABLES } from '../src/db/legacy/tables'
+import { VerifyConfigError, verifyLegacy } from '../src/db/legacy/verify'
 import * as t from '../src/db/schema'
 import {
-  databaseName, describeDb, ensureDatabase, legacyTestUrl, resetSchema, testDatabaseUrl, truncateAll, useTestDb, withDatabase,
+  databaseName, describeDb, dropDatabase, ensureDatabase, legacyTestUrl, resetSchema, testDatabaseUrl, truncateAll, useTestDb,
+  withDatabase,
 } from './db'
 
 const DUMP = readFileSync(new URL('./fixtures/legacy.sql', import.meta.url), 'utf8')
@@ -43,8 +47,11 @@ describeDb('перенос данных из старой базы', () => {
     await loadLegacy()
     legacy.pool = new pg.Pool({ connectionString: legacyUrl, max: 2 })
   })
+  const scratchUrl = withDatabase(targetUrl, `${databaseName(targetUrl).replace(/_test$/, '')}_empty_test`)
   afterAll(async () => {
     await legacy.pool?.end()
+    await dropDatabase(legacyUrl)
+    await dropDatabase(scratchUrl)
   })
 
   const old = async (query: string, params: unknown[] = []): Promise<Rows> => (await legacy.pool!.query(query, params)).rows
@@ -65,7 +72,7 @@ describeDb('перенос данных из старой базы', () => {
   it('перенос со сверкой: счётчики сходятся, расхождений нет', async () => {
     const report = await run({ verify: true })
     expect(report.dryRun).toBe(false)
-    expect(report.checks?.length).toBeGreaterThan(30)
+    expect(report.checks?.map(c => c.name)).toEqual(Object.values(TABLES).map(table => getTableName(table)))   // проверка на таблицу
     expect(report.checks?.filter(c => !c.ok)).toEqual([])
     for (const table of ['users', 'sessions', 'auth_tokens', 'agents', 'devices', 'equipment', 'recipes', 'recipe_photos',
       'favorites', 'recipe_votes', 'comments', 'comment_votes', 'notifications', 'brews', 'brew_entries', 'readings',
@@ -134,11 +141,14 @@ describeDb('перенос данных из старой базы', () => {
       const src = before[i]!
       expect(photo.id).toBe(src.id)
       expect(Buffer.compare(photo.data, src.data as Buffer)).toBe(0)
-      expect(Buffer.compare(photo.thumb!, src.thumb as Buffer)).toBe(0)
+      if (src.thumb === null) expect(photo.thumb).toBeNull()      // фото до миграции photo_thumbs — без превью
+      else expect(Buffer.compare(photo.thumb!, src.thumb as Buffer)).toBe(0)
       expect(photo.contentType).toBe(src.content_type)
       expect(photo.credit).toBe(src.credit)
     }
     expect(photos.some(p => p.credit)).toBe(true)
+    expect(photos.some(p => p.thumb === null), 'в дампе нет фото без превью').toBe(true)
+    expect(photos.some(p => p.thumb !== null)).toBe(true)
   })
 
   it('рецепты: документ как есть, doc_version = 1, ключи прежние', async () => {
@@ -174,38 +184,39 @@ describeDb('перенос данных из старой базы', () => {
     expect(brews.filter(b => b.program !== null)).toHaveLength(1)
   })
 
-  it('brew_reminders = ключи из reminded с sent_at и silent', async () => {
+  it('brew_reminders = ключи из reminded; sent_at и silent — NULL («перенесено, неизвестно»)', async () => {
     await run()
     const expected = (await old('select id, reminded from brews')).flatMap(b => (b.reminded as string[]).map(key => `${String(b.id)}:${key}`))
     expect(expected.length).toBeGreaterThanOrEqual(4)
     const rows = await getDb().select().from(t.brewReminders)
     expect(rows.map(r => `${r.brewId}:${r.key}`).sort()).toEqual([...expected].sort())
     for (const row of rows) {
-      expect(row.sentAt).toBeInstanceOf(Date)
-      expect(row.silent).toBe(false)
+      expect(row.sentAt).toBeNull()
+      expect(row.silent).toBeNull()
     }
     expect(await fresh('select count(*) as n from brews where id not in (select brew_id from brew_reminders)')).toEqual([{ n: '1' }])
   })
 
-  it('уведомления: data у всех видов; у напоминаний прежнее, у комментариев — заголовок и начало текста', async () => {
+  it('уведомления: data напоминаний как была; где её не было (комментарии, ответы, напоминание с NULL) — {}', async () => {
     await run()
     const notes = await getDb().select().from(t.notifications)
     const before = await old('select * from notifications')
     expect(notes).toHaveLength(before.length)
     expect(new Set(notes.map(n => n.kind))).toEqual(new Set(['comment', 'reply', 'brew']))
+    // в дампе есть все случаи: JSON null (комментарии, ответы), SQL NULL (одно напоминание), настоящие данные
+    expect(before.some(b => b.kind === 'comment' && b.data === null)).toBe(true)
+    expect(await old('select count(*)::int as n from notifications where data is null')).toEqual([{ n: 1 }])
+    let withData = 0
     for (const note of notes) {
       const src = before.find(b => b.id === note.id)!
-      expect(note.data).toBeTruthy()
-      if (note.kind === 'brew') {
-        expect(note.data).toEqual(src.data)
+      if (src.data === null) {
+        expect(note.data, `${note.kind} ${note.id}`).toEqual({})      // текст не выдумывается
       } else {
-        expect(String(note.data.title)).toMatch(note.kind === 'reply'
-          ? /^Вам ответили в рецепте «.+»$/
-          : /^Новый комментарий к рецепту «.+»$/)
-        const [comment] = await old('select text from comments where id = $1', [src.comment_id])
-        expect(String(comment?.text).startsWith(String(note.data.text).replace(/…$/, ''))).toBe(true)
+        expect(note.data).toEqual(src.data)
+        withData++
       }
     }
+    expect(withData).toBeGreaterThanOrEqual(3)
     expect(notes.some(n => n.readAt)).toBe(true)
     expect(notes.some(n => !n.readAt)).toBe(true)
   })
@@ -234,10 +245,9 @@ describeDb('перенос данных из старой базы', () => {
   })
 
   it('в базе без миграций — отказ с подсказкой', async () => {
-    const scratch = withDatabase(targetUrl, `${databaseName(targetUrl).replace(/_test$/, '')}_empty_test`)
-    await ensureDatabase(scratch)
-    await resetSchema(scratch)
-    const db = createDb(scratch)
+    await ensureDatabase(scratchUrl)
+    await resetSchema(scratchUrl)
+    const db = createDb(scratchUrl)
     const source = await connectLegacy(legacyUrl)
     try {
       await expect(importLegacy(db, source)).rejects.toThrow(/примените миграции/)
@@ -261,7 +271,11 @@ describeDb('перенос данных из старой базы', () => {
     expect(await countOf('users')).toBe(0)
   })
 
-  it('dry-run: всё считает и сверяет, но ничего не оставляет; счётчики id не сдвигаются', async () => {
+  /** Последние выданные значения счётчиков identity: null — счётчик не трогали. */
+  const sequences = async () => (await fresh(
+    `select sequencename as name, last_value from pg_sequences where sequencename in ('events_id_seq', 'readings_id_seq') order by 1`))
+
+  it('dry-run: всё считает и сверяет, но ничего не оставляет и счётчики id не трогает', async () => {
     const report = await run({ dryRun: true })
     expect(report.dryRun).toBe(true)
     expect(report.counts.readings).toBeGreaterThan(200)
@@ -269,25 +283,217 @@ describeDb('перенос данных из старой базы', () => {
     for (const table of ['users', 'recipes', 'brews', 'readings', 'events', 'brew_reminders', 'user_avatars']) {
       expect(await countOf(table), table).toBe(0)
     }
+    expect(await sequences()).toEqual([{ name: 'events_id_seq', last_value: null }, { name: 'readings_id_seq', last_value: null }])
     // после настоящего переноса всё на месте — dry-run ему не мешает
     const real = await run()
     expect(real.counts.readings).toBe(report.counts.readings)
     expect(await countOf('readings')).toBe(report.counts.readings)
   })
 
-  it('сверка видит порчу: подменённый байт фото, хэш пароля, лишняя строка', async () => {
+  it('отказ сверки: приёмник пуст, счётчики id не сдвинуты — следующий id в readings и events равен 1', async () => {
+    // триггер портит каждое показание при вставке — сверка обязана отказать
+    await fresh(`create function hoplab_skew() returns trigger language plpgsql as $$ begin new.temp := new.temp + 1; return new; end $$`)
+    await fresh('create trigger hoplab_skew before insert on readings for each row execute function hoplab_skew()')
+    let error: unknown
+    try {
+      await run({ verify: true }).catch((e: unknown) => { error = e })
+    } finally {
+      await fresh('drop trigger hoplab_skew on readings')
+      await fresh('drop function hoplab_skew()')
+    }
+    expect(error).toBeInstanceOf(LegacyVerifyError)
+    expect((error as LegacyVerifyError).checks.filter(c => !c.ok).map(c => c.name)).toEqual(['readings'])
+    for (const table of ['users', 'readings', 'events', 'brews']) expect(await countOf(table), table).toBe(0)
+    expect(await sequences()).toEqual([{ name: 'events_id_seq', last_value: null }, { name: 'readings_id_seq', last_value: null }])
+    const [user] = await getDb().insert(t.users).values({ name: 'после отказа' }).returning()
+    const [device] = await getDb().insert(t.devices).values({ userId: user!.id, tuyaId: 'x', name: 'y' }).returning()
+    const [reading] = await getDb().insert(t.readings).values({ deviceId: device!.id, temp: 21 }).returning()
+    const [event] = await getDb().insert(t.events).values({ deviceId: device!.id, kind: 'info', text: 'z' }).returning()
+    expect([reading?.id, event?.id]).toEqual([1, 1])
+  })
+
+  it('пустые таблицы (нет избранного и push-подписок): перенос проходит, счётчики 0, сверка зелёная', async () => {
+    await old('delete from favorites')
+    await old('delete from push_subscriptions')
+    try {
+      const report = await run({ verify: true })
+      expect(report.counts.favorites).toBe(0)
+      expect(report.counts.push_subscriptions).toBe(0)
+      expect(report.checks?.filter(c => !c.ok)).toEqual([])
+      expect(report.checks?.find(c => c.name === 'favorites')).toMatchObject({ legacy: '0', target: '0' })
+      expect(await countOf('favorites')).toBe(0)
+      expect(await countOf('users')).toBeGreaterThan(0)
+    } finally {
+      await loadLegacy()
+    }
+  })
+
+  it('большая база: >10 000 записей журнала и >2 500 показаний — страницы и порции, лимит параметров не мешает', async () => {
+    await old(`insert into brew_entries (id, brew_id, at, kind, value, text, created_at)
+      select gen_random_uuid(), (select id from brews order by id limit 1), now() - n * interval '1 minute', 'gravity',
+             1.05 - n / 100000.0, 'замер ' || n, now()
+      from generate_series(1, 12000) as n`)
+    await old(`insert into readings (id, device_id, brew_id, at, temp, target, step, status)
+      select 100000 + n, (select id from devices order by id limit 1), null, now() - n * interval '1 second', 20 + n / 100.0, null, null, null
+      from generate_series(1, 2500) as n`)
+    try {
+      const expected = {
+        brew_entries: Number((await old('select count(*) as n from brew_entries'))[0]?.n),
+        readings: Number((await old('select count(*) as n from readings'))[0]?.n),
+      }
+      expect(expected.brew_entries).toBeGreaterThan(12000)
+      const report = await run({ verify: true })
+      expect(report.checks?.filter(c => !c.ok)).toEqual([])
+      expect(report.counts.brew_entries).toBe(expected.brew_entries)
+      expect(await countOf('brew_entries')).toBe(expected.brew_entries)
+      expect(await countOf('readings')).toBe(expected.readings)
+      // сверка отдельным прогоном; порча в хвосте большой таблицы (за первой страницей) видна
+      await fresh('delete from readings where id = 100000 + 2500')
+      const source = await connectLegacy(legacyUrl)
+      try {
+        const bad = (await verifyOnly(getDb(), source)).filter(c => !c.ok)
+        expect(bad.map(c => c.name)).toEqual(['readings'])
+        expect(bad[0]?.mismatches).toEqual([expect.objectContaining({ key: '102500', column: '(строка)' })])
+      } finally {
+        await source.close()
+      }
+    } finally {
+      await loadLegacy()
+    }
+  })
+
+  it('сверка видит порчу: байт фото, хэш пароля, лишняя строка — в отчёте таблица, ключ и колонка', async () => {
     await run()
     await fresh('update recipe_photos set data = set_byte(data, 0, get_byte(data, 0) # 255) where id = (select id from recipe_photos order by id limit 1)')
     await fresh('update users set password_hash = \'x\' where password_hash is not null and id = (select id from users where password_hash is not null order by id limit 1)')
     await fresh('delete from readings where id = (select min(id) from readings)')
     const source = await connectLegacy(legacyUrl)
     try {
-      const bad = (await verifyOnly(getDb(), source)).filter(c => !c.ok).map(c => c.name)
-      expect(bad).toEqual(expect.arrayContaining(['SHA-256 байтов: фото', 'users: сумма', 'readings: строк', 'readings: сумма']))
+      const bad = (await verifyOnly(getDb(), source)).filter(c => !c.ok)
+      expect(bad.map(c => c.name)).toEqual(['users', 'recipe_photos', 'readings'])
+      expect(bad.flatMap(c => c.mismatches).map(m => [m.table, m.column])).toEqual(
+        [['users', 'password_hash'], ['recipe_photos', 'data'], ['readings', '(строка)']])
+      expect(bad.every(m => m.mismatches[0]?.key.length)).toBe(true)
     } finally {
       await source.close()
     }
   })
+
+  it('отчёт сверки: примеров не больше заданного числа, счётчик считает все расхождения', async () => {
+    await run()
+    await fresh('update brew_entries set text = coalesce(text, \'\') || \'x\'')
+    const source = await connectLegacy(legacyUrl)
+    try {
+      const [check] = await verifyOnly(getDb(), source, { tables: ['brew_entries'], examples: 2 })
+      expect(check?.mismatchCount).toBeGreaterThan(2)
+      expect(check?.mismatches).toHaveLength(2)
+    } finally {
+      await source.close()
+    }
+  })
+
+  it('колонка новой таблицы без пары в старой базе и без записи в карте — ошибка механизма, а не тишина', async () => {
+    const source = await connectLegacy(legacyUrl)
+    try {
+      const blind = { ...source, columns: async (relation: string) => (await source.columns(relation)).filter(c => c !== 'thumb') }
+      const refusal = verifyLegacy(getDb(), blind, { tables: ['recipe_photos'] })
+      await expect(refusal).rejects.toBeInstanceOf(VerifyConfigError)
+      await expect(refusal).rejects.toThrow(/recipe_photos\.thumb: нет пары в старой базе/)
+    } finally {
+      await source.close()
+    }
+  })
+
+  it('каждая колонка новой схемы сверяется: порча одного значения красит сверку именно на ней', async () => {
+    await run()
+    class Rollback extends Error {}
+    // значения, допустимые ограничениями check (text-колонки с перечислениями портятся только ими)
+    const OVERRIDES: Record<string, string> = {
+      'users.role': `case when role = 'admin' then 'user' else 'admin' end`,
+      'auth_tokens.kind': `case when kind = 'verify' then 'reset' else 'verify' end`,
+      'recipes.visibility': `case when visibility = 'public' then 'private' else 'public' end`,
+      'recipe_photos.content_type': `case when content_type = 'image/png' then 'image/jpeg' else 'image/png' end`,
+      'recipe_votes.value': '-value',
+      'comment_votes.value': '-value',
+      'brews.source': `case when source = 'manual' then 'device' else 'manual' end`,
+      'brews.status': `case when status = 'running' then 'finished' else 'running' end`,
+      'brew_entries.kind': `case when kind = 'note' then 'og' else 'note' end`,
+      'notifications.kind': `case when kind = 'comment' then 'reply' else 'comment' end`,
+    }
+    /** Другое значение колонки того же типа: SQL-выражение над t.колонка (null становится значением). */
+    function corruption(type: string, column: string) {
+      const v = `t.${column}`
+      if (type === 'uuid') return 'gen_random_uuid()'          // и ключ, и внешний ключ (на несуществующую строку)
+      if (type === 'bigint') return `${v} + 1000000000`
+      if (type === 'text') return `coalesce(${v}, '') || 'x'`
+      if (type === 'boolean') return `not coalesce(${v}, false)`
+      if (type === 'jsonb') return `coalesce(${v}, '{}'::jsonb) || '{"__x": 1}'::jsonb`
+      if (type === 'bytea') return `case when ${v} is null then '\\x00'::bytea else ${v} || '\\x00'::bytea end`
+      if (type.startsWith('timestamp')) return `coalesce(${v}, now()) + interval '1 millisecond'`
+      return `coalesce(${v}, 0) + 1`
+    }
+    // строка для порчи: частичный уникальный индекс «одна основная система» позволяет только снять main
+    const ROWS: Record<string, string> = { 'equipment.main': 'main' }
+    const quote = (name: string) => `"${name}"`
+    const tested: string[] = []
+    const skipped: string[] = []
+    const source = await connectLegacy(legacyUrl)
+    try {
+      for (const table of Object.values(TABLES)) {
+        const name = getTableName(table)
+        const config = getTableConfig(table)
+        const columns = Object.values(getTableColumns(table))
+        const keys = (config.primaryKeys[0]?.columns ?? columns.filter(c => c.primary)).map(c => c.name)
+        for (const column of columns) {
+          const n = column.name
+          const id = `${name}.${n}`
+          const type = column.getSQLType()
+          const value = OVERRIDES[id] ?? corruption(type, quote(n))
+          // строка, где значение есть (если такая есть): порча null → значение тоже проверяет колонку, но слабее
+          const row = ROWS[id] ? `where ${ROWS[id]}` : `where ${quote(n)} is not null`
+          const target = `(select ctid from ${quote(name)} ${row} order by ${keys.map(quote).join(', ')} limit 1)`
+          const fallback = `(select ctid from ${quote(name)} order by ${keys.map(quote).join(', ')} limit 1)`
+          const update = `update ${quote(name)} as t set ${quote(n)} = ${value} where t.ctid = coalesce(${target}, ${fallback})`
+          let check: Awaited<ReturnType<typeof verifyLegacy>>[number] | undefined
+          let failure: string | undefined
+          try {
+            await getDb().transaction(async (tx) => {
+              // портятся и ключи, и внешние ключи: проверки внешних ключей выключаются (нужны права суперпользователя —
+              // у тестовой базы они есть)
+              await tx.execute(sql.raw('set local session_replication_role = replica'))
+              try {
+                const updated = (await tx.execute(sql.raw(update)) as unknown as { rowCount: number }).rowCount
+                if (updated !== 1) throw new Error(`обновлено строк: ${String(updated)}`)
+              } catch (e) {
+                failure = ((e as { cause?: Error }).cause ?? (e as Error)).message
+                throw new Rollback()
+              }
+              check = (await verifyLegacy(tx, source, { tables: [name], examples: 50 }))[0]
+              throw new Rollback()      // порча откатывается: следующая колонка портится на чистой базе
+            })
+          } catch (e) {
+            if (!(e instanceof Rollback)) throw e
+          }
+          if (failure !== undefined) {
+            skipped.push(`${id}: ${failure}`)
+            continue
+          }
+          tested.push(id)
+          expect(check?.ok, `${id}: сверка не заметила порчу`).toBe(false)
+          // ключ при порче превращается в «строки нет в одной из баз», остальные колонки — в расхождение значения
+          const expected = keys.includes(n) ? '(строка)' : n
+          expect(check?.mismatches.map(m => m.column), id).toContain(expected)
+        }
+      }
+    } finally {
+      await source.close()
+    }
+    const total = Object.values(TABLES).reduce((sum, table) => sum + Object.keys(getTableColumns(table)).length, 0)
+    console.info(`сверка: колонок в схеме ${total}, испорчено и поймано ${tested.length}, не удалось испортить ${skipped.length}`)
+    // колонки, которые испортить нельзя (допустимого другого значения нет); пусто — испортились все
+    expect(skipped).toEqual([])
+    expect(tested.length).toBe(total)
+  }, 120_000)
 
   describe('команда import-legacy', () => {
     const config = (env: Record<string, string> = {}) => loadConfig({ DATABASE_URL: targetUrl, LEGACY_DATABASE_URL: legacyUrl, ...env })
@@ -312,7 +518,24 @@ describeDb('перенос данных из старой базы', () => {
       await fresh('update sessions set token_hash = token_hash || \'0\' where id = (select id from sessions order by id limit 1)')
       const broken = await exec(['--verify-only'])
       expect(broken.code).toBe(1)
-      expect(broken.text).toContain('РАСХОЖДЕНИЕ sessions: сумма')
+      expect(broken.text).toContain('РАСХОЖДЕНИЕ sessions: строк в старой')
+      expect(broken.text).toMatch(/sessions \[[0-9a-f-]{36}\] token_hash: старая [0-9a-f]+, новая [0-9a-f]+0$/m)
+    })
+
+    it('миграции применяет сам: в пустой базе без схемы перенос проходит, повтор — отказ «не пуста»', async () => {
+      await ensureDatabase(scratchUrl)
+      await resetSchema(scratchUrl)
+      const env = { DATABASE_URL: scratchUrl }
+      const first = await exec(['--verify'], env)
+      expect(first.code).toBe(0)
+      expect(first.text).toContain('расхождений нет')
+      await expect(exec(['--verify'], env)).rejects.toThrow(/не пуста/)     // миграции повторно — идемпотентно
+      const db = createDb(scratchUrl)
+      try {
+        expect((await db.$client.query('select count(*)::int as n from readings')).rows).toEqual([{ n: 241 }])
+      } finally {
+        await db.$client.end()
+      }
     })
 
     it('подсказка, несовместимые флаги, одинаковые адреса, нет адреса старой базы', async () => {
