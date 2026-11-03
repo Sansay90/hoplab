@@ -78,6 +78,32 @@ describe('apps/api: изменяемое состояние на уровне м
   it('const и константные массивы — можно', ok('api', 'src/recipes/service.ts', 'export const LIMITS = [1, 2, 3] as const\n'))
 })
 
+describe('apps/api: подпапки раздела и трёхсегментные пути', () => {
+  const sub = 'src/brews/reminders/service.ts'
+  it('routes.ts в подпапке не импортирует queries.ts', bad('api', IMPORT, 'src/brews/reminders/routes.ts', 'import { list } from \'./queries\'\nexport const f = list\n'))
+  it('service.ts в подпапке не импортирует fastify', bad('api', IMPORT, sub, 'import type { FastifyRequest } from \'fastify\'\nexport type R = FastifyRequest\n'))
+  it('Drizzle в service.ts подпапки — нельзя', bad('api', IMPORT, sub, DRIZZLE))
+  it('Drizzle в queries.ts подпапки — можно', ok('api', 'src/brews/reminders/queries.ts', DRIZZLE))
+  it('чужой раздел, трёхсегментный путь — нельзя', bad('api', IMPORT, 'src/recipes/service.ts', 'import { s } from \'../brews/reminders/schedule\'\nexport const f = s\n'))
+  it('из подпапки в queries чужого раздела — нельзя', bad('api', IMPORT, sub, 'import { q } from \'../../recipes/queries\'\nexport const f = q\n'))
+  it('из подпапки в подпапку чужого раздела — нельзя', bad('api', IMPORT, sub, 'import { q } from \'../../recipes/photos/resize\'\nexport const f = q\n'))
+  it('из подпапки в index чужого раздела — можно', ok('api', sub, 'import { r } from \'../../recipes/index\'\nexport const f = r\n'))
+  it('из подпапки в корень чужого раздела — можно', ok('api', sub, 'import { r } from \'../../recipes\'\nexport const f = r\n'))
+  it('файл своего раздела по соседству — можно', ok('api', sub, 'import { s } from \'../schedule\'\nexport const f = s\n'))
+  it('queries.ts в подпапке может тянуть схему базы', ok('api', 'src/brews/reminders/queries.ts', 'import { t } from \'../../db/schema\'\nexport const f = t\n'))
+})
+
+describe('apps/api: process.env — без обходов', () => {
+  const file = 'src/recipes/service.ts'
+  it('process[\'env\']', bad('api', SYNTAX, file, 'export const f = () => process[\'env\'].HOME\n'))
+  it('const { env } = process', bad('api', SYNTAX, file, 'const { env } = process\nexport const f = () => env.HOME\n'))
+  it('const p = process', bad('api', SYNTAX, file, 'const p = process\nexport const f = () => p.cwd()\n'))
+  it('globalThis.process.env', bad('api', SYNTAX, file, 'export const f = () => globalThis.process.env.HOME\n'))
+  it('import { env } from \'node:process\'', bad('api', IMPORT, file, 'import { env } from \'node:process\'\nexport const f = () => env.HOME\n'))
+  it('import process from \'process\'', bad('api', IMPORT, file, 'import process from \'process\'\nexport const f = () => process.cwd()\n'))
+  it('в config.ts process.env по-прежнему можно', ok('api', 'src/config.ts', 'export const f = () => process.env.HOME\n'))
+})
+
 describe('any и отключение правил', () => {
   const any = 'export const x: any = 1\n'
   it('any — ошибка', bad('api', '@typescript-eslint/no-explicit-any', 'src/recipes/service.ts', any))
@@ -102,6 +128,8 @@ describe('packages/core: чистый TS', () => {
   it('zod и свои файлы — можно', ok('core', file, 'import { z } from \'zod\'\nimport { x } from \'./other\'\nexport const f = () => z.string().parse(x)\n'))
 })
 
+// Случай web берёт конфиг Nuxt из apps/web/.nuxt/eslint.config.mjs: его создаёт `nuxt prepare` (postinstall интерфейса).
+// При `pnpm install --ignore-scripts` этот блок упадёт — выполните `pnpm --filter @hoplab/web exec nuxt prepare`.
 describe('apps/web: не знает о сервере', { timeout: 60_000 }, () => {
   const file = 'app/utils/x.ts'
   const imp = (what: string) => `import * as m from '${what}'\nexport default m\n`
