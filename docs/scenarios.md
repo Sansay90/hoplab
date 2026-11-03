@@ -52,7 +52,7 @@
 1. «Новый рецепт» → разделы редактора; показатели считаются на лету по ингредиентам, ползунки рамок стиля подгоняют засыпь, горькую закладку, сбраживание и цвет.
 2. Сохранение: интерфейс проверяет программу по ограничениям пивоварни; сервис проверяет ещё раз, пересчитывает показатели и сохраняет рецепт личным.
 
-Тесты: `test_recipes.py`, `test_brewery.py::test_limits_from_agent` (у рецепта мощности нет; партия с мощностью выше потолка не загрузится), `test_brewery.py::test_batch_power`, `web/test/unit/calc.test.ts`, `recipe.test.ts`.
+Тесты: `test_recipes.py`, `test_brewery.py::test_limits_from_agent` (у рецепта мощности нет; партия с мощностью выше потолка не загрузится), `test_brewery.py::test_batch_power`, `packages/core/test/calc.test.ts`, `draft.test.ts`.
 
 ### Публикация
 
@@ -152,7 +152,7 @@
 6. Плотность встала на 18 °C на 4,1 °P при плане 2,6 — «Похоже, брожение застряло: поднимите температуру на 2–3 °C и взболтайте дрожжи», без кнопки следующего этапа; «пора» к холодному этапу по дням тоже не приходит.
 7. Пиво заразилось — меню ⋮ → «Партия вылита», причина по желанию: партия в «Моих варках» с меткой «вылито», на таймлайне — «Вылито» и причина, напоминания прекращаются, в «Сварили N раз» не идёт. Передумал — удалить запись в журнале.
 
-Тесты: `test_reminders.py` (в том числе `test_stuck_then_dumped`), `test_logbook.py::test_dumped_and_undo`, `web/test/unit/brewlog.test.ts`.
+Тесты: `test_reminders.py` (в том числе `test_stuck_then_dumped`), `test_logbook.py::test_dumped_and_undo`, `packages/core/test/ferment.test.ts`, `apps/web/test/unit/brewlog.test.ts`.
 
 ### Брожение по плотности
 
@@ -162,7 +162,7 @@
 4. Плотность встала на 5,0 °P при цели 4,8 — по двум замерам за сутки упала меньше 0,5 °P — «Брожение замедлилось», переход всё равно предлагается.
 5. На паузе «до FG» плотность двое суток не меняется — «Брожение закончилось — пора: Холодное осветление»; холод — выдержка 2 дня, дальше «Брожение по плану закончено».
 
-Тесты: `test_reminders.py` (`test_stages_by_gravity`, `test_target_follows_actual_og`, `test_slowdown_and_measure_reminders`), `web/test/unit/brewlog.test.ts`.
+Тесты: `test_reminders.py` (`test_stages_by_gravity`, `test_target_follows_actual_og`, `test_slowdown_and_measure_reminders`), `packages/core/test/ferment.test.ts`.
 
 ## Когда что-то идёт не так
 

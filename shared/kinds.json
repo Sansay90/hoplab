@@ -1,0 +1,947 @@
+[
+  {
+    "id": "brew",
+    "label": "Варка",
+    "kinds": [
+      {
+        "id": "manual",
+        "label": "Кастрюля или котёл",
+        "hint": "На плите, газе или электрокотле",
+        "system": true,
+        "fields": [
+          {
+            "key": "volume",
+            "label": "Объём партии",
+            "type": "number",
+            "unit": "л",
+            "min": 0.5,
+            "max": 2000.0,
+            "step": 1.0,
+            "digits": 1,
+            "prefix": null,
+            "default": null,
+            "short": null,
+            "options": null,
+            "help": "После кипячения"
+          },
+          {
+            "key": "efficiency",
+            "label": "Эффективность",
+            "type": "number",
+            "unit": "%",
+            "min": 1.0,
+            "max": 100.0,
+            "step": 1.0,
+            "digits": 0,
+            "prefix": null,
+            "default": 75.0,
+            "short": null,
+            "options": null,
+            "help": "Для новых рецептов"
+          },
+          {
+            "key": "evaporation",
+            "label": "Испарение",
+            "type": "number",
+            "unit": "л/ч",
+            "min": 0.0,
+            "max": 20.0,
+            "step": 0.1,
+            "digits": 1,
+            "prefix": null,
+            "default": 3.0,
+            "short": null,
+            "options": null,
+            "help": "За час, без крышки"
+          },
+          {
+            "key": "kettle",
+            "label": "Объём котла",
+            "type": "number",
+            "unit": "л",
+            "min": 1.0,
+            "max": 5000.0,
+            "step": 1.0,
+            "digits": 1,
+            "prefix": "котёл",
+            "default": null,
+            "short": null,
+            "options": null,
+            "help": "До краёв — проверить, влезет ли варка"
+          }
+        ]
+      },
+      {
+        "id": "allinone",
+        "label": "Автоматическая пивоварня",
+        "hint": "Brewzilla, Grainfather, Braumeister и другие — без подключения к сайту",
+        "system": true,
+        "fields": [
+          {
+            "key": "volume",
+            "label": "Объём партии",
+            "type": "number",
+            "unit": "л",
+            "min": 0.5,
+            "max": 2000.0,
+            "step": 1.0,
+            "digits": 1,
+            "prefix": null,
+            "default": null,
+            "short": null,
+            "options": null,
+            "help": "После кипячения"
+          },
+          {
+            "key": "efficiency",
+            "label": "Эффективность",
+            "type": "number",
+            "unit": "%",
+            "min": 1.0,
+            "max": 100.0,
+            "step": 1.0,
+            "digits": 0,
+            "prefix": null,
+            "default": 75.0,
+            "short": null,
+            "options": null,
+            "help": "Для новых рецептов"
+          },
+          {
+            "key": "evaporation",
+            "label": "Испарение",
+            "type": "number",
+            "unit": "л/ч",
+            "min": 0.0,
+            "max": 20.0,
+            "step": 0.1,
+            "digits": 1,
+            "prefix": null,
+            "default": 3.0,
+            "short": null,
+            "options": null,
+            "help": "За час, без крышки"
+          },
+          {
+            "key": "kettle",
+            "label": "Объём котла",
+            "type": "number",
+            "unit": "л",
+            "min": 1.0,
+            "max": 5000.0,
+            "step": 1.0,
+            "digits": 1,
+            "prefix": "котёл",
+            "default": null,
+            "short": null,
+            "options": null,
+            "help": "До краёв — проверить, влезет ли варка"
+          }
+        ]
+      },
+      {
+        "id": "easybrew",
+        "label": "Easy Brew Connect",
+        "hint": "Пивоварня, которой управляют с сайта: программа, закладки, график варки",
+        "system": true,
+        "fields": [
+          {
+            "key": "volume",
+            "label": "Объём партии",
+            "type": "number",
+            "unit": "л",
+            "min": 0.5,
+            "max": 2000.0,
+            "step": 1.0,
+            "digits": 1,
+            "prefix": null,
+            "default": null,
+            "short": null,
+            "options": null,
+            "help": "После кипячения"
+          },
+          {
+            "key": "efficiency",
+            "label": "Эффективность",
+            "type": "number",
+            "unit": "%",
+            "min": 1.0,
+            "max": 100.0,
+            "step": 1.0,
+            "digits": 0,
+            "prefix": null,
+            "default": 75.0,
+            "short": null,
+            "options": null,
+            "help": "Для новых рецептов"
+          },
+          {
+            "key": "evaporation",
+            "label": "Испарение",
+            "type": "number",
+            "unit": "л/ч",
+            "min": 0.0,
+            "max": 20.0,
+            "step": 0.1,
+            "digits": 1,
+            "prefix": null,
+            "default": 3.0,
+            "short": null,
+            "options": null,
+            "help": "За час, без крышки"
+          },
+          {
+            "key": "kettle",
+            "label": "Объём котла",
+            "type": "number",
+            "unit": "л",
+            "min": 1.0,
+            "max": 5000.0,
+            "step": 1.0,
+            "digits": 1,
+            "prefix": "котёл",
+            "default": null,
+            "short": null,
+            "options": null,
+            "help": "До краёв — проверить, влезет ли варка"
+          }
+        ]
+      },
+      {
+        "id": "mash_tun",
+        "label": "Заторный кулер",
+        "hint": "Изотермический бак для затирания",
+        "system": false,
+        "fields": [
+          {
+            "key": "volume",
+            "label": "Объём",
+            "type": "number",
+            "unit": "л",
+            "min": 0.1,
+            "max": 5000.0,
+            "step": 1.0,
+            "digits": 1,
+            "prefix": null,
+            "default": null,
+            "short": null,
+            "options": null,
+            "help": null
+          }
+        ]
+      },
+      {
+        "id": "hlt",
+        "label": "Котёл для промывочной воды",
+        "hint": "Нагрев воды для промывки",
+        "system": false,
+        "fields": [
+          {
+            "key": "volume",
+            "label": "Объём",
+            "type": "number",
+            "unit": "л",
+            "min": 0.1,
+            "max": 5000.0,
+            "step": 1.0,
+            "digits": 1,
+            "prefix": null,
+            "default": null,
+            "short": null,
+            "options": null,
+            "help": null
+          }
+        ]
+      },
+      {
+        "id": "burner",
+        "label": "Горелка или плита",
+        "hint": "Газовая, индукционная, электрическая",
+        "system": false,
+        "fields": [
+          {
+            "key": "power",
+            "label": "Мощность",
+            "type": "number",
+            "unit": "кВт",
+            "min": 0.1,
+            "max": 50.0,
+            "step": 0.5,
+            "digits": 1,
+            "prefix": null,
+            "default": null,
+            "short": null,
+            "options": null,
+            "help": null
+          }
+        ]
+      },
+      {
+        "id": "hop_spider",
+        "label": "Хмелевой фильтр",
+        "hint": "Hop Spider, мешок для хмеля",
+        "system": false,
+        "fields": []
+      }
+    ]
+  },
+  {
+    "id": "mill",
+    "label": "Помол",
+    "kinds": [
+      {
+        "id": "mill",
+        "label": "Мельница",
+        "hint": "Дробилка для солода",
+        "system": false,
+        "fields": [
+          {
+            "key": "gap_min",
+            "label": "Зазор от",
+            "type": "number",
+            "unit": "мм",
+            "min": 0.1,
+            "max": 3.0,
+            "step": 0.05,
+            "digits": 2,
+            "prefix": "зазор от",
+            "default": null,
+            "short": null,
+            "options": null,
+            "help": "Пределы регулировки валков"
+          },
+          {
+            "key": "gap_max",
+            "label": "Зазор до",
+            "type": "number",
+            "unit": "мм",
+            "min": 0.1,
+            "max": 3.0,
+            "step": 0.05,
+            "digits": 2,
+            "prefix": "до",
+            "default": null,
+            "short": null,
+            "options": null,
+            "help": null
+          },
+          {
+            "key": "rollers",
+            "label": "Валков",
+            "type": "select",
+            "unit": null,
+            "min": null,
+            "max": null,
+            "step": null,
+            "digits": null,
+            "prefix": null,
+            "default": null,
+            "short": null,
+            "options": [
+              {
+                "value": "2",
+                "label": "2 валка"
+              },
+              {
+                "value": "3",
+                "label": "3 валка"
+              }
+            ],
+            "help": null
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "chill",
+    "label": "Охлаждение сусла",
+    "kinds": [
+      {
+        "id": "chiller",
+        "label": "Чиллер",
+        "hint": "Охлаждение сусла после кипячения",
+        "system": false,
+        "fields": [
+          {
+            "key": "type",
+            "label": "Тип",
+            "type": "select",
+            "unit": null,
+            "min": null,
+            "max": null,
+            "step": null,
+            "digits": null,
+            "prefix": null,
+            "default": null,
+            "short": null,
+            "options": [
+              {
+                "value": "immersion",
+                "label": "погружной"
+              },
+              {
+                "value": "counterflow",
+                "label": "противоточный"
+              },
+              {
+                "value": "plate",
+                "label": "пластинчатый"
+              }
+            ],
+            "help": null
+          }
+        ]
+      },
+      {
+        "id": "pump",
+        "label": "Насос",
+        "hint": "Перекачка сусла и воды",
+        "system": false,
+        "fields": [
+          {
+            "key": "hot",
+            "label": "Для горячего сусла",
+            "type": "bool",
+            "unit": null,
+            "min": null,
+            "max": null,
+            "step": null,
+            "digits": null,
+            "prefix": null,
+            "default": null,
+            "short": "для горячего",
+            "options": null,
+            "help": null
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "ferment",
+    "label": "Брожение",
+    "kinds": [
+      {
+        "id": "fermenter",
+        "label": "Ферментер",
+        "hint": "Ведро, бутыль, ЦКТ",
+        "system": false,
+        "fields": [
+          {
+            "key": "volume",
+            "label": "Объём",
+            "type": "number",
+            "unit": "л",
+            "min": 0.1,
+            "max": 5000.0,
+            "step": 1.0,
+            "digits": 1,
+            "prefix": null,
+            "default": null,
+            "short": null,
+            "options": null,
+            "help": null
+          },
+          {
+            "key": "pressure",
+            "label": "Давление",
+            "type": "number",
+            "unit": "бар",
+            "min": 0.0,
+            "max": 5.0,
+            "step": 0.1,
+            "digits": 1,
+            "prefix": "до",
+            "default": null,
+            "short": null,
+            "options": null,
+            "help": "Сколько держит; 0 — без давления"
+          },
+          {
+            "key": "cooling",
+            "label": "Охлаждение",
+            "type": "select",
+            "unit": null,
+            "min": null,
+            "max": null,
+            "step": null,
+            "digits": null,
+            "prefix": null,
+            "default": null,
+            "short": null,
+            "options": [
+              {
+                "value": "none",
+                "label": "без охлаждения"
+              },
+              {
+                "value": "jacket",
+                "label": "рубашка"
+              },
+              {
+                "value": "coil",
+                "label": "змеевик"
+              }
+            ],
+            "help": null
+          }
+        ]
+      },
+      {
+        "id": "chamber",
+        "label": "Камера брожения",
+        "hint": "Холодильник или морозильник под брожение",
+        "system": false,
+        "fields": [
+          {
+            "key": "min_temp",
+            "label": "Холоднее всего",
+            "type": "number",
+            "unit": "°C",
+            "min": -10.0,
+            "max": 25.0,
+            "step": 1.0,
+            "digits": 1,
+            "prefix": "от",
+            "default": null,
+            "short": null,
+            "options": null,
+            "help": null
+          }
+        ]
+      },
+      {
+        "id": "glycol",
+        "label": "Гликолевый охладитель",
+        "hint": "Охлаждение рубашки или змеевика ферментера",
+        "system": false,
+        "fields": [
+          {
+            "key": "min_temp",
+            "label": "Холоднее всего",
+            "type": "number",
+            "unit": "°C",
+            "min": -10.0,
+            "max": 25.0,
+            "step": 1.0,
+            "digits": 1,
+            "prefix": "от",
+            "default": null,
+            "short": null,
+            "options": null,
+            "help": null
+          }
+        ]
+      },
+      {
+        "id": "controller",
+        "label": "Контроллер температуры",
+        "hint": "STC, Inkbird и другие",
+        "system": false,
+        "fields": [
+          {
+            "key": "channels",
+            "label": "Управляет",
+            "type": "select",
+            "unit": null,
+            "min": null,
+            "max": null,
+            "step": null,
+            "digits": null,
+            "prefix": null,
+            "default": null,
+            "short": null,
+            "options": [
+              {
+                "value": "cool",
+                "label": "охлаждением"
+              },
+              {
+                "value": "heat",
+                "label": "нагревом"
+              },
+              {
+                "value": "both",
+                "label": "охлаждением и нагревом"
+              }
+            ],
+            "help": null
+          }
+        ]
+      },
+      {
+        "id": "heater",
+        "label": "Нагреватель",
+        "hint": "Пояс, коврик, тэн в камере",
+        "system": false,
+        "fields": [
+          {
+            "key": "power",
+            "label": "Мощность",
+            "type": "number",
+            "unit": "Вт",
+            "min": 1.0,
+            "max": 5000.0,
+            "step": 1.0,
+            "digits": 0,
+            "prefix": null,
+            "default": null,
+            "short": null,
+            "options": null,
+            "help": null
+          }
+        ]
+      },
+      {
+        "id": "sensor",
+        "label": "Датчик плотности",
+        "hint": "Tilt, iSpindel, RAPT Pill",
+        "system": false,
+        "fields": []
+      }
+    ]
+  },
+  {
+    "id": "measure",
+    "label": "Измерения",
+    "kinds": [
+      {
+        "id": "hydrometer",
+        "label": "Ареометр",
+        "hint": "Плотность сусла и пива",
+        "system": false,
+        "fields": [
+          {
+            "key": "offset",
+            "label": "Погрешность",
+            "type": "number",
+            "unit": "°P",
+            "min": -5.0,
+            "max": 5.0,
+            "step": 0.1,
+            "digits": 1,
+            "prefix": "погрешность",
+            "default": null,
+            "short": null,
+            "options": null,
+            "help": "Что показывает на чистой воде; плюс — завышает"
+          },
+          {
+            "key": "calibration_temp",
+            "label": "Калиброван при",
+            "type": "number",
+            "unit": "°C",
+            "min": 10.0,
+            "max": 30.0,
+            "step": 0.5,
+            "digits": 1,
+            "prefix": "при",
+            "default": null,
+            "short": null,
+            "options": null,
+            "help": "Написано на шкале: обычно 20 °C"
+          }
+        ]
+      },
+      {
+        "id": "refractometer",
+        "label": "Рефрактометр",
+        "hint": "Плотность по капле сусла",
+        "system": false,
+        "fields": [
+          {
+            "key": "offset",
+            "label": "Погрешность",
+            "type": "number",
+            "unit": "°Bx",
+            "min": -5.0,
+            "max": 5.0,
+            "step": 0.1,
+            "digits": 1,
+            "prefix": "погрешность",
+            "default": null,
+            "short": null,
+            "options": null,
+            "help": "Что показывает на чистой воде; плюс — завышает"
+          },
+          {
+            "key": "atc",
+            "label": "Термокомпенсация (ATC)",
+            "type": "bool",
+            "unit": null,
+            "min": null,
+            "max": null,
+            "step": null,
+            "digits": null,
+            "prefix": null,
+            "default": null,
+            "short": "ATC",
+            "options": null,
+            "help": null
+          }
+        ]
+      },
+      {
+        "id": "ph_meter",
+        "label": "pH-метр",
+        "hint": "Кислотность затора и сусла",
+        "system": false,
+        "fields": [
+          {
+            "key": "offset",
+            "label": "Погрешность",
+            "type": "number",
+            "unit": "pH",
+            "min": -2.0,
+            "max": 2.0,
+            "step": 0.01,
+            "digits": 2,
+            "prefix": "погрешность",
+            "default": null,
+            "short": null,
+            "options": null,
+            "help": "Против буферного раствора; плюс — завышает"
+          },
+          {
+            "key": "atc",
+            "label": "Термокомпенсация (ATC)",
+            "type": "bool",
+            "unit": null,
+            "min": null,
+            "max": null,
+            "step": null,
+            "digits": null,
+            "prefix": null,
+            "default": null,
+            "short": "ATC",
+            "options": null,
+            "help": null
+          }
+        ]
+      },
+      {
+        "id": "thermometer",
+        "label": "Термометр",
+        "hint": "Щуп, пирометр, стрелочный",
+        "system": false,
+        "fields": [
+          {
+            "key": "offset",
+            "label": "Погрешность",
+            "type": "number",
+            "unit": "°C",
+            "min": -10.0,
+            "max": 10.0,
+            "step": 0.1,
+            "digits": 1,
+            "prefix": "погрешность",
+            "default": null,
+            "short": null,
+            "options": null,
+            "help": "Против эталонного термометра; плюс — завышает"
+          }
+        ]
+      },
+      {
+        "id": "scale",
+        "label": "Весы",
+        "hint": "Солод, хмель, соли",
+        "system": false,
+        "fields": [
+          {
+            "key": "max",
+            "label": "Предел",
+            "type": "number",
+            "unit": "кг",
+            "min": 0.01,
+            "max": 500.0,
+            "step": 0.5,
+            "digits": 2,
+            "prefix": "до",
+            "default": null,
+            "short": null,
+            "options": null,
+            "help": null
+          },
+          {
+            "key": "precision",
+            "label": "Точность",
+            "type": "number",
+            "unit": "г",
+            "min": 0.001,
+            "max": 100.0,
+            "step": 0.01,
+            "digits": 3,
+            "prefix": null,
+            "default": null,
+            "short": null,
+            "options": null,
+            "help": null
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "yeast",
+    "label": "Дрожжи",
+    "kinds": [
+      {
+        "id": "stir_plate",
+        "label": "Магнитная мешалка",
+        "hint": "Для стартера",
+        "system": false,
+        "fields": []
+      },
+      {
+        "id": "flask",
+        "label": "Колба",
+        "hint": "Стартер дрожжей",
+        "system": false,
+        "fields": [
+          {
+            "key": "volume",
+            "label": "Объём",
+            "type": "number",
+            "unit": "л",
+            "min": 0.1,
+            "max": 20.0,
+            "step": 0.5,
+            "digits": 1,
+            "prefix": null,
+            "default": null,
+            "short": null,
+            "options": null,
+            "help": null
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "package",
+    "label": "Розлив и газ",
+    "kinds": [
+      {
+        "id": "keg",
+        "label": "Кег",
+        "hint": "Cornelius, Sanke и другие",
+        "system": false,
+        "fields": [
+          {
+            "key": "volume",
+            "label": "Объём",
+            "type": "number",
+            "unit": "л",
+            "min": 0.1,
+            "max": 5000.0,
+            "step": 1.0,
+            "digits": 1,
+            "prefix": null,
+            "default": null,
+            "short": null,
+            "options": null,
+            "help": null
+          }
+        ]
+      },
+      {
+        "id": "co2",
+        "label": "Баллон CO₂",
+        "hint": "С редуктором",
+        "system": false,
+        "fields": [
+          {
+            "key": "volume",
+            "label": "Объём",
+            "type": "number",
+            "unit": "л",
+            "min": 0.5,
+            "max": 50.0,
+            "step": 0.5,
+            "digits": 1,
+            "prefix": null,
+            "default": null,
+            "short": null,
+            "options": null,
+            "help": null
+          }
+        ]
+      },
+      {
+        "id": "tap",
+        "label": "Система розлива",
+        "hint": "Кран, пистолет, «фонтан»",
+        "system": false,
+        "fields": []
+      },
+      {
+        "id": "kegerator",
+        "label": "Кегератор",
+        "hint": "Холодильник под кеги",
+        "system": false,
+        "fields": [
+          {
+            "key": "taps",
+            "label": "Кранов",
+            "type": "number",
+            "unit": "",
+            "min": 1.0,
+            "max": 20.0,
+            "step": 1.0,
+            "digits": 0,
+            "prefix": "кранов:",
+            "default": null,
+            "short": null,
+            "options": null,
+            "help": null
+          }
+        ]
+      },
+      {
+        "id": "filter",
+        "label": "Фильтр",
+        "hint": "Осветление перед розливом",
+        "system": false,
+        "fields": [
+          {
+            "key": "micron",
+            "label": "Тонкость",
+            "type": "number",
+            "unit": "мкм",
+            "min": 0.1,
+            "max": 100.0,
+            "step": 0.5,
+            "digits": 1,
+            "prefix": null,
+            "default": null,
+            "short": null,
+            "options": null,
+            "help": null
+          }
+        ]
+      },
+      {
+        "id": "bottles",
+        "label": "Бутылки и укупорка",
+        "hint": "Бутылки, крышки, укупорщик",
+        "system": false,
+        "fields": []
+      }
+    ]
+  },
+  {
+    "id": "other",
+    "label": "Другое",
+    "kinds": [
+      {
+        "id": "other",
+        "label": "Другое",
+        "hint": "Всё, чего нет в списке",
+        "system": false,
+        "fields": []
+      }
+    ]
+  }
+]

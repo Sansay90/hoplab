@@ -1,13 +1,16 @@
 """Общие примеры сервиса и интерфейса (shared/): обе реализации расчёта, программы пивоварни, пересчёта под
-оборудование и расписания брожения дают одно и то же. Интерфейс проверяет себя по тем же файлам
-(web/test/shared.test.ts)."""
+оборудование и расписания брожения дают одно и то же, каталог видов оборудования — тот же. packages/core проверяет
+себя по тем же файлам (packages/core/test/shared/, test/kinds.test.ts)."""
 import json
 from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
+from pydantic import TypeAdapter
 
+from app.brewery.kinds import CATEGORIES
 from app.brewery.reminders import Ferment
+from app.brewery.schemas import EquipmentCategory
 from app.models import from_unix
 from app.recipes.calc import calc_recipe, targets
 from app.recipes.program import addition_slots, device_timers, program_steps
@@ -68,6 +71,13 @@ def test_ferment(case):
     entries = [SimpleNamespace(kind=e["kind"], at=from_unix(e["at"]), value=e["value"]) for e in case["entries"]]
     got = Ferment(case["plan"], from_unix(case["start"]), entries, from_unix(case["now"])).view()
     assert _close(got, case["expected"]), (got, case["expected"])
+
+
+def test_kinds():
+    """Каталог видов оборудования — файл равен тому, что отдаёт GET /equipment/kinds."""
+    adapter = TypeAdapter(list[EquipmentCategory])
+    assert adapter.dump_python(adapter.validate_python(CATEGORIES), mode="json") == json.loads(
+        (SHARED / "kinds.json").read_text(encoding="utf-8"))
 
 
 def _close(got, expected):

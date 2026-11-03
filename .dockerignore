@@ -1,0 +1,22 @@
+# Контекст сборки образов — корень репозитория (workspace). В образы не должно попасть лишнее и, главное, секреты.
+.git
+.github
+.env
+.env.*
+**/.env
+**/.env.*
+# Python-часть и документы в Node-образы не нужны
+service
+agent
+deploy
+docs
+shared
+# папка прежнего расположения интерфейса (остатки node_modules и сборки)
+web
+**/node_modules
+**/.nuxt
+**/.output
+**/.data
+**/dist
+**/coverage
+**/*.log

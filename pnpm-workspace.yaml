@@ -1,0 +1,13 @@
+packages:
+  - apps/*
+  - packages/*
+
+# pnpm 10 не запускает install-скрипты зависимостей сам — разрешены только нужные (нативные сборки)
+onlyBuiltDependencies:
+  - '@parcel/watcher'
+  - esbuild
+
+# уязвимость node-forge (high) во вложенной зависимости nitropack > listhen (HTTPS dev-сервера Nuxt);
+# в патченную 1.4.x обновляем без поднятия самого Nuxt
+overrides:
+  node-forge: ^1.4.2
