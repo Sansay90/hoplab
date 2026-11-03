@@ -35,4 +35,5 @@ USER node
 EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
     CMD wget -q -O /dev/null http://127.0.0.1:8000/api/health || exit 1
+# перенос данных из старой базы (шаг 8 плана): docker compose run --rm api node dist/cli/import-legacy.mjs --verify
 CMD ["node", "dist/main.mjs"]

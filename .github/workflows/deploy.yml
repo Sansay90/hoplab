@@ -63,6 +63,20 @@ jobs:
   node:
     name: Node (интерфейс, api, core)
     runs-on: ubuntu-latest
+    # Postgres для тестов api (база *_test, перенос данных — ещё и *_legacy_test: создаётся сама)
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: hoplab
+          POSTGRES_PASSWORD: hoplab
+          POSTGRES_DB: hoplab_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U hoplab -d hoplab_test"
+          --health-interval 5s --health-timeout 3s --health-retries 10
+    env:
+      TEST_DATABASE_URL: postgresql://hoplab:hoplab@127.0.0.1:5432/hoplab_test
     steps:
       - uses: actions/checkout@v4
       # версия pnpm — из packageManager в корневом package.json
@@ -78,6 +92,9 @@ jobs:
       # типы API генерирует nuxt-open-fetch из openapi.json; что он совпадает с сервисом, проверяет job «Сервис и агент»
       - name: Типы
         run: pnpm typecheck
+      # схема api (src/db/schema.ts) и миграции (apps/api/drizzle) в синхроне: правили схему — нужен db:generate
+      - name: Схема и миграции базы api
+        run: pnpm --filter @hoplab/api db:check
       - name: Тесты core, api и интерфейса
         run: pnpm test
       - name: Мёртвый код (core и api)

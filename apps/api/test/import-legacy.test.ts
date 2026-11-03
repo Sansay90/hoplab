@@ -20,7 +20,8 @@ type Rows = Record<string, unknown>[]
 
 describeDb('перенос данных из старой базы', () => {
   const getDb = useTestDb()
-  const targetUrl = testDatabaseUrl() ?? ''
+  // без TEST_DATABASE_URL describe пропускается, но тело всё равно выполняется (сбор тестов) — адрес-заглушка
+  const targetUrl = testDatabaseUrl() ?? 'postgresql://hoplab@127.0.0.1:1/none_test'
   const legacyUrl = legacyTestUrl(targetUrl)
   const legacy = { pool: undefined as pg.Pool | undefined }
 
