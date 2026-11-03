@@ -26,3 +26,24 @@ describe('/api/health', () => {
     expect(res.json()).toEqual({ detail: 'Not Found' })
   })
 })
+
+describe('trustProxy (FORWARDED_ALLOW_IPS)', () => {
+  const ip = async (env: Record<string, string>, remoteAddress: string) => {
+    const app = await makeApp(env)
+    const res = await app.inject({ url: '/api/ip', remoteAddress, headers: { 'x-forwarded-for': '1.2.3.4' } })
+    return res.json().ip
+  }
+
+  it('по умолчанию (127.0.0.1) X-Forwarded-For от чужого адреса не учитывается', async () => {
+    expect(await ip({}, '203.0.113.5')).toBe('203.0.113.5')
+  })
+  it('от доверенного адреса — учитывается', async () => {
+    expect(await ip({}, '127.0.0.1')).toBe('1.2.3.4')
+  })
+  it('«*» — учитывается от любого', async () => {
+    expect(await ip({ FORWARDED_ALLOW_IPS: '*' }, '203.0.113.5')).toBe('1.2.3.4')
+  })
+  it('CIDR в списке', async () => {
+    expect(await ip({ FORWARDED_ALLOW_IPS: '203.0.113.0/24' }, '203.0.113.5')).toBe('1.2.3.4')
+  })
+})

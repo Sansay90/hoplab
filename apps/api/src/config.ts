@@ -1,6 +1,8 @@
 // Настройки сервиса — из переменных окружения (или файла .env). Имена и смысл — как у Python-сервиса
 // (service/app/config.py): тот же .env подходит обоим. Пустая переменная считается незаданной.
 // process.env читается только здесь.
+import { readFileSync } from 'node:fs'
+import { parseEnv } from 'node:util'
 import { z } from 'zod'
 
 // без APP_URL сервис стоит у пивовара дома: интерфейсу с этого ПК и из домашней сети — можно
@@ -31,7 +33,7 @@ const schema = z.object({
 
   SERVICE_HOST: z.string().default('127.0.0.1'),
   SERVICE_PORT: port.default(8000),
-  // у Python-сервиса — чьим X-Forwarded-* верить; здесь за nginx всегда trustProxy, переменная оставлена для общего .env
+  // за reverse proxy: чьим заголовкам X-Forwarded-* верить (схема https для cookie, адрес клиента для лимитов)
   FORWARDED_ALLOW_IPS: z.string().default('127.0.0.1'),
 
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),
@@ -47,7 +49,8 @@ export interface Config {
   vapid: { privateKey: string; subject: string }
   host: string
   port: number
-  forwardedAllowIps: string
+  /** Для Fastify trustProxy: «*» — true (верить всем), иначе список адресов или CIDR через запятую. */
+  trustProxy: boolean | string
   logLevel: z.infer<typeof schema>['LOG_LEVEL']
   /** Чьи страницы могут слать изменяющие запросы с cookie входа: свой сайт, без APP_URL — этот ПК. */
   trustedOrigin: RegExp
@@ -76,20 +79,31 @@ export function loadConfig(env: Record<string, string | undefined>): Config {
     vapid: { privateKey: e.VAPID_PRIVATE_KEY, subject: e.VAPID_SUBJECT },
     host: e.SERVICE_HOST,
     port: e.SERVICE_PORT,
-    forwardedAllowIps: e.FORWARDED_ALLOW_IPS,
+    trustProxy: e.FORWARDED_ALLOW_IPS.trim() === '*' ? true : e.FORWARDED_ALLOW_IPS,
     logLevel: e.LOG_LEVEL,
     // целиком, как fullmatch у Python
     trustedOrigin: new RegExp(`^(?:${source})$`),
   }
 }
 
-/** Настройки процесса: переменные окружения поверх файла .env (ENV_FILE или .env в текущей папке, если он есть). */
+/** Переменные окружения поверх файла .env: пустая переменная — как незаданная, значение берётся из файла. */
+export function mergeEnv(env: Record<string, string | undefined>, fileText: string) {
+  const merged: Record<string, string | undefined> = parseEnv(fileText)
+  for (const [key, value] of Object.entries(env)) {
+    if (value !== undefined && value !== '') merged[key] = value
+    else merged[key] ??= value
+  }
+  return merged
+}
+
+/** Настройки процесса: окружение поверх файла .env (ENV_FILE или .env в текущей папке, если он есть). */
 export function loadConfigFromProcess(): Config {
+  let fileText = ''
   try {
-    process.loadEnvFile(process.env.ENV_FILE ?? '.env')
+    fileText = readFileSync(process.env.ENV_FILE ?? '.env', 'utf8')
   } catch (e) {
     // файла нет — достаточно переменных окружения; любая другая ошибка — настоящая
     if ((e as NodeJS.ErrnoException).code !== 'ENOENT') throw e
   }
-  return loadConfig(process.env)
+  return loadConfig(mergeEnv(process.env, fileText))
 }

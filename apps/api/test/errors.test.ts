@@ -25,14 +25,15 @@ describe('ошибки → { detail }', () => {
     expect(res.json()).toEqual({ detail })
   })
 
-  it('непредвиденная ошибка — 500 без подробностей', async () => {
+  it('непредвиденная ошибка — 500 простым текстом, как у FastAPI', async () => {
     const app = await makeApp()
     app.get('/api/boom', () => {
       throw new Error('секрет внутри')
     })
     const res = await app.inject('/api/boom')
     expect(res.statusCode).toBe(500)
-    expect(res.json()).toEqual({ detail: 'Internal Server Error' })
+    expect(res.headers['content-type']).toContain('text/plain')
+    expect(res.body).toBe('Internal Server Error')
   })
 })
 
@@ -69,5 +70,37 @@ describe('422 — формат FastAPI: { detail: [{ type, loc, msg }] }', () =>
     const res = await app.inject({ method: 'POST', url: '/api/echo', payload: { name: 'Пиво' } })
     expect(res.statusCode).toBe(200)
     expect(res.json()).toEqual({ name: 'Пиво' })
+  })
+})
+
+describe('паритет с FastAPI', () => {
+  it('невалидный JSON — 422 json_invalid с позицией', async () => {
+    const app = await makeApp()
+    const res = await app.inject({
+      method: 'POST', url: '/api/echo', headers: { 'content-type': 'application/json' }, payload: '{"name": }',
+    })
+    expect(res.statusCode).toBe(422)
+    expect(res.json().detail).toEqual([{ type: 'json_invalid', loc: ['body', expect.any(Number)], msg: expect.any(String) }])
+  })
+
+  it('пустое тело при обязательном — 422 missing', async () => {
+    const app = await makeApp()
+    const res = await app.inject({ method: 'POST', url: '/api/echo', headers: { 'content-type': 'application/json' }, payload: '' })
+    expect(res.statusCode).toBe(422)
+    expect(res.json().detail[0]).toMatchObject({ type: 'missing', loc: ['body'] })
+  })
+
+  it('params → path', async () => {
+    const app = await makeApp()
+    const res = await app.inject('/api/item/abc')
+    expect(res.statusCode).toBe(422)
+    expect(res.json().detail[0]).toMatchObject({ loc: ['path', 'n'] })
+  })
+
+  it('headers → header', async () => {
+    const app = await makeApp()
+    const res = await app.inject('/api/needs-header')
+    expect(res.statusCode).toBe(422)
+    expect(res.json().detail[0]).toMatchObject({ loc: ['header', 'x-token'] })
   })
 })

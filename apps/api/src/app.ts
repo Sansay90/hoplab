@@ -13,11 +13,11 @@ import {
 } from 'fastify-type-provider-zod'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import type { Config } from './config'
+import type { Deps } from './deps'
 import { AppError } from './errors'
 import { healthRoutes } from './health'
 
-export interface Deps {
-  config: Config
+export interface BuildOptions {
   /** Журнал pino: true/false или настройки; по умолчанию — уровень из настроек. */
   logger?: boolean | object
 }
@@ -30,9 +30,12 @@ function isTrusted(origin: string, request: FastifyRequest, config: Config) {
   return origin === `${request.protocol}://${request.headers.host ?? ''}` || config.trustedOrigin.test(origin)
 }
 
+/** Где ошибка — как у FastAPI: body, query, path, header. */
+const PLACES: Record<string, string> = { body: 'body', querystring: 'query', params: 'path', headers: 'header' }
+
 /** Тело 422 — как у FastAPI: { detail: [{ type, loc, msg }] }, интерфейс склеивает msg (utils/api.ts). */
 function validationDetail(error: FastifyError & { validation: { keyword: string; instancePath: string; message?: string }[] }) {
-  const place = error.validationContext === 'querystring' ? 'query' : (error.validationContext ?? 'body')
+  const place = PLACES[error.validationContext ?? 'body'] ?? 'body'
   return error.validation.map(issue => ({
     type: issue.keyword,
     loc: [place, ...issue.instancePath.split('/').filter(Boolean).map(part => /^\d+$/.test(part) ? Number(part) : part)],
@@ -40,14 +43,27 @@ function validationDetail(error: FastifyError & { validation: { keyword: string;
   }))
 }
 
-export async function buildApp(deps: Deps) {
+/** Невалидный JSON — 422 json_invalid с позицией ошибки, как у FastAPI; пустое тело — «нет поля». */
+function jsonProblem(error: FastifyError) {
+  if (error.code === 'FST_ERR_CTP_EMPTY_JSON_BODY') {
+    return [{ type: 'missing', loc: ['body'], msg: 'Field required' }]
+  }
+  if (error.code === 'FST_ERR_CTP_INVALID_JSON_BODY' || (error instanceof SyntaxError && error.statusCode === 400)) {
+    const position = Number(/position (\d+)/.exec(error.message)?.[1] ?? 0)
+    return [{ type: 'json_invalid', loc: ['body', position], msg: 'JSON decode error' }]
+  }
+  return undefined
+}
+
+export async function buildApp(deps: Deps, options: BuildOptions = {}) {
   const { config } = deps
   const app = Fastify({
-    logger: deps.logger ?? { level: config.logLevel },
-    // за nginx: адрес клиента и схема (https для cookie) — из X-Forwarded-*
-    trustProxy: true,
+    logger: options.logger ?? { level: config.logLevel },
+    // за nginx: адрес клиента и схема (https для cookie) — из X-Forwarded-* от адресов FORWARDED_ALLOW_IPS
+    trustProxy: config.trustProxy,
   }).withTypeProvider<ZodTypeProvider>()
 
+  app.decorate('deps', deps)
   app.setValidatorCompiler(validatorCompiler)
   app.setSerializerCompiler(serializerCompiler)
 
@@ -55,10 +71,13 @@ export async function buildApp(deps: Deps) {
   app.setErrorHandler((error: FastifyError, request, reply) => {
     if (error instanceof AppError) return reply.code(error.status).send({ detail: error.detail })
     if (hasZodFastifySchemaValidationErrors(error)) return reply.code(422).send({ detail: validationDetail(error) })
+    const json = jsonProblem(error)
+    if (json) return reply.code(422).send({ detail: json })
     const status = error.statusCode ?? 500
     if (status < 500) return reply.code(status).send({ detail: error.message })
+    // как у FastAPI: тело — простой текст, без detail (интерфейс покажет «Сервис ответил ошибкой 500»)
     request.log.error(error)
-    return reply.code(500).send({ detail: 'Internal Server Error' })
+    return reply.code(500).type('text/plain; charset=utf-8').send('Internal Server Error')
   })
   app.setNotFoundHandler((_request, reply) => reply.code(404).send({ detail: 'Not Found' }))
 
