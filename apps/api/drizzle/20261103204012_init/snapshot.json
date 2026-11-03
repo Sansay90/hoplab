@@ -1,0 +1,5684 @@
+{
+  "type": "base",
+  "version": "9",
+  "dialect": "postgres",
+  "id": "e44dfc9c-30b2-45be-a445-683f8eeaad05",
+  "prevIds": [
+    "00000000-0000-0000-0000-000000000000"
+  ],
+  "footprints": [
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "agents"
+      ],
+      "writes": [
+        "s|tbl|public.agents",
+        "n|tbl|public.agents",
+        "e|tbl|public.agents",
+        "n|rel|public.agents",
+        "n|type|public.agents",
+        "n|rel|public.agents_pkey",
+        "n|rel|public.agents_token_hash_key"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "auth_tokens"
+      ],
+      "writes": [
+        "s|tbl|public.auth_tokens",
+        "n|tbl|public.auth_tokens",
+        "e|tbl|public.auth_tokens",
+        "n|rel|public.auth_tokens",
+        "n|type|public.auth_tokens",
+        "n|rel|public.auth_tokens_pkey",
+        "n|rel|public.auth_tokens_token_hash_key"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "brew_entries"
+      ],
+      "writes": [
+        "s|tbl|public.brew_entries",
+        "n|tbl|public.brew_entries",
+        "e|tbl|public.brew_entries",
+        "n|rel|public.brew_entries",
+        "n|type|public.brew_entries",
+        "n|rel|public.brew_entries_pkey"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "brew_reminders"
+      ],
+      "writes": [
+        "s|tbl|public.brew_reminders",
+        "n|tbl|public.brew_reminders",
+        "e|tbl|public.brew_reminders",
+        "n|rel|public.brew_reminders",
+        "n|type|public.brew_reminders",
+        "n|rel|public.brew_reminders_pkey"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "brews"
+      ],
+      "writes": [
+        "s|tbl|public.brews",
+        "n|tbl|public.brews",
+        "e|tbl|public.brews",
+        "n|rel|public.brews",
+        "n|type|public.brews",
+        "n|rel|public.brews_pkey"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "comment_votes"
+      ],
+      "writes": [
+        "s|tbl|public.comment_votes",
+        "n|tbl|public.comment_votes",
+        "e|tbl|public.comment_votes",
+        "n|rel|public.comment_votes",
+        "n|type|public.comment_votes",
+        "n|rel|public.comment_votes_pkey"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "comments"
+      ],
+      "writes": [
+        "s|tbl|public.comments",
+        "n|tbl|public.comments",
+        "e|tbl|public.comments",
+        "n|rel|public.comments",
+        "n|type|public.comments",
+        "n|rel|public.comments_pkey"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "devices"
+      ],
+      "writes": [
+        "s|tbl|public.devices",
+        "n|tbl|public.devices",
+        "e|tbl|public.devices",
+        "n|rel|public.devices",
+        "n|type|public.devices",
+        "n|rel|public.devices_pkey",
+        "n|rel|public.devices_tuya_id_key"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "equipment"
+      ],
+      "writes": [
+        "s|tbl|public.equipment",
+        "n|tbl|public.equipment",
+        "e|tbl|public.equipment",
+        "n|rel|public.equipment",
+        "n|type|public.equipment",
+        "n|rel|public.equipment_pkey"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "events"
+      ],
+      "writes": [
+        "s|tbl|public.events",
+        "n|tbl|public.events",
+        "e|tbl|public.events",
+        "n|rel|public.events",
+        "n|type|public.events",
+        "n|rel|public.events_pkey"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "favorites"
+      ],
+      "writes": [
+        "s|tbl|public.favorites",
+        "n|tbl|public.favorites",
+        "e|tbl|public.favorites",
+        "n|rel|public.favorites",
+        "n|type|public.favorites",
+        "n|rel|public.favorites_pkey"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "notifications"
+      ],
+      "writes": [
+        "s|tbl|public.notifications",
+        "n|tbl|public.notifications",
+        "e|tbl|public.notifications",
+        "n|rel|public.notifications",
+        "n|type|public.notifications",
+        "n|rel|public.notifications_pkey"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "push_subscriptions"
+      ],
+      "writes": [
+        "s|tbl|public.push_subscriptions",
+        "n|tbl|public.push_subscriptions",
+        "e|tbl|public.push_subscriptions",
+        "n|rel|public.push_subscriptions",
+        "n|type|public.push_subscriptions",
+        "n|rel|public.push_subscriptions_pkey",
+        "n|rel|public.push_subscriptions_endpoint_key"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "readings"
+      ],
+      "writes": [
+        "s|tbl|public.readings",
+        "n|tbl|public.readings",
+        "e|tbl|public.readings",
+        "n|rel|public.readings",
+        "n|type|public.readings",
+        "n|rel|public.readings_pkey"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "recipe_photos"
+      ],
+      "writes": [
+        "s|tbl|public.recipe_photos",
+        "n|tbl|public.recipe_photos",
+        "e|tbl|public.recipe_photos",
+        "n|rel|public.recipe_photos",
+        "n|type|public.recipe_photos",
+        "n|rel|public.recipe_photos_pkey"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "recipe_votes"
+      ],
+      "writes": [
+        "s|tbl|public.recipe_votes",
+        "n|tbl|public.recipe_votes",
+        "e|tbl|public.recipe_votes",
+        "n|rel|public.recipe_votes",
+        "n|type|public.recipe_votes",
+        "n|rel|public.recipe_votes_pkey"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "recipes"
+      ],
+      "writes": [
+        "s|tbl|public.recipes",
+        "n|tbl|public.recipes",
+        "e|tbl|public.recipes",
+        "n|rel|public.recipes",
+        "n|type|public.recipes",
+        "n|rel|public.recipes_pkey"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "sessions"
+      ],
+      "writes": [
+        "s|tbl|public.sessions",
+        "n|tbl|public.sessions",
+        "e|tbl|public.sessions",
+        "n|rel|public.sessions",
+        "n|type|public.sessions",
+        "n|rel|public.sessions_pkey",
+        "n|rel|public.sessions_token_hash_key"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "user_avatars"
+      ],
+      "writes": [
+        "s|tbl|public.user_avatars",
+        "n|tbl|public.user_avatars",
+        "e|tbl|public.user_avatars",
+        "n|rel|public.user_avatars",
+        "n|type|public.user_avatars",
+        "n|rel|public.user_avatars_pkey"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": [
+        "table",
+        "public",
+        "users"
+      ],
+      "writes": [
+        "s|tbl|public.users",
+        "n|tbl|public.users",
+        "e|tbl|public.users",
+        "n|rel|public.users",
+        "n|type|public.users",
+        "n|rel|public.users_pkey",
+        "n|rel|public.users_name_key_key",
+        "n|rel|public.users_email_key"
+      ],
+      "reads": [
+        "n|sch|public"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "agents",
+        "ix_agents_user_id"
+      ],
+      "writes": [
+        "s|idx|public.ix_agents_user_id",
+        "n|idx|public.ix_agents_user_id",
+        "e|idx|public.ix_agents_user_id",
+        "n|rel|public.ix_agents_user_id"
+      ],
+      "reads": [
+        "n|tbl|public.agents",
+        "n|sch|public",
+        "n|col|public.agents.user_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "auth_tokens",
+        "ix_auth_tokens_user_id"
+      ],
+      "writes": [
+        "s|idx|public.ix_auth_tokens_user_id",
+        "n|idx|public.ix_auth_tokens_user_id",
+        "e|idx|public.ix_auth_tokens_user_id",
+        "n|rel|public.ix_auth_tokens_user_id"
+      ],
+      "reads": [
+        "n|tbl|public.auth_tokens",
+        "n|sch|public",
+        "n|col|public.auth_tokens.user_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "brew_entries",
+        "ix_brew_entries_brew_id"
+      ],
+      "writes": [
+        "s|idx|public.ix_brew_entries_brew_id",
+        "n|idx|public.ix_brew_entries_brew_id",
+        "e|idx|public.ix_brew_entries_brew_id",
+        "n|rel|public.ix_brew_entries_brew_id"
+      ],
+      "reads": [
+        "n|tbl|public.brew_entries",
+        "n|sch|public",
+        "n|col|public.brew_entries.brew_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "brews",
+        "ix_brews_user_id"
+      ],
+      "writes": [
+        "s|idx|public.ix_brews_user_id",
+        "n|idx|public.ix_brews_user_id",
+        "e|idx|public.ix_brews_user_id",
+        "n|rel|public.ix_brews_user_id"
+      ],
+      "reads": [
+        "n|tbl|public.brews",
+        "n|sch|public",
+        "n|col|public.brews.user_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "brews",
+        "ix_brews_device_id"
+      ],
+      "writes": [
+        "s|idx|public.ix_brews_device_id",
+        "n|idx|public.ix_brews_device_id",
+        "e|idx|public.ix_brews_device_id",
+        "n|rel|public.ix_brews_device_id"
+      ],
+      "reads": [
+        "n|tbl|public.brews",
+        "n|sch|public",
+        "n|col|public.brews.device_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "brews",
+        "ix_brews_recipe_id"
+      ],
+      "writes": [
+        "s|idx|public.ix_brews_recipe_id",
+        "n|idx|public.ix_brews_recipe_id",
+        "e|idx|public.ix_brews_recipe_id",
+        "n|rel|public.ix_brews_recipe_id"
+      ],
+      "reads": [
+        "n|tbl|public.brews",
+        "n|sch|public",
+        "n|col|public.brews.recipe_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "brews",
+        "ix_brews_equipment_id"
+      ],
+      "writes": [
+        "s|idx|public.ix_brews_equipment_id",
+        "n|idx|public.ix_brews_equipment_id",
+        "e|idx|public.ix_brews_equipment_id",
+        "n|rel|public.ix_brews_equipment_id"
+      ],
+      "reads": [
+        "n|tbl|public.brews",
+        "n|sch|public",
+        "n|col|public.brews.equipment_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "brews",
+        "ix_brews_started_at"
+      ],
+      "writes": [
+        "s|idx|public.ix_brews_started_at",
+        "n|idx|public.ix_brews_started_at",
+        "e|idx|public.ix_brews_started_at",
+        "n|rel|public.ix_brews_started_at"
+      ],
+      "reads": [
+        "n|tbl|public.brews",
+        "n|sch|public",
+        "n|col|public.brews.started_at"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "comment_votes",
+        "ix_comment_votes_comment_id"
+      ],
+      "writes": [
+        "s|idx|public.ix_comment_votes_comment_id",
+        "n|idx|public.ix_comment_votes_comment_id",
+        "e|idx|public.ix_comment_votes_comment_id",
+        "n|rel|public.ix_comment_votes_comment_id"
+      ],
+      "reads": [
+        "n|tbl|public.comment_votes",
+        "n|sch|public",
+        "n|col|public.comment_votes.comment_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "comments",
+        "ix_comments_recipe_id"
+      ],
+      "writes": [
+        "s|idx|public.ix_comments_recipe_id",
+        "n|idx|public.ix_comments_recipe_id",
+        "e|idx|public.ix_comments_recipe_id",
+        "n|rel|public.ix_comments_recipe_id"
+      ],
+      "reads": [
+        "n|tbl|public.comments",
+        "n|sch|public",
+        "n|col|public.comments.recipe_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "comments",
+        "ix_comments_user_id"
+      ],
+      "writes": [
+        "s|idx|public.ix_comments_user_id",
+        "n|idx|public.ix_comments_user_id",
+        "e|idx|public.ix_comments_user_id",
+        "n|rel|public.ix_comments_user_id"
+      ],
+      "reads": [
+        "n|tbl|public.comments",
+        "n|sch|public",
+        "n|col|public.comments.user_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "comments",
+        "ix_comments_parent_id"
+      ],
+      "writes": [
+        "s|idx|public.ix_comments_parent_id",
+        "n|idx|public.ix_comments_parent_id",
+        "e|idx|public.ix_comments_parent_id",
+        "n|rel|public.ix_comments_parent_id"
+      ],
+      "reads": [
+        "n|tbl|public.comments",
+        "n|sch|public",
+        "n|col|public.comments.parent_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "devices",
+        "ix_devices_user_id"
+      ],
+      "writes": [
+        "s|idx|public.ix_devices_user_id",
+        "n|idx|public.ix_devices_user_id",
+        "e|idx|public.ix_devices_user_id",
+        "n|rel|public.ix_devices_user_id"
+      ],
+      "reads": [
+        "n|tbl|public.devices",
+        "n|sch|public",
+        "n|col|public.devices.user_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "devices",
+        "ix_devices_agent_id"
+      ],
+      "writes": [
+        "s|idx|public.ix_devices_agent_id",
+        "n|idx|public.ix_devices_agent_id",
+        "e|idx|public.ix_devices_agent_id",
+        "n|rel|public.ix_devices_agent_id"
+      ],
+      "reads": [
+        "n|tbl|public.devices",
+        "n|sch|public",
+        "n|col|public.devices.agent_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "equipment",
+        "ix_equipment_user_id"
+      ],
+      "writes": [
+        "s|idx|public.ix_equipment_user_id",
+        "n|idx|public.ix_equipment_user_id",
+        "e|idx|public.ix_equipment_user_id",
+        "n|rel|public.ix_equipment_user_id"
+      ],
+      "reads": [
+        "n|tbl|public.equipment",
+        "n|sch|public",
+        "n|col|public.equipment.user_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "equipment",
+        "ix_equipment_device_id"
+      ],
+      "writes": [
+        "s|idx|public.ix_equipment_device_id",
+        "n|idx|public.ix_equipment_device_id",
+        "e|idx|public.ix_equipment_device_id",
+        "n|rel|public.ix_equipment_device_id"
+      ],
+      "reads": [
+        "n|tbl|public.equipment",
+        "n|sch|public",
+        "n|col|public.equipment.device_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "equipment",
+        "ix_equipment_one_main"
+      ],
+      "writes": [
+        "s|idx|public.ix_equipment_one_main",
+        "n|idx|public.ix_equipment_one_main",
+        "e|idx|public.ix_equipment_one_main",
+        "n|rel|public.ix_equipment_one_main"
+      ],
+      "reads": [
+        "n|tbl|public.equipment",
+        "n|sch|public",
+        "n|col|public.equipment.user_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "events",
+        "ix_events_device_at"
+      ],
+      "writes": [
+        "s|idx|public.ix_events_device_at",
+        "n|idx|public.ix_events_device_at",
+        "e|idx|public.ix_events_device_at",
+        "n|rel|public.ix_events_device_at"
+      ],
+      "reads": [
+        "n|tbl|public.events",
+        "n|sch|public",
+        "n|col|public.events.device_id",
+        "n|col|public.events.at"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "events",
+        "ix_events_brew_id"
+      ],
+      "writes": [
+        "s|idx|public.ix_events_brew_id",
+        "n|idx|public.ix_events_brew_id",
+        "e|idx|public.ix_events_brew_id",
+        "n|rel|public.ix_events_brew_id"
+      ],
+      "reads": [
+        "n|tbl|public.events",
+        "n|sch|public",
+        "n|col|public.events.brew_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "favorites",
+        "ix_favorites_recipe_id"
+      ],
+      "writes": [
+        "s|idx|public.ix_favorites_recipe_id",
+        "n|idx|public.ix_favorites_recipe_id",
+        "e|idx|public.ix_favorites_recipe_id",
+        "n|rel|public.ix_favorites_recipe_id"
+      ],
+      "reads": [
+        "n|tbl|public.favorites",
+        "n|sch|public",
+        "n|col|public.favorites.recipe_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "notifications",
+        "ix_notifications_user_created"
+      ],
+      "writes": [
+        "s|idx|public.ix_notifications_user_created",
+        "n|idx|public.ix_notifications_user_created",
+        "e|idx|public.ix_notifications_user_created",
+        "n|rel|public.ix_notifications_user_created"
+      ],
+      "reads": [
+        "n|tbl|public.notifications",
+        "n|sch|public",
+        "n|col|public.notifications.user_id",
+        "n|col|public.notifications.created_at"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "notifications",
+        "ix_notifications_actor_id"
+      ],
+      "writes": [
+        "s|idx|public.ix_notifications_actor_id",
+        "n|idx|public.ix_notifications_actor_id",
+        "e|idx|public.ix_notifications_actor_id",
+        "n|rel|public.ix_notifications_actor_id"
+      ],
+      "reads": [
+        "n|tbl|public.notifications",
+        "n|sch|public",
+        "n|col|public.notifications.actor_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "notifications",
+        "ix_notifications_recipe_id"
+      ],
+      "writes": [
+        "s|idx|public.ix_notifications_recipe_id",
+        "n|idx|public.ix_notifications_recipe_id",
+        "e|idx|public.ix_notifications_recipe_id",
+        "n|rel|public.ix_notifications_recipe_id"
+      ],
+      "reads": [
+        "n|tbl|public.notifications",
+        "n|sch|public",
+        "n|col|public.notifications.recipe_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "notifications",
+        "ix_notifications_comment_id"
+      ],
+      "writes": [
+        "s|idx|public.ix_notifications_comment_id",
+        "n|idx|public.ix_notifications_comment_id",
+        "e|idx|public.ix_notifications_comment_id",
+        "n|rel|public.ix_notifications_comment_id"
+      ],
+      "reads": [
+        "n|tbl|public.notifications",
+        "n|sch|public",
+        "n|col|public.notifications.comment_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "notifications",
+        "ix_notifications_brew_id"
+      ],
+      "writes": [
+        "s|idx|public.ix_notifications_brew_id",
+        "n|idx|public.ix_notifications_brew_id",
+        "e|idx|public.ix_notifications_brew_id",
+        "n|rel|public.ix_notifications_brew_id"
+      ],
+      "reads": [
+        "n|tbl|public.notifications",
+        "n|sch|public",
+        "n|col|public.notifications.brew_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "push_subscriptions",
+        "ix_push_subscriptions_user_id"
+      ],
+      "writes": [
+        "s|idx|public.ix_push_subscriptions_user_id",
+        "n|idx|public.ix_push_subscriptions_user_id",
+        "e|idx|public.ix_push_subscriptions_user_id",
+        "n|rel|public.ix_push_subscriptions_user_id"
+      ],
+      "reads": [
+        "n|tbl|public.push_subscriptions",
+        "n|sch|public",
+        "n|col|public.push_subscriptions.user_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "readings",
+        "ix_readings_device_at"
+      ],
+      "writes": [
+        "s|idx|public.ix_readings_device_at",
+        "n|idx|public.ix_readings_device_at",
+        "e|idx|public.ix_readings_device_at",
+        "n|rel|public.ix_readings_device_at"
+      ],
+      "reads": [
+        "n|tbl|public.readings",
+        "n|sch|public",
+        "n|col|public.readings.device_id",
+        "n|col|public.readings.at"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "readings",
+        "ix_readings_brew_id"
+      ],
+      "writes": [
+        "s|idx|public.ix_readings_brew_id",
+        "n|idx|public.ix_readings_brew_id",
+        "e|idx|public.ix_readings_brew_id",
+        "n|rel|public.ix_readings_brew_id"
+      ],
+      "reads": [
+        "n|tbl|public.readings",
+        "n|sch|public",
+        "n|col|public.readings.brew_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "recipe_photos",
+        "ix_recipe_photos_recipe_id"
+      ],
+      "writes": [
+        "s|idx|public.ix_recipe_photos_recipe_id",
+        "n|idx|public.ix_recipe_photos_recipe_id",
+        "e|idx|public.ix_recipe_photos_recipe_id",
+        "n|rel|public.ix_recipe_photos_recipe_id"
+      ],
+      "reads": [
+        "n|tbl|public.recipe_photos",
+        "n|sch|public",
+        "n|col|public.recipe_photos.recipe_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "recipe_photos",
+        "ix_recipe_photos_user_id"
+      ],
+      "writes": [
+        "s|idx|public.ix_recipe_photos_user_id",
+        "n|idx|public.ix_recipe_photos_user_id",
+        "e|idx|public.ix_recipe_photos_user_id",
+        "n|rel|public.ix_recipe_photos_user_id"
+      ],
+      "reads": [
+        "n|tbl|public.recipe_photos",
+        "n|sch|public",
+        "n|col|public.recipe_photos.user_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "recipe_votes",
+        "ix_recipe_votes_recipe_id"
+      ],
+      "writes": [
+        "s|idx|public.ix_recipe_votes_recipe_id",
+        "n|idx|public.ix_recipe_votes_recipe_id",
+        "e|idx|public.ix_recipe_votes_recipe_id",
+        "n|rel|public.ix_recipe_votes_recipe_id"
+      ],
+      "reads": [
+        "n|tbl|public.recipe_votes",
+        "n|sch|public",
+        "n|col|public.recipe_votes.recipe_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "recipes",
+        "ix_recipes_user_id"
+      ],
+      "writes": [
+        "s|idx|public.ix_recipes_user_id",
+        "n|idx|public.ix_recipes_user_id",
+        "e|idx|public.ix_recipes_user_id",
+        "n|rel|public.ix_recipes_user_id"
+      ],
+      "reads": [
+        "n|tbl|public.recipes",
+        "n|sch|public",
+        "n|col|public.recipes.user_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "recipes",
+        "ix_recipes_visibility"
+      ],
+      "writes": [
+        "s|idx|public.ix_recipes_visibility",
+        "n|idx|public.ix_recipes_visibility",
+        "e|idx|public.ix_recipes_visibility",
+        "n|rel|public.ix_recipes_visibility"
+      ],
+      "reads": [
+        "n|tbl|public.recipes",
+        "n|sch|public",
+        "n|col|public.recipes.visibility"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "sessions",
+        "ix_sessions_user_id"
+      ],
+      "writes": [
+        "s|idx|public.ix_sessions_user_id",
+        "n|idx|public.ix_sessions_user_id",
+        "e|idx|public.ix_sessions_user_id",
+        "n|rel|public.ix_sessions_user_id"
+      ],
+      "reads": [
+        "n|tbl|public.sessions",
+        "n|sch|public",
+        "n|col|public.sessions.user_id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "agents"
+      ],
+      "writes": [
+        "s|fk|public.agents.agents_user_id_users_id_fkey",
+        "n|fk|public.agents.agents_user_id_users_id_fkey",
+        "e|fk|public.agents.agents_user_id_users_id_fkey",
+        "n|con|public.agents.agents_user_id_users_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.agents",
+        "n|sch|public",
+        "n|tbl|public.users",
+        "n|sch|public",
+        "n|col|public.agents.user_id",
+        "n|col|public.users.id",
+        "e|uniqueness|public.users.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "auth_tokens"
+      ],
+      "writes": [
+        "s|fk|public.auth_tokens.auth_tokens_user_id_users_id_fkey",
+        "n|fk|public.auth_tokens.auth_tokens_user_id_users_id_fkey",
+        "e|fk|public.auth_tokens.auth_tokens_user_id_users_id_fkey",
+        "n|con|public.auth_tokens.auth_tokens_user_id_users_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.auth_tokens",
+        "n|sch|public",
+        "n|tbl|public.users",
+        "n|sch|public",
+        "n|col|public.auth_tokens.user_id",
+        "n|col|public.users.id",
+        "e|uniqueness|public.users.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "brew_entries"
+      ],
+      "writes": [
+        "s|fk|public.brew_entries.brew_entries_brew_id_brews_id_fkey",
+        "n|fk|public.brew_entries.brew_entries_brew_id_brews_id_fkey",
+        "e|fk|public.brew_entries.brew_entries_brew_id_brews_id_fkey",
+        "n|con|public.brew_entries.brew_entries_brew_id_brews_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.brew_entries",
+        "n|sch|public",
+        "n|tbl|public.brews",
+        "n|sch|public",
+        "n|col|public.brew_entries.brew_id",
+        "n|col|public.brews.id",
+        "e|uniqueness|public.brews.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "brew_reminders"
+      ],
+      "writes": [
+        "s|fk|public.brew_reminders.brew_reminders_brew_id_brews_id_fkey",
+        "n|fk|public.brew_reminders.brew_reminders_brew_id_brews_id_fkey",
+        "e|fk|public.brew_reminders.brew_reminders_brew_id_brews_id_fkey",
+        "n|con|public.brew_reminders.brew_reminders_brew_id_brews_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.brew_reminders",
+        "n|sch|public",
+        "n|tbl|public.brews",
+        "n|sch|public",
+        "n|col|public.brew_reminders.brew_id",
+        "n|col|public.brews.id",
+        "e|uniqueness|public.brews.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "brews"
+      ],
+      "writes": [
+        "s|fk|public.brews.brews_user_id_users_id_fkey",
+        "n|fk|public.brews.brews_user_id_users_id_fkey",
+        "e|fk|public.brews.brews_user_id_users_id_fkey",
+        "n|con|public.brews.brews_user_id_users_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.brews",
+        "n|sch|public",
+        "n|tbl|public.users",
+        "n|sch|public",
+        "n|col|public.brews.user_id",
+        "n|col|public.users.id",
+        "e|uniqueness|public.users.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "brews"
+      ],
+      "writes": [
+        "s|fk|public.brews.brews_device_id_devices_id_fkey",
+        "n|fk|public.brews.brews_device_id_devices_id_fkey",
+        "e|fk|public.brews.brews_device_id_devices_id_fkey",
+        "n|con|public.brews.brews_device_id_devices_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.brews",
+        "n|sch|public",
+        "n|tbl|public.devices",
+        "n|sch|public",
+        "n|col|public.brews.device_id",
+        "n|col|public.devices.id",
+        "e|uniqueness|public.devices.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "brews"
+      ],
+      "writes": [
+        "s|fk|public.brews.brews_recipe_id_recipes_id_fkey",
+        "n|fk|public.brews.brews_recipe_id_recipes_id_fkey",
+        "e|fk|public.brews.brews_recipe_id_recipes_id_fkey",
+        "n|con|public.brews.brews_recipe_id_recipes_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.brews",
+        "n|sch|public",
+        "n|tbl|public.recipes",
+        "n|sch|public",
+        "n|col|public.brews.recipe_id",
+        "n|col|public.recipes.id",
+        "e|uniqueness|public.recipes.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "brews"
+      ],
+      "writes": [
+        "s|fk|public.brews.brews_equipment_id_equipment_id_fkey",
+        "n|fk|public.brews.brews_equipment_id_equipment_id_fkey",
+        "e|fk|public.brews.brews_equipment_id_equipment_id_fkey",
+        "n|con|public.brews.brews_equipment_id_equipment_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.brews",
+        "n|sch|public",
+        "n|tbl|public.equipment",
+        "n|sch|public",
+        "n|col|public.brews.equipment_id",
+        "n|col|public.equipment.id",
+        "e|uniqueness|public.equipment.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "comment_votes"
+      ],
+      "writes": [
+        "s|fk|public.comment_votes.comment_votes_user_id_users_id_fkey",
+        "n|fk|public.comment_votes.comment_votes_user_id_users_id_fkey",
+        "e|fk|public.comment_votes.comment_votes_user_id_users_id_fkey",
+        "n|con|public.comment_votes.comment_votes_user_id_users_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.comment_votes",
+        "n|sch|public",
+        "n|tbl|public.users",
+        "n|sch|public",
+        "n|col|public.comment_votes.user_id",
+        "n|col|public.users.id",
+        "e|uniqueness|public.users.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "comment_votes"
+      ],
+      "writes": [
+        "s|fk|public.comment_votes.comment_votes_comment_id_comments_id_fkey",
+        "n|fk|public.comment_votes.comment_votes_comment_id_comments_id_fkey",
+        "e|fk|public.comment_votes.comment_votes_comment_id_comments_id_fkey",
+        "n|con|public.comment_votes.comment_votes_comment_id_comments_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.comment_votes",
+        "n|sch|public",
+        "n|tbl|public.comments",
+        "n|sch|public",
+        "n|col|public.comment_votes.comment_id",
+        "n|col|public.comments.id",
+        "e|uniqueness|public.comments.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "comments"
+      ],
+      "writes": [
+        "s|fk|public.comments.comments_recipe_id_recipes_id_fkey",
+        "n|fk|public.comments.comments_recipe_id_recipes_id_fkey",
+        "e|fk|public.comments.comments_recipe_id_recipes_id_fkey",
+        "n|con|public.comments.comments_recipe_id_recipes_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.comments",
+        "n|sch|public",
+        "n|tbl|public.recipes",
+        "n|sch|public",
+        "n|col|public.comments.recipe_id",
+        "n|col|public.recipes.id",
+        "e|uniqueness|public.recipes.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "comments"
+      ],
+      "writes": [
+        "s|fk|public.comments.comments_user_id_users_id_fkey",
+        "n|fk|public.comments.comments_user_id_users_id_fkey",
+        "e|fk|public.comments.comments_user_id_users_id_fkey",
+        "n|con|public.comments.comments_user_id_users_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.comments",
+        "n|sch|public",
+        "n|tbl|public.users",
+        "n|sch|public",
+        "n|col|public.comments.user_id",
+        "n|col|public.users.id",
+        "e|uniqueness|public.users.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "comments"
+      ],
+      "writes": [
+        "s|fk|public.comments.comments_parent_id_comments_id_fkey",
+        "n|fk|public.comments.comments_parent_id_comments_id_fkey",
+        "e|fk|public.comments.comments_parent_id_comments_id_fkey",
+        "n|con|public.comments.comments_parent_id_comments_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.comments",
+        "n|sch|public",
+        "n|tbl|public.comments",
+        "n|sch|public",
+        "n|col|public.comments.parent_id",
+        "n|col|public.comments.id",
+        "e|uniqueness|public.comments.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "devices"
+      ],
+      "writes": [
+        "s|fk|public.devices.devices_user_id_users_id_fkey",
+        "n|fk|public.devices.devices_user_id_users_id_fkey",
+        "e|fk|public.devices.devices_user_id_users_id_fkey",
+        "n|con|public.devices.devices_user_id_users_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.devices",
+        "n|sch|public",
+        "n|tbl|public.users",
+        "n|sch|public",
+        "n|col|public.devices.user_id",
+        "n|col|public.users.id",
+        "e|uniqueness|public.users.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "devices"
+      ],
+      "writes": [
+        "s|fk|public.devices.devices_agent_id_agents_id_fkey",
+        "n|fk|public.devices.devices_agent_id_agents_id_fkey",
+        "e|fk|public.devices.devices_agent_id_agents_id_fkey",
+        "n|con|public.devices.devices_agent_id_agents_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.devices",
+        "n|sch|public",
+        "n|tbl|public.agents",
+        "n|sch|public",
+        "n|col|public.devices.agent_id",
+        "n|col|public.agents.id",
+        "e|uniqueness|public.agents.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "equipment"
+      ],
+      "writes": [
+        "s|fk|public.equipment.equipment_user_id_users_id_fkey",
+        "n|fk|public.equipment.equipment_user_id_users_id_fkey",
+        "e|fk|public.equipment.equipment_user_id_users_id_fkey",
+        "n|con|public.equipment.equipment_user_id_users_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.equipment",
+        "n|sch|public",
+        "n|tbl|public.users",
+        "n|sch|public",
+        "n|col|public.equipment.user_id",
+        "n|col|public.users.id",
+        "e|uniqueness|public.users.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "equipment"
+      ],
+      "writes": [
+        "s|fk|public.equipment.equipment_device_id_devices_id_fkey",
+        "n|fk|public.equipment.equipment_device_id_devices_id_fkey",
+        "e|fk|public.equipment.equipment_device_id_devices_id_fkey",
+        "n|con|public.equipment.equipment_device_id_devices_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.equipment",
+        "n|sch|public",
+        "n|tbl|public.devices",
+        "n|sch|public",
+        "n|col|public.equipment.device_id",
+        "n|col|public.devices.id",
+        "e|uniqueness|public.devices.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "events"
+      ],
+      "writes": [
+        "s|fk|public.events.events_device_id_devices_id_fkey",
+        "n|fk|public.events.events_device_id_devices_id_fkey",
+        "e|fk|public.events.events_device_id_devices_id_fkey",
+        "n|con|public.events.events_device_id_devices_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.events",
+        "n|sch|public",
+        "n|tbl|public.devices",
+        "n|sch|public",
+        "n|col|public.events.device_id",
+        "n|col|public.devices.id",
+        "e|uniqueness|public.devices.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "events"
+      ],
+      "writes": [
+        "s|fk|public.events.events_brew_id_brews_id_fkey",
+        "n|fk|public.events.events_brew_id_brews_id_fkey",
+        "e|fk|public.events.events_brew_id_brews_id_fkey",
+        "n|con|public.events.events_brew_id_brews_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.events",
+        "n|sch|public",
+        "n|tbl|public.brews",
+        "n|sch|public",
+        "n|col|public.events.brew_id",
+        "n|col|public.brews.id",
+        "e|uniqueness|public.brews.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "favorites"
+      ],
+      "writes": [
+        "s|fk|public.favorites.favorites_user_id_users_id_fkey",
+        "n|fk|public.favorites.favorites_user_id_users_id_fkey",
+        "e|fk|public.favorites.favorites_user_id_users_id_fkey",
+        "n|con|public.favorites.favorites_user_id_users_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.favorites",
+        "n|sch|public",
+        "n|tbl|public.users",
+        "n|sch|public",
+        "n|col|public.favorites.user_id",
+        "n|col|public.users.id",
+        "e|uniqueness|public.users.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "favorites"
+      ],
+      "writes": [
+        "s|fk|public.favorites.favorites_recipe_id_recipes_id_fkey",
+        "n|fk|public.favorites.favorites_recipe_id_recipes_id_fkey",
+        "e|fk|public.favorites.favorites_recipe_id_recipes_id_fkey",
+        "n|con|public.favorites.favorites_recipe_id_recipes_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.favorites",
+        "n|sch|public",
+        "n|tbl|public.recipes",
+        "n|sch|public",
+        "n|col|public.favorites.recipe_id",
+        "n|col|public.recipes.id",
+        "e|uniqueness|public.recipes.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "notifications"
+      ],
+      "writes": [
+        "s|fk|public.notifications.notifications_user_id_users_id_fkey",
+        "n|fk|public.notifications.notifications_user_id_users_id_fkey",
+        "e|fk|public.notifications.notifications_user_id_users_id_fkey",
+        "n|con|public.notifications.notifications_user_id_users_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.notifications",
+        "n|sch|public",
+        "n|tbl|public.users",
+        "n|sch|public",
+        "n|col|public.notifications.user_id",
+        "n|col|public.users.id",
+        "e|uniqueness|public.users.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "notifications"
+      ],
+      "writes": [
+        "s|fk|public.notifications.notifications_actor_id_users_id_fkey",
+        "n|fk|public.notifications.notifications_actor_id_users_id_fkey",
+        "e|fk|public.notifications.notifications_actor_id_users_id_fkey",
+        "n|con|public.notifications.notifications_actor_id_users_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.notifications",
+        "n|sch|public",
+        "n|tbl|public.users",
+        "n|sch|public",
+        "n|col|public.notifications.actor_id",
+        "n|col|public.users.id",
+        "e|uniqueness|public.users.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "notifications"
+      ],
+      "writes": [
+        "s|fk|public.notifications.notifications_recipe_id_recipes_id_fkey",
+        "n|fk|public.notifications.notifications_recipe_id_recipes_id_fkey",
+        "e|fk|public.notifications.notifications_recipe_id_recipes_id_fkey",
+        "n|con|public.notifications.notifications_recipe_id_recipes_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.notifications",
+        "n|sch|public",
+        "n|tbl|public.recipes",
+        "n|sch|public",
+        "n|col|public.notifications.recipe_id",
+        "n|col|public.recipes.id",
+        "e|uniqueness|public.recipes.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "notifications"
+      ],
+      "writes": [
+        "s|fk|public.notifications.notifications_comment_id_comments_id_fkey",
+        "n|fk|public.notifications.notifications_comment_id_comments_id_fkey",
+        "e|fk|public.notifications.notifications_comment_id_comments_id_fkey",
+        "n|con|public.notifications.notifications_comment_id_comments_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.notifications",
+        "n|sch|public",
+        "n|tbl|public.comments",
+        "n|sch|public",
+        "n|col|public.notifications.comment_id",
+        "n|col|public.comments.id",
+        "e|uniqueness|public.comments.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "notifications"
+      ],
+      "writes": [
+        "s|fk|public.notifications.notifications_brew_id_brews_id_fkey",
+        "n|fk|public.notifications.notifications_brew_id_brews_id_fkey",
+        "e|fk|public.notifications.notifications_brew_id_brews_id_fkey",
+        "n|con|public.notifications.notifications_brew_id_brews_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.notifications",
+        "n|sch|public",
+        "n|tbl|public.brews",
+        "n|sch|public",
+        "n|col|public.notifications.brew_id",
+        "n|col|public.brews.id",
+        "e|uniqueness|public.brews.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "push_subscriptions"
+      ],
+      "writes": [
+        "s|fk|public.push_subscriptions.push_subscriptions_user_id_users_id_fkey",
+        "n|fk|public.push_subscriptions.push_subscriptions_user_id_users_id_fkey",
+        "e|fk|public.push_subscriptions.push_subscriptions_user_id_users_id_fkey",
+        "n|con|public.push_subscriptions.push_subscriptions_user_id_users_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.push_subscriptions",
+        "n|sch|public",
+        "n|tbl|public.users",
+        "n|sch|public",
+        "n|col|public.push_subscriptions.user_id",
+        "n|col|public.users.id",
+        "e|uniqueness|public.users.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "readings"
+      ],
+      "writes": [
+        "s|fk|public.readings.readings_device_id_devices_id_fkey",
+        "n|fk|public.readings.readings_device_id_devices_id_fkey",
+        "e|fk|public.readings.readings_device_id_devices_id_fkey",
+        "n|con|public.readings.readings_device_id_devices_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.readings",
+        "n|sch|public",
+        "n|tbl|public.devices",
+        "n|sch|public",
+        "n|col|public.readings.device_id",
+        "n|col|public.devices.id",
+        "e|uniqueness|public.devices.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "readings"
+      ],
+      "writes": [
+        "s|fk|public.readings.readings_brew_id_brews_id_fkey",
+        "n|fk|public.readings.readings_brew_id_brews_id_fkey",
+        "e|fk|public.readings.readings_brew_id_brews_id_fkey",
+        "n|con|public.readings.readings_brew_id_brews_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.readings",
+        "n|sch|public",
+        "n|tbl|public.brews",
+        "n|sch|public",
+        "n|col|public.readings.brew_id",
+        "n|col|public.brews.id",
+        "e|uniqueness|public.brews.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "recipe_photos"
+      ],
+      "writes": [
+        "s|fk|public.recipe_photos.recipe_photos_recipe_id_recipes_id_fkey",
+        "n|fk|public.recipe_photos.recipe_photos_recipe_id_recipes_id_fkey",
+        "e|fk|public.recipe_photos.recipe_photos_recipe_id_recipes_id_fkey",
+        "n|con|public.recipe_photos.recipe_photos_recipe_id_recipes_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.recipe_photos",
+        "n|sch|public",
+        "n|tbl|public.recipes",
+        "n|sch|public",
+        "n|col|public.recipe_photos.recipe_id",
+        "n|col|public.recipes.id",
+        "e|uniqueness|public.recipes.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "recipe_photos"
+      ],
+      "writes": [
+        "s|fk|public.recipe_photos.recipe_photos_user_id_users_id_fkey",
+        "n|fk|public.recipe_photos.recipe_photos_user_id_users_id_fkey",
+        "e|fk|public.recipe_photos.recipe_photos_user_id_users_id_fkey",
+        "n|con|public.recipe_photos.recipe_photos_user_id_users_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.recipe_photos",
+        "n|sch|public",
+        "n|tbl|public.users",
+        "n|sch|public",
+        "n|col|public.recipe_photos.user_id",
+        "n|col|public.users.id",
+        "e|uniqueness|public.users.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "recipe_votes"
+      ],
+      "writes": [
+        "s|fk|public.recipe_votes.recipe_votes_user_id_users_id_fkey",
+        "n|fk|public.recipe_votes.recipe_votes_user_id_users_id_fkey",
+        "e|fk|public.recipe_votes.recipe_votes_user_id_users_id_fkey",
+        "n|con|public.recipe_votes.recipe_votes_user_id_users_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.recipe_votes",
+        "n|sch|public",
+        "n|tbl|public.users",
+        "n|sch|public",
+        "n|col|public.recipe_votes.user_id",
+        "n|col|public.users.id",
+        "e|uniqueness|public.users.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "recipe_votes"
+      ],
+      "writes": [
+        "s|fk|public.recipe_votes.recipe_votes_recipe_id_recipes_id_fkey",
+        "n|fk|public.recipe_votes.recipe_votes_recipe_id_recipes_id_fkey",
+        "e|fk|public.recipe_votes.recipe_votes_recipe_id_recipes_id_fkey",
+        "n|con|public.recipe_votes.recipe_votes_recipe_id_recipes_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.recipe_votes",
+        "n|sch|public",
+        "n|tbl|public.recipes",
+        "n|sch|public",
+        "n|col|public.recipe_votes.recipe_id",
+        "n|col|public.recipes.id",
+        "e|uniqueness|public.recipes.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "recipes"
+      ],
+      "writes": [
+        "s|fk|public.recipes.recipes_user_id_users_id_fkey",
+        "n|fk|public.recipes.recipes_user_id_users_id_fkey",
+        "e|fk|public.recipes.recipes_user_id_users_id_fkey",
+        "n|con|public.recipes.recipes_user_id_users_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.recipes",
+        "n|sch|public",
+        "n|tbl|public.users",
+        "n|sch|public",
+        "n|col|public.recipes.user_id",
+        "n|col|public.users.id",
+        "e|uniqueness|public.users.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "sessions"
+      ],
+      "writes": [
+        "s|fk|public.sessions.sessions_user_id_users_id_fkey",
+        "n|fk|public.sessions.sessions_user_id_users_id_fkey",
+        "e|fk|public.sessions.sessions_user_id_users_id_fkey",
+        "n|con|public.sessions.sessions_user_id_users_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.sessions",
+        "n|sch|public",
+        "n|tbl|public.users",
+        "n|sch|public",
+        "n|col|public.sessions.user_id",
+        "n|col|public.users.id",
+        "e|uniqueness|public.users.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": [
+        "table",
+        "public",
+        "user_avatars"
+      ],
+      "writes": [
+        "s|fk|public.user_avatars.user_avatars_user_id_users_id_fkey",
+        "n|fk|public.user_avatars.user_avatars_user_id_users_id_fkey",
+        "e|fk|public.user_avatars.user_avatars_user_id_users_id_fkey",
+        "n|con|public.user_avatars.user_avatars_user_id_users_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.user_avatars",
+        "n|sch|public",
+        "n|tbl|public.users",
+        "n|sch|public",
+        "n|col|public.user_avatars.user_id",
+        "n|col|public.users.id",
+        "e|uniqueness|public.users.id"
+      ]
+    }
+  ],
+  "ddl": [
+    {
+      "schema": "public",
+      "name": "agents",
+      "isRlsEnabled": false,
+      "entityType": "tables"
+    },
+    {
+      "schema": "public",
+      "name": "auth_tokens",
+      "isRlsEnabled": false,
+      "entityType": "tables"
+    },
+    {
+      "schema": "public",
+      "name": "brew_entries",
+      "isRlsEnabled": false,
+      "entityType": "tables"
+    },
+    {
+      "schema": "public",
+      "name": "brew_reminders",
+      "isRlsEnabled": false,
+      "entityType": "tables"
+    },
+    {
+      "schema": "public",
+      "name": "brews",
+      "isRlsEnabled": false,
+      "entityType": "tables"
+    },
+    {
+      "schema": "public",
+      "name": "comment_votes",
+      "isRlsEnabled": false,
+      "entityType": "tables"
+    },
+    {
+      "schema": "public",
+      "name": "comments",
+      "isRlsEnabled": false,
+      "entityType": "tables"
+    },
+    {
+      "schema": "public",
+      "name": "devices",
+      "isRlsEnabled": false,
+      "entityType": "tables"
+    },
+    {
+      "schema": "public",
+      "name": "equipment",
+      "isRlsEnabled": false,
+      "entityType": "tables"
+    },
+    {
+      "schema": "public",
+      "name": "events",
+      "isRlsEnabled": false,
+      "entityType": "tables"
+    },
+    {
+      "schema": "public",
+      "name": "favorites",
+      "isRlsEnabled": false,
+      "entityType": "tables"
+    },
+    {
+      "schema": "public",
+      "name": "notifications",
+      "isRlsEnabled": false,
+      "entityType": "tables"
+    },
+    {
+      "schema": "public",
+      "name": "push_subscriptions",
+      "isRlsEnabled": false,
+      "entityType": "tables"
+    },
+    {
+      "schema": "public",
+      "name": "readings",
+      "isRlsEnabled": false,
+      "entityType": "tables"
+    },
+    {
+      "schema": "public",
+      "name": "recipe_photos",
+      "isRlsEnabled": false,
+      "entityType": "tables"
+    },
+    {
+      "schema": "public",
+      "name": "recipe_votes",
+      "isRlsEnabled": false,
+      "entityType": "tables"
+    },
+    {
+      "schema": "public",
+      "name": "recipes",
+      "isRlsEnabled": false,
+      "entityType": "tables"
+    },
+    {
+      "schema": "public",
+      "name": "sessions",
+      "isRlsEnabled": false,
+      "entityType": "tables"
+    },
+    {
+      "schema": "public",
+      "name": "user_avatars",
+      "isRlsEnabled": false,
+      "entityType": "tables"
+    },
+    {
+      "schema": "public",
+      "name": "users",
+      "isRlsEnabled": false,
+      "entityType": "tables"
+    },
+    {
+      "schema": "public",
+      "table": "agents",
+      "name": "id",
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "agents",
+      "name": "user_id",
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "agents",
+      "name": "name",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "agents",
+      "name": "token_hash",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "agents",
+      "name": "created_at",
+      "type": "timestamp(3) with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "agents",
+      "name": "last_seen_at",
+      "type": "timestamp(3) with time zone",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "auth_tokens",
+      "name": "id",
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "auth_tokens",
+      "name": "user_id",
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "auth_tokens",
+      "name": "kind",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "auth_tokens",
+      "name": "token_hash",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "auth_tokens",
+      "name": "created_at",
+      "type": "timestamp(3) with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "auth_tokens",
+      "name": "expires_at",
+      "type": "timestamp(3) with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "auth_tokens",
+      "name": "used_at",
+      "type": "timestamp(3) with time zone",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "brew_entries",
+      "name": "id",
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "brew_entries",
+      "name": "brew_id",
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "brew_entries",
+      "name": "at",
+      "type": "timestamp(3) with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "brew_entries",
+      "name": "kind",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "brew_entries",
+      "name": "value",
+      "type": "double precision",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "brew_entries",
+      "name": "text",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "brew_entries",
+      "name": "created_at",
+      "type": "timestamp(3) with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "brew_reminders",
+      "name": "brew_id",
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "brew_reminders",
+      "name": "key",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "brew_reminders",
+      "name": "sent_at",
+      "type": "timestamp(3) with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "brew_reminders",
+      "name": "silent",
+      "type": "boolean",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "false",
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "brews",
+      "name": "id",
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "brews",
+      "name": "user_id",
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "brews",
+      "name": "device_id",
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "brews",
+      "name": "source",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "'device'",
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "brews",
+      "name": "recipe_id",
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "brews",
+      "name": "equipment_id",
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "brews",
+      "name": "name",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "brews",
+      "name": "program",
+      "type": "jsonb",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "brews",
+      "name": "batch_recipe",
+      "type": "jsonb",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "brews",
+      "name": "plan",
+      "type": "jsonb",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "brews",
+      "name": "status",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "'running'",
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "brews",
+      "name": "energy_wh",
+      "type": "double precision",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "0",
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "brews",
+      "name": "started_at",
+      "type": "timestamp(3) with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "brews",
+      "name": "ended_at",
+      "type": "timestamp(3) with time zone",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "brews",
+      "name": "day_ended_at",
+      "type": "timestamp(3) with time zone",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "comment_votes",
+      "name": "user_id",
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "comment_votes",
+      "name": "comment_id",
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "comment_votes",
+      "name": "value",
+      "type": "smallint",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "comment_votes",
+      "name": "created_at",
+      "type": "timestamp(3) with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "comments",
+      "name": "id",
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "comments",
+      "name": "recipe_id",
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "comments",
+      "name": "user_id",
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "comments",
+      "name": "parent_id",
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "comments",
+      "name": "text",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "comments",
+      "name": "created_at",
+      "type": "timestamp(3) with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "comments",
+      "name": "edited_at",
+      "type": "timestamp(3) with time zone",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "comments",
+      "name": "deleted_at",
+      "type": "timestamp(3) with time zone",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "devices",
+      "name": "id",
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "devices",
+      "name": "user_id",
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "devices",
+      "name": "agent_id",
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "devices",
+      "name": "tuya_id",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "devices",
+      "name": "name",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "devices",
+      "name": "model",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "devices",
+      "name": "limits",
+      "type": "jsonb",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "devices",
+      "name": "created_at",
+      "type": "timestamp(3) with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "equipment",
+      "name": "id",
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "equipment",
+      "name": "user_id",
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "equipment",
+      "name": "name",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "equipment",
+      "name": "kind",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "'manual'",
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "equipment",
+      "name": "device_id",
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "equipment",
+      "name": "volume",
+      "type": "double precision",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "equipment",
+      "name": "efficiency",
+      "type": "double precision",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "equipment",
+      "name": "evaporation",
+      "type": "double precision",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "equipment",
+      "name": "kettle",
+      "type": "double precision",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "equipment",
+      "name": "props",
+      "type": "jsonb",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "'{}'",
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "equipment",
+      "name": "notes",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "equipment",
+      "name": "main",
+      "type": "boolean",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "false",
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "equipment",
+      "name": "created_at",
+      "type": "timestamp(3) with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "events",
+      "name": "id",
+      "type": "bigint",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": {
+        "type": "byDefault",
+        "name": "events_id_seq",
+        "increment": "1",
+        "startWith": "1",
+        "minValue": "1",
+        "maxValue": "9223372036854775807",
+        "cache": 1,
+        "cycle": false
+      },
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "events",
+      "name": "device_id",
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "events",
+      "name": "brew_id",
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "events",
+      "name": "at",
+      "type": "timestamp(3) with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "events",
+      "name": "kind",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "events",
+      "name": "text",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "events",
+      "name": "data",
+      "type": "jsonb",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "favorites",
+      "name": "user_id",
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "favorites",
+      "name": "recipe_id",
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "favorites",
+      "name": "created_at",
+      "type": "timestamp(3) with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "notifications",
+      "name": "id",
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "notifications",
+      "name": "user_id",
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "notifications",
+      "name": "kind",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "notifications",
+      "name": "actor_id",
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "notifications",
+      "name": "recipe_id",
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "notifications",
+      "name": "comment_id",
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "notifications",
+      "name": "brew_id",
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "notifications",
+      "name": "data",
+      "type": "jsonb",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "notifications",
+      "name": "created_at",
+      "type": "timestamp(3) with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "notifications",
+      "name": "read_at",
+      "type": "timestamp(3) with time zone",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "push_subscriptions",
+      "name": "id",
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "push_subscriptions",
+      "name": "user_id",
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "push_subscriptions",
+      "name": "endpoint",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "push_subscriptions",
+      "name": "p256dh",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "push_subscriptions",
+      "name": "auth",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "push_subscriptions",
+      "name": "user_agent",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "push_subscriptions",
+      "name": "created_at",
+      "type": "timestamp(3) with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "push_subscriptions",
+      "name": "last_seen_at",
+      "type": "timestamp(3) with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "readings",
+      "name": "id",
+      "type": "bigint",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": {
+        "type": "byDefault",
+        "name": "readings_id_seq",
+        "increment": "1",
+        "startWith": "1",
+        "minValue": "1",
+        "maxValue": "9223372036854775807",
+        "cache": 1,
+        "cycle": false
+      },
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "readings",
+      "name": "device_id",
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "readings",
+      "name": "brew_id",
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "readings",
+      "name": "at",
+      "type": "timestamp(3) with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "readings",
+      "name": "temp",
+      "type": "real",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "readings",
+      "name": "target",
+      "type": "real",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "readings",
+      "name": "step",
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "readings",
+      "name": "status",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "recipe_photos",
+      "name": "id",
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "recipe_photos",
+      "name": "recipe_id",
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "recipe_photos",
+      "name": "user_id",
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "recipe_photos",
+      "name": "content_type",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "recipe_photos",
+      "name": "data",
+      "type": "bytea",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "recipe_photos",
+      "name": "thumb",
+      "type": "bytea",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "recipe_photos",
+      "name": "credit",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "recipe_photos",
+      "name": "created_at",
+      "type": "timestamp(3) with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "recipe_votes",
+      "name": "user_id",
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "recipe_votes",
+      "name": "recipe_id",
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "recipe_votes",
+      "name": "value",
+      "type": "smallint",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "recipe_votes",
+      "name": "created_at",
+      "type": "timestamp(3) with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "recipes",
+      "name": "id",
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "recipes",
+      "name": "user_id",
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "recipes",
+      "name": "name",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "recipes",
+      "name": "doc",
+      "type": "jsonb",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "recipes",
+      "name": "doc_version",
+      "type": "smallint",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "1",
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "recipes",
+      "name": "visibility",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "'private'",
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "recipes",
+      "name": "published_at",
+      "type": "timestamp(3) with time zone",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "recipes",
+      "name": "created_at",
+      "type": "timestamp(3) with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "recipes",
+      "name": "updated_at",
+      "type": "timestamp(3) with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "sessions",
+      "name": "id",
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "sessions",
+      "name": "user_id",
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "sessions",
+      "name": "token_hash",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "sessions",
+      "name": "user_agent",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "sessions",
+      "name": "created_at",
+      "type": "timestamp(3) with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "sessions",
+      "name": "last_seen_at",
+      "type": "timestamp(3) with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "sessions",
+      "name": "expires_at",
+      "type": "timestamp(3) with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "user_avatars",
+      "name": "user_id",
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "user_avatars",
+      "name": "data",
+      "type": "bytea",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "users",
+      "name": "id",
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "users",
+      "name": "name",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "users",
+      "name": "name_key",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "users",
+      "name": "avatar_version",
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "0",
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "users",
+      "name": "email",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "users",
+      "name": "password_hash",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "users",
+      "name": "email_verified_at",
+      "type": "timestamp(3) with time zone",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "users",
+      "name": "role",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "'user'",
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "users",
+      "name": "push_comments",
+      "type": "boolean",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "true",
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "users",
+      "name": "push_brews",
+      "type": "boolean",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "true",
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "users",
+      "name": "created_at",
+      "type": "timestamp(3) with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "agents",
+      "name": "ix_agents_user_id",
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "user_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "entityType": "indexes"
+    },
+    {
+      "schema": "public",
+      "table": "auth_tokens",
+      "name": "ix_auth_tokens_user_id",
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "user_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "entityType": "indexes"
+    },
+    {
+      "schema": "public",
+      "table": "brew_entries",
+      "name": "ix_brew_entries_brew_id",
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "brew_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "entityType": "indexes"
+    },
+    {
+      "schema": "public",
+      "table": "brews",
+      "name": "ix_brews_user_id",
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "user_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "entityType": "indexes"
+    },
+    {
+      "schema": "public",
+      "table": "brews",
+      "name": "ix_brews_device_id",
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "device_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "entityType": "indexes"
+    },
+    {
+      "schema": "public",
+      "table": "brews",
+      "name": "ix_brews_recipe_id",
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "recipe_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "entityType": "indexes"
+    },
+    {
+      "schema": "public",
+      "table": "brews",
+      "name": "ix_brews_equipment_id",
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "equipment_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "entityType": "indexes"
+    },
+    {
+      "schema": "public",
+      "table": "brews",
+      "name": "ix_brews_started_at",
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "started_at",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "entityType": "indexes"
+    },
+    {
+      "schema": "public",
+      "table": "comment_votes",
+      "name": "ix_comment_votes_comment_id",
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "comment_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "entityType": "indexes"
+    },
+    {
+      "schema": "public",
+      "table": "comments",
+      "name": "ix_comments_recipe_id",
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "recipe_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "entityType": "indexes"
+    },
+    {
+      "schema": "public",
+      "table": "comments",
+      "name": "ix_comments_user_id",
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "user_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "entityType": "indexes"
+    },
+    {
+      "schema": "public",
+      "table": "comments",
+      "name": "ix_comments_parent_id",
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "parent_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "entityType": "indexes"
+    },
+    {
+      "schema": "public",
+      "table": "devices",
+      "name": "ix_devices_user_id",
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "user_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "entityType": "indexes"
+    },
+    {
+      "schema": "public",
+      "table": "devices",
+      "name": "ix_devices_agent_id",
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "agent_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "entityType": "indexes"
+    },
+    {
+      "schema": "public",
+      "table": "equipment",
+      "name": "ix_equipment_user_id",
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "user_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "entityType": "indexes"
+    },
+    {
+      "schema": "public",
+      "table": "equipment",
+      "name": "ix_equipment_device_id",
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "device_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "entityType": "indexes"
+    },
+    {
+      "schema": "public",
+      "table": "equipment",
+      "name": "ix_equipment_one_main",
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "user_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": true,
+      "where": "\"main\"",
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "entityType": "indexes"
+    },
+    {
+      "schema": "public",
+      "table": "events",
+      "name": "ix_events_device_at",
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "device_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        },
+        {
+          "value": "at",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "entityType": "indexes"
+    },
+    {
+      "schema": "public",
+      "table": "events",
+      "name": "ix_events_brew_id",
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "brew_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "entityType": "indexes"
+    },
+    {
+      "schema": "public",
+      "table": "favorites",
+      "name": "ix_favorites_recipe_id",
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "recipe_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "entityType": "indexes"
+    },
+    {
+      "schema": "public",
+      "table": "notifications",
+      "name": "ix_notifications_user_created",
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "user_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        },
+        {
+          "value": "created_at",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "entityType": "indexes"
+    },
+    {
+      "schema": "public",
+      "table": "notifications",
+      "name": "ix_notifications_actor_id",
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "actor_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "entityType": "indexes"
+    },
+    {
+      "schema": "public",
+      "table": "notifications",
+      "name": "ix_notifications_recipe_id",
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "recipe_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "entityType": "indexes"
+    },
+    {
+      "schema": "public",
+      "table": "notifications",
+      "name": "ix_notifications_comment_id",
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "comment_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "entityType": "indexes"
+    },
+    {
+      "schema": "public",
+      "table": "notifications",
+      "name": "ix_notifications_brew_id",
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "brew_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "entityType": "indexes"
+    },
+    {
+      "schema": "public",
+      "table": "push_subscriptions",
+      "name": "ix_push_subscriptions_user_id",
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "user_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "entityType": "indexes"
+    },
+    {
+      "schema": "public",
+      "table": "readings",
+      "name": "ix_readings_device_at",
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "device_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        },
+        {
+          "value": "at",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "entityType": "indexes"
+    },
+    {
+      "schema": "public",
+      "table": "readings",
+      "name": "ix_readings_brew_id",
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "brew_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "entityType": "indexes"
+    },
+    {
+      "schema": "public",
+      "table": "recipe_photos",
+      "name": "ix_recipe_photos_recipe_id",
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "recipe_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "entityType": "indexes"
+    },
+    {
+      "schema": "public",
+      "table": "recipe_photos",
+      "name": "ix_recipe_photos_user_id",
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "user_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "entityType": "indexes"
+    },
+    {
+      "schema": "public",
+      "table": "recipe_votes",
+      "name": "ix_recipe_votes_recipe_id",
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "recipe_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "entityType": "indexes"
+    },
+    {
+      "schema": "public",
+      "table": "recipes",
+      "name": "ix_recipes_user_id",
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "user_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "entityType": "indexes"
+    },
+    {
+      "schema": "public",
+      "table": "recipes",
+      "name": "ix_recipes_visibility",
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "visibility",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "entityType": "indexes"
+    },
+    {
+      "schema": "public",
+      "table": "sessions",
+      "name": "ix_sessions_user_id",
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "user_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "entityType": "indexes"
+    },
+    {
+      "schema": "public",
+      "table": "agents",
+      "name": "agents_user_id_users_id_fkey",
+      "nameExplicit": false,
+      "columns": [
+        "user_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "users",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "entityType": "fks"
+    },
+    {
+      "schema": "public",
+      "table": "auth_tokens",
+      "name": "auth_tokens_user_id_users_id_fkey",
+      "nameExplicit": false,
+      "columns": [
+        "user_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "users",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "entityType": "fks"
+    },
+    {
+      "schema": "public",
+      "table": "brew_entries",
+      "name": "brew_entries_brew_id_brews_id_fkey",
+      "nameExplicit": false,
+      "columns": [
+        "brew_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "brews",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "entityType": "fks"
+    },
+    {
+      "schema": "public",
+      "table": "brew_reminders",
+      "name": "brew_reminders_brew_id_brews_id_fkey",
+      "nameExplicit": false,
+      "columns": [
+        "brew_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "brews",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "entityType": "fks"
+    },
+    {
+      "schema": "public",
+      "table": "brews",
+      "name": "brews_user_id_users_id_fkey",
+      "nameExplicit": false,
+      "columns": [
+        "user_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "users",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "entityType": "fks"
+    },
+    {
+      "schema": "public",
+      "table": "brews",
+      "name": "brews_device_id_devices_id_fkey",
+      "nameExplicit": false,
+      "columns": [
+        "device_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "devices",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "SET NULL",
+      "entityType": "fks"
+    },
+    {
+      "schema": "public",
+      "table": "brews",
+      "name": "brews_recipe_id_recipes_id_fkey",
+      "nameExplicit": false,
+      "columns": [
+        "recipe_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "recipes",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "SET NULL",
+      "entityType": "fks"
+    },
+    {
+      "schema": "public",
+      "table": "brews",
+      "name": "brews_equipment_id_equipment_id_fkey",
+      "nameExplicit": false,
+      "columns": [
+        "equipment_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "equipment",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "SET NULL",
+      "entityType": "fks"
+    },
+    {
+      "schema": "public",
+      "table": "comment_votes",
+      "name": "comment_votes_user_id_users_id_fkey",
+      "nameExplicit": false,
+      "columns": [
+        "user_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "users",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "entityType": "fks"
+    },
+    {
+      "schema": "public",
+      "table": "comment_votes",
+      "name": "comment_votes_comment_id_comments_id_fkey",
+      "nameExplicit": false,
+      "columns": [
+        "comment_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "comments",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "entityType": "fks"
+    },
+    {
+      "schema": "public",
+      "table": "comments",
+      "name": "comments_recipe_id_recipes_id_fkey",
+      "nameExplicit": false,
+      "columns": [
+        "recipe_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "recipes",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "entityType": "fks"
+    },
+    {
+      "schema": "public",
+      "table": "comments",
+      "name": "comments_user_id_users_id_fkey",
+      "nameExplicit": false,
+      "columns": [
+        "user_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "users",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "entityType": "fks"
+    },
+    {
+      "schema": "public",
+      "table": "comments",
+      "name": "comments_parent_id_comments_id_fkey",
+      "nameExplicit": false,
+      "columns": [
+        "parent_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "comments",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "entityType": "fks"
+    },
+    {
+      "schema": "public",
+      "table": "devices",
+      "name": "devices_user_id_users_id_fkey",
+      "nameExplicit": false,
+      "columns": [
+        "user_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "users",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "entityType": "fks"
+    },
+    {
+      "schema": "public",
+      "table": "devices",
+      "name": "devices_agent_id_agents_id_fkey",
+      "nameExplicit": false,
+      "columns": [
+        "agent_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "agents",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "SET NULL",
+      "entityType": "fks"
+    },
+    {
+      "schema": "public",
+      "table": "equipment",
+      "name": "equipment_user_id_users_id_fkey",
+      "nameExplicit": false,
+      "columns": [
+        "user_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "users",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "entityType": "fks"
+    },
+    {
+      "schema": "public",
+      "table": "equipment",
+      "name": "equipment_device_id_devices_id_fkey",
+      "nameExplicit": false,
+      "columns": [
+        "device_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "devices",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "SET NULL",
+      "entityType": "fks"
+    },
+    {
+      "schema": "public",
+      "table": "events",
+      "name": "events_device_id_devices_id_fkey",
+      "nameExplicit": false,
+      "columns": [
+        "device_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "devices",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "entityType": "fks"
+    },
+    {
+      "schema": "public",
+      "table": "events",
+      "name": "events_brew_id_brews_id_fkey",
+      "nameExplicit": false,
+      "columns": [
+        "brew_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "brews",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "entityType": "fks"
+    },
+    {
+      "schema": "public",
+      "table": "favorites",
+      "name": "favorites_user_id_users_id_fkey",
+      "nameExplicit": false,
+      "columns": [
+        "user_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "users",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "entityType": "fks"
+    },
+    {
+      "schema": "public",
+      "table": "favorites",
+      "name": "favorites_recipe_id_recipes_id_fkey",
+      "nameExplicit": false,
+      "columns": [
+        "recipe_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "recipes",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "entityType": "fks"
+    },
+    {
+      "schema": "public",
+      "table": "notifications",
+      "name": "notifications_user_id_users_id_fkey",
+      "nameExplicit": false,
+      "columns": [
+        "user_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "users",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "entityType": "fks"
+    },
+    {
+      "schema": "public",
+      "table": "notifications",
+      "name": "notifications_actor_id_users_id_fkey",
+      "nameExplicit": false,
+      "columns": [
+        "actor_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "users",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "entityType": "fks"
+    },
+    {
+      "schema": "public",
+      "table": "notifications",
+      "name": "notifications_recipe_id_recipes_id_fkey",
+      "nameExplicit": false,
+      "columns": [
+        "recipe_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "recipes",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "entityType": "fks"
+    },
+    {
+      "schema": "public",
+      "table": "notifications",
+      "name": "notifications_comment_id_comments_id_fkey",
+      "nameExplicit": false,
+      "columns": [
+        "comment_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "comments",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "entityType": "fks"
+    },
+    {
+      "schema": "public",
+      "table": "notifications",
+      "name": "notifications_brew_id_brews_id_fkey",
+      "nameExplicit": false,
+      "columns": [
+        "brew_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "brews",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "entityType": "fks"
+    },
+    {
+      "schema": "public",
+      "table": "push_subscriptions",
+      "name": "push_subscriptions_user_id_users_id_fkey",
+      "nameExplicit": false,
+      "columns": [
+        "user_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "users",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "entityType": "fks"
+    },
+    {
+      "schema": "public",
+      "table": "readings",
+      "name": "readings_device_id_devices_id_fkey",
+      "nameExplicit": false,
+      "columns": [
+        "device_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "devices",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "entityType": "fks"
+    },
+    {
+      "schema": "public",
+      "table": "readings",
+      "name": "readings_brew_id_brews_id_fkey",
+      "nameExplicit": false,
+      "columns": [
+        "brew_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "brews",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "entityType": "fks"
+    },
+    {
+      "schema": "public",
+      "table": "recipe_photos",
+      "name": "recipe_photos_recipe_id_recipes_id_fkey",
+      "nameExplicit": false,
+      "columns": [
+        "recipe_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "recipes",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "entityType": "fks"
+    },
+    {
+      "schema": "public",
+      "table": "recipe_photos",
+      "name": "recipe_photos_user_id_users_id_fkey",
+      "nameExplicit": false,
+      "columns": [
+        "user_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "users",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "entityType": "fks"
+    },
+    {
+      "schema": "public",
+      "table": "recipe_votes",
+      "name": "recipe_votes_user_id_users_id_fkey",
+      "nameExplicit": false,
+      "columns": [
+        "user_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "users",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "entityType": "fks"
+    },
+    {
+      "schema": "public",
+      "table": "recipe_votes",
+      "name": "recipe_votes_recipe_id_recipes_id_fkey",
+      "nameExplicit": false,
+      "columns": [
+        "recipe_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "recipes",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "entityType": "fks"
+    },
+    {
+      "schema": "public",
+      "table": "recipes",
+      "name": "recipes_user_id_users_id_fkey",
+      "nameExplicit": false,
+      "columns": [
+        "user_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "users",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "entityType": "fks"
+    },
+    {
+      "schema": "public",
+      "table": "sessions",
+      "name": "sessions_user_id_users_id_fkey",
+      "nameExplicit": false,
+      "columns": [
+        "user_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "users",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "entityType": "fks"
+    },
+    {
+      "schema": "public",
+      "table": "user_avatars",
+      "name": "user_avatars_user_id_users_id_fkey",
+      "nameExplicit": false,
+      "columns": [
+        "user_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "users",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "entityType": "fks"
+    },
+    {
+      "schema": "public",
+      "table": "brew_reminders",
+      "name": "brew_reminders_pkey",
+      "columns": [
+        "brew_id",
+        "key"
+      ],
+      "nameExplicit": false,
+      "entityType": "pks"
+    },
+    {
+      "schema": "public",
+      "table": "comment_votes",
+      "name": "comment_votes_pkey",
+      "columns": [
+        "user_id",
+        "comment_id"
+      ],
+      "nameExplicit": false,
+      "entityType": "pks"
+    },
+    {
+      "schema": "public",
+      "table": "favorites",
+      "name": "favorites_pkey",
+      "columns": [
+        "user_id",
+        "recipe_id"
+      ],
+      "nameExplicit": false,
+      "entityType": "pks"
+    },
+    {
+      "schema": "public",
+      "table": "recipe_votes",
+      "name": "recipe_votes_pkey",
+      "columns": [
+        "user_id",
+        "recipe_id"
+      ],
+      "nameExplicit": false,
+      "entityType": "pks"
+    },
+    {
+      "schema": "public",
+      "table": "agents",
+      "name": "agents_pkey",
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "entityType": "pks"
+    },
+    {
+      "schema": "public",
+      "table": "auth_tokens",
+      "name": "auth_tokens_pkey",
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "entityType": "pks"
+    },
+    {
+      "schema": "public",
+      "table": "brew_entries",
+      "name": "brew_entries_pkey",
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "entityType": "pks"
+    },
+    {
+      "schema": "public",
+      "table": "brews",
+      "name": "brews_pkey",
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "entityType": "pks"
+    },
+    {
+      "schema": "public",
+      "table": "comments",
+      "name": "comments_pkey",
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "entityType": "pks"
+    },
+    {
+      "schema": "public",
+      "table": "devices",
+      "name": "devices_pkey",
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "entityType": "pks"
+    },
+    {
+      "schema": "public",
+      "table": "equipment",
+      "name": "equipment_pkey",
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "entityType": "pks"
+    },
+    {
+      "schema": "public",
+      "table": "events",
+      "name": "events_pkey",
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "entityType": "pks"
+    },
+    {
+      "schema": "public",
+      "table": "notifications",
+      "name": "notifications_pkey",
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "entityType": "pks"
+    },
+    {
+      "schema": "public",
+      "table": "push_subscriptions",
+      "name": "push_subscriptions_pkey",
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "entityType": "pks"
+    },
+    {
+      "schema": "public",
+      "table": "readings",
+      "name": "readings_pkey",
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "entityType": "pks"
+    },
+    {
+      "schema": "public",
+      "table": "recipe_photos",
+      "name": "recipe_photos_pkey",
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "entityType": "pks"
+    },
+    {
+      "schema": "public",
+      "table": "recipes",
+      "name": "recipes_pkey",
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "entityType": "pks"
+    },
+    {
+      "schema": "public",
+      "table": "sessions",
+      "name": "sessions_pkey",
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "entityType": "pks"
+    },
+    {
+      "schema": "public",
+      "table": "user_avatars",
+      "name": "user_avatars_pkey",
+      "columns": [
+        "user_id"
+      ],
+      "nameExplicit": false,
+      "entityType": "pks"
+    },
+    {
+      "schema": "public",
+      "table": "users",
+      "name": "users_pkey",
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "entityType": "pks"
+    },
+    {
+      "schema": "public",
+      "table": "agents",
+      "name": "agents_token_hash_key",
+      "nameExplicit": false,
+      "columns": [
+        "token_hash"
+      ],
+      "nullsNotDistinct": false,
+      "entityType": "uniques"
+    },
+    {
+      "schema": "public",
+      "table": "auth_tokens",
+      "name": "auth_tokens_token_hash_key",
+      "nameExplicit": false,
+      "columns": [
+        "token_hash"
+      ],
+      "nullsNotDistinct": false,
+      "entityType": "uniques"
+    },
+    {
+      "schema": "public",
+      "table": "devices",
+      "name": "devices_tuya_id_key",
+      "nameExplicit": false,
+      "columns": [
+        "tuya_id"
+      ],
+      "nullsNotDistinct": false,
+      "entityType": "uniques"
+    },
+    {
+      "schema": "public",
+      "table": "push_subscriptions",
+      "name": "push_subscriptions_endpoint_key",
+      "nameExplicit": false,
+      "columns": [
+        "endpoint"
+      ],
+      "nullsNotDistinct": false,
+      "entityType": "uniques"
+    },
+    {
+      "schema": "public",
+      "table": "sessions",
+      "name": "sessions_token_hash_key",
+      "nameExplicit": false,
+      "columns": [
+        "token_hash"
+      ],
+      "nullsNotDistinct": false,
+      "entityType": "uniques"
+    },
+    {
+      "schema": "public",
+      "table": "users",
+      "name": "users_name_key_key",
+      "nameExplicit": false,
+      "columns": [
+        "name_key"
+      ],
+      "nullsNotDistinct": false,
+      "entityType": "uniques"
+    },
+    {
+      "schema": "public",
+      "table": "users",
+      "name": "users_email_key",
+      "nameExplicit": false,
+      "columns": [
+        "email"
+      ],
+      "nullsNotDistinct": false,
+      "entityType": "uniques"
+    },
+    {
+      "schema": "public",
+      "table": "auth_tokens",
+      "name": "auth_tokens_kind_check",
+      "value": "\"kind\" in ('verify', 'reset')",
+      "entityType": "checks"
+    },
+    {
+      "schema": "public",
+      "table": "brew_entries",
+      "name": "brew_entries_kind_check",
+      "value": "\"kind\" in ('mash_gravity', 'first_wort', 'preboil_gravity', 'og', 'gravity', 'fg', 'ph', 'preboil_volume', 'postboil_volume', 'fermenter_volume', 'mash_temp', 'pitch_temp', 'temp', 'pitch', 'dry_hop', 'cold_crash', 'package', 'dumped', 'note', 'stage', 'step')",
+      "entityType": "checks"
+    },
+    {
+      "schema": "public",
+      "table": "brews",
+      "name": "brews_source_check",
+      "value": "\"source\" in ('device', 'manual')",
+      "entityType": "checks"
+    },
+    {
+      "schema": "public",
+      "table": "brews",
+      "name": "brews_status_check",
+      "value": "\"status\" in ('running', 'finished', 'stopped')",
+      "entityType": "checks"
+    },
+    {
+      "schema": "public",
+      "table": "comment_votes",
+      "name": "comment_votes_value_check",
+      "value": "\"value\" in (1, -1)",
+      "entityType": "checks"
+    },
+    {
+      "schema": "public",
+      "table": "notifications",
+      "name": "notifications_kind_check",
+      "value": "\"kind\" in ('comment', 'reply', 'brew')",
+      "entityType": "checks"
+    },
+    {
+      "schema": "public",
+      "table": "recipe_photos",
+      "name": "recipe_photos_content_type_check",
+      "value": "\"content_type\" in ('image/jpeg', 'image/png', 'image/webp')",
+      "entityType": "checks"
+    },
+    {
+      "schema": "public",
+      "table": "recipe_votes",
+      "name": "recipe_votes_value_check",
+      "value": "\"value\" in (1, -1)",
+      "entityType": "checks"
+    },
+    {
+      "schema": "public",
+      "table": "recipes",
+      "name": "recipes_visibility_check",
+      "value": "\"visibility\" in ('private', 'public')",
+      "entityType": "checks"
+    },
+    {
+      "schema": "public",
+      "table": "users",
+      "name": "users_role_check",
+      "value": "\"role\" in ('user', 'admin')",
+      "entityType": "checks"
+    }
+  ]
+}

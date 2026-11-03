@@ -28,6 +28,8 @@ ENV NODE_ENV=production \
     SERVICE_PORT=8000
 COPY --from=build --chown=node:node /out/node_modules ./node_modules
 COPY --from=build --chown=node:node /out/dist ./dist
+# миграции drizzle/ (применяются при старте)
+COPY --from=build --chown=node:node /repo/apps/api/drizzle ./drizzle
 COPY --from=build --chown=node:node /out/package.json ./
 USER node
 EXPOSE 8000

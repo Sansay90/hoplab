@@ -64,6 +64,10 @@ export async function buildApp(deps: Deps, options: BuildOptions = {}) {
   }).withTypeProvider<ZodTypeProvider>()
 
   app.decorate('deps', deps)
+  // закрытие приложения закрывает и пул базы
+  app.addHook('onClose', async () => {
+    await deps.db.$client.end()
+  })
   app.setValidatorCompiler(validatorCompiler)
   app.setSerializerCompiler(serializerCompiler)
 
