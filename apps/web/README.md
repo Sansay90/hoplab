@@ -1,15 +1,15 @@
 # web — интерфейс Hoplab
 
-Nuxt 4 + Nuxt UI 4, Pinia, nuxt-open-fetch; работает своим сервером Nuxt (Nitro, Node). **Гибридный рендеринг:** каталог `/recipes` и рецепт `/recipes/[id]` рендерятся на сервере — для поисковиков и превью ссылок (`useSeoMeta`), вошедшему — по его cookie; личное — варка, редактор, настройки, администрирование, `/verify`, `/reset` — приложение в браузере (`routeRules`, `ssr: false`). Что умеет интерфейс — [docs/features.md](../docs/features.md).
+Nuxt 4 + Nuxt UI 4, Pinia, nuxt-open-fetch; работает своим сервером Nuxt (Nitro, Node). **Гибридный рендеринг:** каталог `/recipes` и рецепт `/recipes/[id]` рендерятся на сервере — для поисковиков и превью ссылок (`useSeoMeta`), вошедшему — по его cookie; личное — варка, редактор, настройки, администрирование, `/verify`, `/reset` — приложение в браузере (`routeRules`, `ssr: false`). Что умеет интерфейс — [docs/features.md](../../docs/features.md).
 
 ## Запуск
 
 ```sh
-npm install                 # заодно nuxt prepare: типы API и ESLint
-npm run dev                 # http://localhost:3000; /api Nuxt проксирует сервису (NUXT_API_SERVER, по умолчанию 127.0.0.1:8000)
+pnpm install                # из корня репозитория (монорепа pnpm), заодно nuxt prepare: типы API и ESLint
+pnpm --filter @hoplab/web dev   # http://localhost:3000; /api Nuxt проксирует сервису (NUXT_API_SERVER, по умолчанию 127.0.0.1:8000)
 ```
 
-Сервис для разработки — [docs/development.md](../docs/development.md#первый-запуск).
+Сервис для разработки — [docs/development.md](../../docs/development.md#первый-запуск).
 
 **/api — один адрес везде.** Браузер ходит на относительный `/api`. В разработке, при рендеринге на сервере (`$api` через `useRequestFetch` — с cookie посетителя) и в локальном Docker его принимает сам Nuxt — `server/routes/api/[...].ts` проксирует сервису потоком (SSE тоже), с `Set-Cookie` и `X-Forwarded-For/Proto` (`server/utils/forwarded.ts`: пришедшим X-Forwarded-* верит только с `NUXT_TRUST_PROXY=1`, иначе — адрес и схема самого соединения); в проде nginx шлёт `/api` сервису сам, мимо Nuxt. `Origin` проверяет сервис: свой сайт — его `APP_URL`, без него — этот ПК.
 
@@ -22,13 +22,13 @@ npm run dev                 # http://localhost:3000; /api Nuxt проксиру�
 
 | Скрипт | |
 |---|---|
-| `npm run dev` | dev-сервер с горячей перезагрузкой |
-| `npm run build` | сборка сервера Nuxt в `.output` — сервис для неё не нужен |
-| `npm run start` | запустить сборку: `node .output/server/index.mjs` (`npm run preview` — то же через Nuxt) |
-| `npm run lint`, `lint:fix` | ESLint (`@nuxt/eslint`, стиль — в `nuxt.config.ts` и `eslint.config.mjs`) |
-| `npm run test` | vitest: `test/unit` — чистые утилиты, без Nuxt |
-| `npm run typecheck` | проверка типов, вместе с тестами |
-| `npm run api:types` | выгрузить OpenAPI сервиса в `openapi.json` и пересобрать типы — после правки схем сервиса |
+| `pnpm dev` | dev-сервер с горячей перезагрузкой |
+| `pnpm build` | сборка сервера Nuxt в `.output` — сервис для неё не нужен |
+| `pnpm start` | запустить сборку: `node .output/server/index.mjs` (`pnpm preview` — то же через Nuxt) |
+| `pnpm lint`, `lint:fix` | ESLint (`@nuxt/eslint`, стиль — в `nuxt.config.ts` и `eslint.config.mjs`) |
+| `pnpm test` | vitest: `test/unit` — чистые утилиты, без Nuxt |
+| `pnpm typecheck` | проверка типов, вместе с тестами |
+| `pnpm api:types` | выгрузить OpenAPI сервиса в `openapi.json` и пересобрать типы — после правки схем сервиса |
 
 ## Данные
 
@@ -67,13 +67,13 @@ app/
   pages/    index (варка) · recipes/ (каталог, new, [id], [id]/edit) · settings · admin/users · verify · reset
 server/routes/api/[...].ts  /api → сервис (NUXT_API_SERVER): dev, рендеринг на сервере, локальный Docker
 server/utils/forwarded.ts   заголовки запроса к сервису: X-Forwarded-* и доверие к своему прокси (NUXT_TRUST_PROXY)
-test/unit/  vitest; shared.test.ts — сверка с общими примерами сервиса (../shared)
+test/unit/  vitest; shared.test.ts — сверка с общими примерами сервиса (../../shared)
 Dockerfile  образ сервера Nuxt: node:24-alpine, порт 3000, не root, HEALTHCHECK по «/» (SPA-оболочка — отвечает и без сервиса)
 ```
 
 ## Правила
 
-- Расчёт показателей и программа пивоварни живут и здесь, и в сервисе — меняются вместе, с примерами в [shared/](../shared/README.md).
+- Расчёт показателей и программа пивоварни живут и здесь, и в сервисе — меняются вместе, с примерами в [shared/](../../shared/README.md).
 - Тексты — для пивовара: что сделать и что происходит, без инструкций разработчику и внутренностей протокола.
 - Числа — по-русски: дробная часть через запятую (`format.ts`), плотность — в выбранных единицах (°P или SG).
 - Цвет пива — шкала «в бокале» (`beer.ts`): тёмное пиво с ~50 EBC почти чёрное, а не красное.

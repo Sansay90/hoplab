@@ -1,15 +1,21 @@
 # Интерфейс Hoplab — сервер Nuxt (Nitro) на порту 3000: каталог и рецепт рендерятся на сервере, остальное — SPA.
 # /api он проксирует сервису по NUXT_API_SERVER (в проде nginx отдаёт /api сервису сам, мимо Nuxt).
-#   docker build -t hoplab-web .        (контекст — папка web)
+# Монорепа pnpm: контекст сборки — корень репозитория.
+#   docker build -f apps/web/Dockerfile -t hoplab-web .
 #   docker run -p 3000:3000 -e NUXT_API_SERVER=http://service:8000 hoplab-web
 
-# lock-файл записан npm 11 (Node 24): на Node 22 / npm 10 npm ci его не принимает
 FROM node:24-alpine AS build
-WORKDIR /web
-COPY package.json package-lock.json ./
-RUN npm ci --no-audit --no-fund
-COPY . .
-RUN npm run build
+RUN npm install -g pnpm@10.33.0
+WORKDIR /repo
+# сначала манифесты — слой с зависимостями кэшируется, пока они не менялись
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY apps/web/package.json apps/web/
+COPY apps/api/package.json apps/api/
+COPY packages/core/package.json packages/core/
+RUN pnpm install --frozen-lockfile --filter @hoplab/web...
+COPY tsconfig.base.json ./
+COPY apps/web apps/web
+RUN pnpm --filter @hoplab/web build
 
 FROM node:24-alpine
 WORKDIR /app
@@ -17,7 +23,7 @@ ENV NODE_ENV=production \
     HOST=0.0.0.0 \
     PORT=3000
 # сборка самодостаточна: зависимости сервера — внутри .output
-COPY --from=build --chown=node:node /web/.output ./.output
+COPY --from=build --chown=node:node /repo/apps/web/.output ./.output
 USER node
 EXPOSE 3000
 # «/» — SPA-оболочка: отвечает и без сервиса, проверяет только сам сервер Nuxt

@@ -19,7 +19,8 @@ export default defineEventHandler(async (event) => {
     return await sendProxy(event, apiServer.replace(/\/$/, '') + event.path, {
       fetchOptions: {
         method: event.method,
-        body: PAYLOAD_METHODS.has(event.method) ? await readRawBody(event, false) : undefined,
+        // Buffer из @types/node 24 для fetch надо сузить до ArrayBuffer (в рантайме тот же Buffer)
+        body: PAYLOAD_METHODS.has(event.method) ? await readRawBody(event, false) as Uint8Array<ArrayBuffer> | undefined : undefined,
         headers,
         signal: gone.signal,
       },

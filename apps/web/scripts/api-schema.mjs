@@ -1,11 +1,11 @@
-// Выгрузить OpenAPI-схему сервиса в web/openapi.json — из неё npm run api:types генерирует типы.
+// Выгрузить OpenAPI-схему сервиса в apps/web/openapi.json — из неё pnpm api:types генерирует типы.
 // Python — из service/.venv, а если окружения нет — из PATH.
 import { spawnSync } from 'node:child_process'
 import { existsSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 
 const web = resolve(import.meta.dirname, '..')
-const service = resolve(web, '../service')
+const service = resolve(web, '../../service')
 const windows = process.platform === 'win32'
 const venv = join(service, '.venv', windows ? 'Scripts/python.exe' : 'bin/python')
 const pythons = existsSync(venv) ? [venv] : windows ? ['python', 'python3'] : ['python3', 'python']

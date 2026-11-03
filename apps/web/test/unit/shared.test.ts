@@ -1,10 +1,10 @@
 // Общие примеры сервиса и интерфейса (shared/): расчёт показателей и программа пивоварни дают то же, что
 // у сервиса (service/tests/test_shared.py проверяет себя по тем же файлам).
 import { describe, expect, it } from 'vitest'
-import calcCases from '../../../shared/calc-cases.json'
-import programCases from '../../../shared/program-cases.json'
-import scaleCases from '../../../shared/scale-cases.json'
-import fermentCases from '../../../shared/ferment-cases.json'
+import calcCases from '../../../../shared/calc-cases.json'
+import programCases from '../../../../shared/program-cases.json'
+import scaleCases from '../../../../shared/scale-cases.json'
+import fermentCases from '../../../../shared/ferment-cases.json'
 import type { Recipe } from '~/types'
 import { fermentAdvice, fermentCalm, fermentPlan } from '~/utils/brewlog'
 import { calcRecipe } from '~/utils/calc'

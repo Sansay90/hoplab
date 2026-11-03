@@ -14,6 +14,6 @@
 | [roadmap.md](./roadmap.md) | куда идём: этапы, идеи, что не решено |
 | [glossary.md](./glossary.md) | словарь: пиво, пивоварня, система |
 
-По папкам: [service/](../service/README.md) — API и настройки сервиса, [agent/](../agent/README.md) — агент и протокол с сервисом ([протокол пивоварни](../agent/PROTOCOL.md)), [web/](../web/README.md) — интерфейс, [shared/](../shared/README.md) — общие примеры, [deploy/](../deploy/README.md) — сервер.
+По папкам: [service/](../service/README.md) — API и настройки сервиса, [agent/](../agent/README.md) — агент и протокол с сервисом ([протокол пивоварни](../agent/PROTOCOL.md)), [apps/web/](../apps/web/README.md) — интерфейс, [shared/](../shared/README.md) — общие примеры, [deploy/](../deploy/README.md) — сервер.
 
 Документация живёт в репозитории и меняется вместе с кодом: поменял поведение — поправь описание в том же изменении.

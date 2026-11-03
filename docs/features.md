@@ -2,7 +2,7 @@
 
 Функции по разделам: что видит пивовар, по каким правилам это работает и где в коде. Как части связаны между собой — [architecture.md](./architecture.md).
 
-Пути кода: `service/app/…` — сервис, `agent/agent/…` — агент, `web/app/…` — интерфейс.
+Пути кода: `service/app/…` — сервис, `agent/agent/…` — агент, `apps/web/app/…` — интерфейс.
 
 ## Вход и роли
 
@@ -12,7 +12,7 @@
 - **Страница пивовара** `/brewers/{ник}` — аватар, ник, с какого времени на сайте и его опубликованные рецепты; на неё ведёт автор на карточке и на странице рецепта.
 - **Роли:** пользователь ведёт свои рецепты и свою пивоварню; администратор ещё снимает с публикации и удаляет чужие опубликованные рецепты и назначает роли («Пользователи»). Чужие личные рецепты не видит никто.
 
-Код: `service/app/auth/` (профиль — `profile.py`, страница пивовара и аватар — `brewers.py`), права — `service/app/access.py`; интерфейс — `web/app/components/auth/`, `components/user/Avatar.vue`, `components/settings/ProfileCard.vue`, `pages/brewers/[nick].vue`, `web/app/components/app/AuthGate.vue`, `web/app/pages/admin/users.vue`, `verify.vue`, `reset.vue`.
+Код: `service/app/auth/` (профиль — `profile.py`, страница пивовара и аватар — `brewers.py`), права — `service/app/access.py`; интерфейс — `apps/web/app/components/auth/`, `components/user/Avatar.vue`, `components/settings/ProfileCard.vue`, `pages/brewers/[nick].vue`, `apps/web/app/components/app/AuthGate.vue`, `apps/web/app/pages/admin/users.vue`, `verify.vue`, `reset.vue`.
 
 ## Каталог рецептов
 
@@ -21,7 +21,7 @@
 - **Карточка:** бокал по стилю BJCP в цвет пива, стиль, первый абзац описания, OG, крепость, IBU, цвет; под ними — «Автор: ник»; внизу — отклик (нравится, не нравится, комментарии, сколько раз сварили все) и миниатюры фото (открываются прямо из списка; в узкой карточке — одна со значком «+N»). У своего опубликованного — значок публикации. Колонок — две с 768 px, три с 1536 px: карточка не уже ~360 px, длинный ник и большие числа помещаются.
 - **Цвет пива** — шкала EBC «как в бокале»: тёмное пиво с ~50 EBC почти чёрное, а не красно-коричневое, как в таблицах SRM тонкого слоя.
 
-Код: `web/app/pages/recipes/index.vue`, `components/recipe/RecipeCard.vue`, `Glass.vue`, `utils/beer.ts`, `composables/useFavorite.ts`; сервис — `service/app/recipes/store.py` (`list`, `set_favorite`).
+Код: `apps/web/app/pages/recipes/index.vue`, `components/recipe/RecipeCard.vue`, `Glass.vue`, `utils/beer.ts`, `composables/useFavorite.ts`; сервис — `service/app/recipes/store.py` (`list`, `set_favorite`).
 
 ## Рецепт
 
@@ -31,7 +31,7 @@
 - **Действия:** «Сварить» — всем (гостю — вход; см. [Сварить](#сварить)), «Изменить» (свой), «Дублировать» / «Сохранить себе копию» (чужой), публикация и снятие с публикации, удаление (свой; администратор — и чужой опубликованный).
 - **Фото пива** — до 12 на рецепт, JPEG/PNG/WebP; интерфейс уменьшает снимок до 1600 px и убирает EXIF с координатами, сервис делает превью 480 px. Чужое фото — с подписью автора и лицензии.
 
-Код: `web/app/pages/recipes/[id]/`, `components/recipe/view/`, `FermentProfile.vue`, `Photos.vue`, `PhotoViewer.vue`; сервис — `service/app/recipes/`.
+Код: `apps/web/app/pages/recipes/[id]/`, `components/recipe/view/`, `FermentProfile.vue`, `Photos.vue`, `PhotoViewer.vue`; сервис — `service/app/recipes/`.
 
 ## Обсуждение и голоса
 
@@ -40,7 +40,7 @@
 - **Голоса за комментарии** — так же, как за рецепт; за свой — нельзя.
 - **«Сварили N раз»** — разлитые партии по этому рецепту у всех пивоваров, с пивоварни и записанные вручную, не больше одной в день от пивовара; вылитые не в счёт ([журнал варок](#журнал-варок)); кто варил — не раскрывается. Варка привязывается к рецепту, если он свой или опубликованный.
 
-Код: `web/app/components/recipe/view/Comments.vue`, `Comment.vue`, `Intro.vue`, `composables/useDiscussion.ts`, `utils/votes.ts`; сервис — `service/app/recipes/discussion.py`.
+Код: `apps/web/app/components/recipe/view/Comments.vue`, `Comment.vue`, `Intro.vue`, `composables/useDiscussion.ts`, `utils/votes.ts`; сервис — `service/app/recipes/discussion.py`.
 
 ## Редактор и расчёты
 
@@ -55,7 +55,7 @@
 - **Проверка перед сохранением** — шаги программы и температуры по ограничениям пивоварни, закладки внутри кипячения, названия строк. Пивоварня ещё не подключалась — ограничения Easy Brew по умолчанию.
 - При сохранении показатели пересчитывает сервис и хранит свои.
 
-Код: `web/app/components/recipe/RecipeEditor.vue`, `components/recipe/editor/`, `utils/calc.ts`, `utils/recipe.ts` (`validateRecipe`); сервис — `service/app/recipes/calc.py`; общие примеры — `shared/`.
+Код: `apps/web/app/components/recipe/RecipeEditor.vue`, `components/recipe/editor/`, `utils/calc.ts`, `utils/recipe.ts` (`validateRecipe`); сервис — `service/app/recipes/calc.py`; общие примеры — `shared/`.
 
 ## Вода
 
@@ -64,7 +64,7 @@
 - **pH затора** — необязательная цель в разделе «Вода» (4–7; проба при комнатной температуре): подсказка к замеру pH на варке.
 - **Объёмы:** в рецепте хранится гидромодуль (л/кг). Заторная вода = гидромодуль × засыпь в затор; вся вода = объём после кипячения + испарение × время кипячения + удержание дробиной (0,8 л/кг); промывочная — остальное. Испарение — из профиля оборудования, поэтому промывочная вода у разных пивоварен по одному рецепту разная. Промывку останавливают по плотности — расчётная промывочная вода это запас, а не норма.
 
-Код: `web/app/utils/water.ts`, `components/recipe/editor/Water.vue`, `components/recipe/WaterSummary.vue`.
+Код: `apps/web/app/utils/water.ts`, `components/recipe/editor/Water.vue`, `components/recipe/WaterSummary.vue`.
 
 ## Программа пивоварни и закладки
 
@@ -73,7 +73,7 @@
 - **В начале и в конце кипячения** напоминает само приложение. Вирпул — напоминание в конце кипячения с временем выдержки: «Citra 50 г (вирпул 20 мин)».
 - **Загрузка в пивоварню** — агент кодирует программу в блок рецепта Easy Brew (DP 128) и проверяет эхо. Поправили загруженный рецепт — пивоварня получает свежие названия шагов и закладок; удалили — забывает их.
 
-Код: `service/app/recipes/program.py` ≡ `web/app/utils/recipe.ts`; агент — `agent/agent/recipe.py`, `controller.py`.
+Код: `service/app/recipes/program.py` ≡ `apps/web/app/utils/recipe.ts`; агент — `agent/agent/recipe.py`, `controller.py`.
 
 ## Варка
 
@@ -133,14 +133,14 @@
 - **На странице рецепта** — «Мои варки» по нему, каждому вошедшему: и автору, и тому, кто варит по чужому рецепту.
 - **«Сварили N раз»** у рецепта — разлитые партии всех пивоваров, с пивоварни и без неё (вылитые не в счёт); от одного пивовара по рецепту — не больше одной в день, так что ручными записями счёт не накрутить. Кто варил — не раскрывается, журналы видит только их пивовар.
 
-Код: `web/app/pages/brews/`, `components/brew/log/`, `components/brew/PlanFact.vue`, `FermentCard.vue`, `FermentGraph.vue`, `StartModal.vue`, `components/recipe/view/Brews.vue`, `utils/brewlog.ts`; сервис — `service/app/brewery/logbook.py`, напоминания — `reminders.py` (варки с пивоварни пишет `journal.py`).
+Код: `apps/web/app/pages/brews/`, `components/brew/log/`, `components/brew/PlanFact.vue`, `FermentCard.vue`, `FermentGraph.vue`, `StartModal.vue`, `components/recipe/view/Brews.vue`, `utils/brewlog.ts`; сервис — `service/app/brewery/logbook.py`, напоминания — `reminders.py` (варки с пивоварни пишет `journal.py`).
 
 ## Уведомления
 
 - **На сайте** — пункт «Уведомления» в меню (вошедшему) с числом непрочитанных: напоминания о брожении ([журнал варок](#журнал-варок)), новый комментарий к моему рецепту и ответ на мой комментарий (кому ответили — даже если ответ встал в ветку выше). О своих комментариях не сообщается; автору рецепта, которому ответили в его же рецепте, — одно уведомление, «ответ». Открыл список — всё прочитано: новые подсвечены до ухода со страницы. Нажал — страница рецепта, комментарий прокручен на виду и подсвечен. Удалили комментарий — пропадает и уведомление о нём; рецепт сняли с публикации — его уведомления не видны тем, кому не виден он сам. Хранятся последние 50.
 - **Системные**, даже когда вкладка закрыта: подсказки пивоварни, закладки, конец программы, а во время варки — ошибка, выключение и потеря связи. Кнопка в уведомлении («Заложил», «Подтвердить») выполняет действие сразу. Комментарии и ответы, напоминания о брожении — тоже системными (нажал — комментарий на странице рецепта или варка); у каждого вида свой переключатель для всех своих устройств, на сайте они остаются. Звуки на открытой вкладке — отдельно.
 
-Код: `web/app/pages/notifications.vue`, `composables/useNotifications.ts`, `service/app/notifications/`; системные — `service/app/push/`, `web/public/sw.js`, `composables/usePush.ts`, `plugins/notifications.client.ts`, `composables/useSound.ts`.
+Код: `apps/web/app/pages/notifications.vue`, `composables/useNotifications.ts`, `service/app/notifications/`; системные — `service/app/push/`, `apps/web/public/sw.js`, `composables/usePush.ts`, `plugins/notifications.client.ts`, `composables/useSound.ts`.
 
 ## Настройки
 
@@ -149,7 +149,7 @@
 - **Профиль** (`/settings`) — ник и аватар; **аккаунт** — почта, подтверждение, выход.
 - **Уведомления и вид** (`/settings/notifications`): **уведомления**, **единицы** (плотность в °P или SG) и **звук** — на этом устройстве (сигнал — подсказка пивоварни, закладка, конец шага — повторяется не больше 4 раз, дальше тишина, даже если не подтвердили); переключатели «Комментарии и ответы» и «Напоминания о брожении» — для всех устройств пользователя.
 
-Код: `web/app/pages/settings.vue` и `pages/settings/`, `components/settings/`.
+Код: `apps/web/app/pages/settings.vue` и `pages/settings/`, `components/settings/`.
 
 ## Оборудование
 

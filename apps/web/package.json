@@ -1,5 +1,5 @@
 {
-  "name": "hoplab-web",
+  "name": "@hoplab/web",
   "private": true,
   "type": "module",
   "scripts": {
@@ -13,7 +13,7 @@
     "test": "vitest run",
     "typecheck": "nuxt typecheck",
     "api:schema": "node scripts/api-schema.mjs",
-    "api:types": "npm run api:schema && nuxt prepare"
+    "api:types": "pnpm api:schema && nuxt prepare"
   },
   "dependencies": {
     "@iconify-json/lucide": "^1.2.147",

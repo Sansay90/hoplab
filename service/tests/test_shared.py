@@ -1,6 +1,6 @@
 """Общие примеры сервиса и интерфейса (shared/): обе реализации расчёта, программы пивоварни, пересчёта под
 оборудование и расписания брожения дают одно и то же. Интерфейс проверяет себя по тем же файлам
-(web/test/shared.test.ts)."""
+(apps/web/test/unit/shared.test.ts)."""
 import json
 from pathlib import Path
 from types import SimpleNamespace

@@ -76,7 +76,7 @@ export default defineNuxtConfig({
   icon: {
     clientBundle: { scan: true, icons: ICONS, sizeLimitKb: 512 },
   },
-  // типизированный клиент сервиса: $api и useApi по OpenAPI-схеме (openapi.json, npm run api:types);
+  // типизированный клиент сервиса: $api и useApi по OpenAPI-схеме (openapi.json, pnpm api:types);
   // сам клиент — plugins/api.ts: адрес сервиса, cookie входа, истёкшая сессия
   openFetch: {
     clients: { api: { schema: 'openapi.json' } },

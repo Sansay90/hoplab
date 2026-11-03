@@ -1,5 +1,5 @@
 // Модульные тесты чистых утилит (app/utils) — без Nuxt: утилиты импортируют друг друга явно.
-// Псевдонимы — как у Nuxt: ~ и @ — app/, ~~ и @@ — корень web/.
+// Псевдонимы — как у Nuxt: ~ и @ — app/, ~~ и @@ — корень apps/web/.
 import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vitest/config'
 
