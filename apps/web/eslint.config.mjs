@@ -1,7 +1,10 @@
 // Правила — @nuxt/eslint, стиль кода задан в nuxt.config.ts (eslint.config.stylistic); здесь — отступления проекта.
 import withNuxt from './.nuxt/eslint.config.mjs'
+import { webRules } from '../../eslint/web.mjs'
 
 export default withNuxt(
+  // общее с остальным монорепо: any, границы с сервером (eslint/web.mjs)
+  webRules,
   {
     rules: {
       // однострочный тип — через «;»: { title: string; icon?: string }
