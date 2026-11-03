@@ -21,7 +21,7 @@
 - **Карточка:** бокал по стилю BJCP в цвет пива, стиль, первый абзац описания, OG, крепость, IBU, цвет; под ними — «Автор: ник»; внизу — отклик (нравится, не нравится, комментарии, сколько раз сварили все) и миниатюры фото (открываются прямо из списка; в узкой карточке — одна со значком «+N»). У своего опубликованного — значок публикации. Колонок — две с 768 px, три с 1536 px: карточка не уже ~360 px, длинный ник и большие числа помещаются.
 - **Цвет пива** — шкала EBC «как в бокале»: тёмное пиво с ~50 EBC почти чёрное, а не красно-коричневое, как в таблицах SRM тонкого слоя.
 
-Код: `apps/web/app/pages/recipes/index.vue`, `components/recipe/RecipeCard.vue`, `Glass.vue`, `utils/beer.ts`, `composables/useFavorite.ts`; сервис — `service/app/recipes/store.py` (`list`, `set_favorite`).
+Код: `apps/web/app/pages/recipes/index.vue`, `components/recipe/RecipeCard.vue`, `Glass.vue`, `utils/beer.ts` (цвет в бокале), `packages/core/src/beer.ts` (крепость), `composables/useFavorite.ts`; сервис — `service/app/recipes/store.py` (`list`, `set_favorite`).
 
 ## Рецепт
 
@@ -55,7 +55,7 @@
 - **Проверка перед сохранением** — шаги программы и температуры по ограничениям пивоварни, закладки внутри кипячения, названия строк. Пивоварня ещё не подключалась — ограничения Easy Brew по умолчанию.
 - При сохранении показатели пересчитывает сервис и хранит свои.
 
-Код: `apps/web/app/components/recipe/RecipeEditor.vue`, `components/recipe/editor/`, `utils/calc.ts`, `utils/recipe.ts` (`validateRecipe`); сервис — `service/app/recipes/calc.py`; общие примеры — `shared/`.
+Код: `apps/web/app/components/recipe/RecipeEditor.vue`, `components/recipe/editor/`, `packages/core/src/calc.ts`, `packages/core/src/draft.ts` (`validateRecipe`); сервис — `service/app/recipes/calc.py`; общие примеры — `shared/`.
 
 ## Вода
 
@@ -64,7 +64,7 @@
 - **pH затора** — необязательная цель в разделе «Вода» (4–7; проба при комнатной температуре): подсказка к замеру pH на варке.
 - **Объёмы:** в рецепте хранится гидромодуль (л/кг). Заторная вода = гидромодуль × засыпь в затор; вся вода = объём после кипячения + испарение × время кипячения + удержание дробиной (0,8 л/кг); промывочная — остальное. Испарение — из профиля оборудования, поэтому промывочная вода у разных пивоварен по одному рецепту разная. Промывку останавливают по плотности — расчётная промывочная вода это запас, а не норма.
 
-Код: `apps/web/app/utils/water.ts`, `components/recipe/editor/Water.vue`, `components/recipe/WaterSummary.vue`.
+Код: `packages/core/src/water.ts`, `apps/web/app/components/recipe/editor/Water.vue`, `components/recipe/WaterSummary.vue`.
 
 ## Программа пивоварни и закладки
 
@@ -73,7 +73,7 @@
 - **В начале и в конце кипячения** напоминает само приложение. Вирпул — напоминание в конце кипячения с временем выдержки: «Citra 50 г (вирпул 20 мин)».
 - **Загрузка в пивоварню** — агент кодирует программу в блок рецепта Easy Brew (DP 128) и проверяет эхо. Поправили загруженный рецепт — пивоварня получает свежие названия шагов и закладок; удалили — забывает их.
 
-Код: `service/app/recipes/program.py` ≡ `apps/web/app/utils/recipe.ts`; агент — `agent/agent/recipe.py`, `controller.py`.
+Код: `service/app/recipes/program.py` ≡ `packages/core/src/program.ts`; агент — `agent/agent/recipe.py`, `controller.py`.
 
 ## Варка
 
@@ -97,7 +97,7 @@
 
 Варка с пивоварни начинается с запуска программы; конец программы или выключение пивоварни — её исход (завершена, прервана), а не конец варочного дня партии. Пропала связь — агент досылает всё после переподключения. Расход электричества пивоварня не сообщает — агент оценивает его по мощности шагов и нагреву.
 
-Код: `pages/brews/[id].vue`, `components/brew/day/` (`NowCard.vue`, `Timeline.vue`), `utils/brewday.ts`, `composables/useCurrentBrew.ts`, `pages/index.vue`, `components/brew/`, `stores/brewery.ts`, `utils/brew.ts`; сервис — `service/app/brewery/` (`brewday.py` — шаги, текущий шаг, таймеры, конец дня; `journal.py` — варка в партию; `logbook.py` — фаза партии; `streams.py` — «варка изменилась» вкладкам); агент — `agent/agent/controller.py` (`brewId` программы), `energy.py`.
+Код: `pages/brews/[id].vue`, `components/brew/day/` (`NowCard.vue`, `Timeline.vue`), `packages/core/src/brewday.ts`, `utils/brewday.ts` (подписи шагов), `composables/useCurrentBrew.ts`, `pages/index.vue`, `components/brew/`, `stores/brewery.ts`, `utils/brew.ts`; сервис — `service/app/brewery/` (`brewday.py` — шаги, текущий шаг, таймеры, конец дня; `journal.py` — варка в партию; `logbook.py` — фаза партии; `streams.py` — «варка изменилась» вкладкам); агент — `agent/agent/controller.py` (`brewId` программы), `energy.py`.
 
 ## Сварить
 
@@ -109,7 +109,7 @@
 - **Партия получает свой рецепт** — рецепт партии: пересчитанный снимок со ссылкой на оригинал, на пивоварне — с мощностью ТЭНа на шагах (она видна в строке шага варочного дня: «Осахаривание · 62,0 °C · 50 мин · 2000 W»; не задана — при загрузке потолок модели). Правка оригинала идущую партию не трогает, в «Мои рецепты» ничего не копируется; насовсем под себя — «Сохранить себе копию». На странице варки — «Рецепт партии» (свёрнут: засыпь, хмель, дрожжи, другое, вода по испарению оборудования); план варки (OG, FG, крепость, объём, брожение) — по нему. Смена оборудования у варки рецепт партии не пересчитывает — сварено уже по нему.
 - **На подключённой Easy Brew** «Сварить» сразу загружает программу партии в пивоварню, «Запустить рецепт» — на странице партии (см. [Варка](#варка)). Отдельной загрузки рецепта в пивоварню нет: программа уходит только с партией. Варка, запущенная без партии (рецепт из Smart Life), появляется сама.
 
-Код: `components/brew/StartModal.vue`, `utils/scale.ts`, `pages/brews/[id].vue`; сервис — `service/app/recipes/scale.py`, `brewery/logbook.py`; общие примеры — `shared/scale-cases.json`.
+Код: `components/brew/StartModal.vue`, `packages/core/src/scale.ts`, `pages/brews/[id].vue`; сервис — `service/app/recipes/scale.py`, `brewery/logbook.py`; общие примеры — `shared/scale-cases.json`.
 
 ## Журнал варок
 
@@ -133,7 +133,7 @@
 - **На странице рецепта** — «Мои варки» по нему, каждому вошедшему: и автору, и тому, кто варит по чужому рецепту.
 - **«Сварили N раз»** у рецепта — разлитые партии всех пивоваров, с пивоварни и без неё (вылитые не в счёт); от одного пивовара по рецепту — не больше одной в день, так что ручными записями счёт не накрутить. Кто варил — не раскрывается, журналы видит только их пивовар.
 
-Код: `apps/web/app/pages/brews/`, `components/brew/log/`, `components/brew/PlanFact.vue`, `FermentCard.vue`, `FermentGraph.vue`, `StartModal.vue`, `components/recipe/view/Brews.vue`, `utils/brewlog.ts`; сервис — `service/app/brewery/logbook.py`, напоминания — `reminders.py` (варки с пивоварни пишет `journal.py`).
+Код: `apps/web/app/pages/brews/`, `components/brew/log/`, `components/brew/PlanFact.vue`, `FermentCard.vue`, `FermentGraph.vue`, `StartModal.vue`, `components/recipe/view/Brews.vue`, `packages/core/src/ferment.ts` (расписание брожения), `utils/brewlog.ts` (журнал и подписи); сервис — `service/app/brewery/logbook.py`, напоминания — `reminders.py` (варки с пивоварни пишет `journal.py`).
 
 ## Уведомления
 
@@ -164,4 +164,4 @@
 - **Easy Brew Connect** — на своей странице: сайт управляет этой пивоварней — **подключение** (связь с сервисом и пивоварней, модель) и **калибровка** температуры и компенсация кипения (записываются в пивоварню); подключена, но сайт управляет другой (последней подключённой) — на какой странице связь и калибровка; ещё не подключена — как её подключить. Когда агент заводит пивоварню, она достаётся этому оборудованию (нет такого — заводится новое). Управление — на странице партии.
 - **Варка — на оборудовании:** с пивоварни — на её, через «Сварить» — на выбранном (основное — по умолчанию); рецепт партии пересчитан под него. Поменять потом нельзя: рецепт партии посчитан под это оборудование, а смена разошлась бы с граммами. Ошиблись в окне «Сварить» — удалить партию и сварить заново. В «Моих варках» и на странице варки — на чём варили.
 
-Код: `pages/equipment/`, `components/equipment/`, `composables/useEquipment.ts`, `utils/equipment.ts` (иконки, значения и краткое описание по каталогу); сервис — `service/app/brewery/kinds.py` (каталог), `equipment.py`, `/api/equipment`, `POST /api/settings` (калибровка).
+Код: `pages/equipment/`, `components/equipment/`, `composables/useEquipment.ts`, `utils/equipment.ts` (иконки), `packages/core/src/equipment.ts` (значения и краткое описание по каталогу), `packages/core/src/kinds.ts` (каталог); сервис — `service/app/brewery/kinds.py` (каталог), `equipment.py`, `/api/equipment`, `POST /api/settings` (калибровка).

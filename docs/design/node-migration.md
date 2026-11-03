@@ -168,11 +168,13 @@ apps/api/src/
 
 | Уровень | Что | Чем | Откуда смысл |
 |---|---|---|---|
-| `core` — юнит | показатели, программа, пересчёт, расписание брожения, шаги дня, схема рецепта | vitest; общие примеры `shared/*.json` → `packages/core/test/cases/`, один тест на файл | `test_shared.py`, `test_program.py`, `web/test/unit/*` |
+| `core` — юнит | показатели, программа, пересчёт, расписание брожения, шаги дня, схема рецепта, каталог оборудования | vitest; общие примеры `shared/*.json` → `packages/core/test/cases/`, один тест на файл | `test_shared.py`, `test_program.py`, `web/test/unit/*` |
 | API — интеграционные | каждый раздел через `app.inject()` на **настоящем Postgres** (`TEST_DATABASE_URL`, база `*_test`, миграции drizzle, `truncate` перед тестом); письма — в ящик, push — в список | vitest | `test_auth`, `test_profile`, `test_roles`, `test_recipes`, `test_favorites`, `test_discussion`, `test_photos`, `test_notifications`, `test_equipment`, `test_logbook`, `test_brewday`, `test_reminders`, `test_throttle` |
 | хаб — сквозные | настоящий сервер на порту, агент, пивоварня-имитация: варка от загрузки до конца, перезапуск агента и сервера посреди варки, зависшее соединение (TCP-прокси), повторы `seq` | vitest + **два агента**: быстрый TS-клиент протокола (`ws`) для крайних случаев и настоящий `python -m agent` с `fake.py` дочерним процессом — 3–4 дымовых теста на совместимость | `test_brewery`, `test_resume`, `test_streams`, `support.py` (`Agent`, `Proxy`) |
 | интерфейс | как сейчас (`apps/web/test/unit`) | vitest | — |
 | перенос | `import-legacy` на дампе старой тестовой базы: счётчики, фото, вход старым паролем | vitest | — |
+
+На шаге 1 примеры остаются в `shared/` (по ним сверяется и Python): тесты core читают их оттуда, один тест-файл на JSON, в `packages/core/test/shared/`. В `packages/core/test/cases/` они переезжают на шаге 8 вместе с удалением `service/`.
 
 Python-тесты переводятся по смыслу, по одному файлу на раздел: каждый `def test_…` — либо тест в новом наборе, либо осознанно выброшен (отметка в PR). Пока `service/` в репозитории, его тесты — живой образец; удаляются при переключении.
 
