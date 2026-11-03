@@ -1,2 +1,10 @@
 # секреты корня: доступ к серверу и т. п. (образец — .env.template)
 .env
+
+# Node: зависимости, сборка, покрытие
+node_modules
+dist
+coverage
+.nuxt
+.output
+.data

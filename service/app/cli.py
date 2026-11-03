@@ -4,7 +4,7 @@
     python -m app agents new [название] [--email почта]    новый агент — токен печатается один раз
     python -m app agents list [--email почта]              агенты пользователя и когда были на связи
     python -m app vapid                                    новый ключ Web Push — строка для .env
-    python -m app openapi [путь]                           OpenAPI-схема для типов интерфейса (../web/openapi.json)
+    python -m app openapi [путь]                           OpenAPI-схема для типов интерфейса (../apps/web/openapi.json)
 
 --email — чей агент; без неё — единственного пользователя.
 """
@@ -57,7 +57,7 @@ def vapid(args, settings):
 def openapi(args, settings):
     from .main import create_app
 
-    path = args.path or os.path.join(os.path.dirname(SERVICE_DIR), "web", "openapi.json")
+    path = args.path or os.path.join(os.path.dirname(SERVICE_DIR), "apps", "web", "openapi.json")
     with open(path, "w", encoding="utf-8", newline="\n") as f:
         json.dump(create_app(settings).openapi(), f, ensure_ascii=False, indent=2)
         f.write("\n")

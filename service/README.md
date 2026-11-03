@@ -11,7 +11,7 @@
 - историю варок — `GET /api/brews`, `GET /api/brews/{id}`;
 - вход — `/api/auth/*`, пользователи и роли — `/api/admin/*`, уведомления — `/api/push/*`.
 
-Схема API — http://127.0.0.1:8000/docs (OpenAPI); из неё генерируются типы интерфейса (`npm run api:types` в `web`). Агенты подключаются к `WS /api/agent` с токеном в заголовке `Authorization: Bearer …` — [протокол](../agent/README.md#протокол).
+Схема API — http://127.0.0.1:8000/docs (OpenAPI); из неё генерируются типы интерфейса (`pnpm api:types` в `apps/web`). Агенты подключаются к `WS /api/agent` с токеном в заголовке `Authorization: Bearer …` — [протокол](../agent/README.md#протокол).
 
 ## Запуск
 
@@ -23,7 +23,7 @@ pip install -r requirements-dev.txt
 python -m app                     # http://127.0.0.1:8000; --lan — ещё и из домашней сети
 ```
 
-Всё в Docker, как на сервере, — `docker compose up -d --build`: база, сервис (`Dockerfile` в этой папке) и интерфейс (`../web/Dockerfile`, http://127.0.0.1:3000). База живёт в томе `pgdata` и переживает пересборку. Сервис отдаёт только `/api` — страницы рендерит сервер Nuxt.
+Всё в Docker, как на сервере, — `docker compose up -d --build`: база, сервис (`Dockerfile` в этой папке) и интерфейс (`../apps/web/Dockerfile`, http://127.0.0.1:3000). База живёт в томе `pgdata` и переживает пересборку. Сервис отдаёт только `/api` — страницы рендерит сервер Nuxt.
 
 Команды сервиса — `python -m app <команда>` (в контейнере — `docker compose exec service python -m app …`):
 
@@ -33,7 +33,7 @@ python -m app                     # http://127.0.0.1:8000; --lan — ещё и �
 | `agents new "Название" [--email почта]` | новый агент пользователя — токен печатается один раз |
 | `agents list [--email почта]` | агенты и когда были на связи |
 | `vapid` | новый ключ Web Push для `VAPID_PRIVATE_KEY` |
-| `openapi [путь]` | выгрузить схему API (по умолчанию `../web/openapi.json`) |
+| `openapi [путь]` | выгрузить схему API (по умолчанию `../apps/web/openapi.json`) |
 
 ## Настройки
 

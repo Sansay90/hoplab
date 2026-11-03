@@ -1,6 +1,6 @@
 # Hoplab у себя на ПК: Postgres, сервис и интерфейс — те же образы, что на сервере, только собранные из исходников.
 # Из папки hoplab/service:
-#   docker compose up -d db           только база — для сервиса из .venv (python -m app) и web (npm run dev)
+#   docker compose up -d db           только база — для сервиса из .venv (python -m app) и web (pnpm dev)
 #   docker compose up -d --build      всё: интерфейс — http://127.0.0.1:3000, API — http://127.0.0.1:8000
 #   docker compose logs -f service    журнал сервиса (web — интерфейса)
 #   docker compose down               остановить (данные базы остаются в томе pgdata)
@@ -43,7 +43,9 @@ services:
       DATABASE_URL: postgresql+psycopg://hoplab:${POSTGRES_PASSWORD}@db:5432/hoplab
 
   web:
-    build: ../web
+    build:
+      context: ..
+      dockerfile: apps/web/Dockerfile
     image: hoplab-web
     container_name: hoplab-web
     restart: unless-stopped

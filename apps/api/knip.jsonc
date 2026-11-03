@@ -1,0 +1,8 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "entry": ["test/**/*.test.ts"],
+  "project": ["src/**/*.ts", "test/**/*.ts"],
+  // tsc и knip стоят в корне монорепо; @hoplab/core api начнёт импортировать на шаге 1
+  "ignoreBinaries": ["tsc", "knip"],
+  "ignoreDependencies": ["@hoplab/core"]
+}

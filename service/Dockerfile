@@ -1,4 +1,4 @@
-# Сервис hoplab: HTTP API, поток SSE для интерфейса, WebSocket для агентов. Интерфейс — отдельный образ (web/Dockerfile).
+# Сервис hoplab: HTTP API, поток SSE для интерфейса, WebSocket для агентов. Интерфейс — отдельный образ (apps/web/Dockerfile).
 # Сборка из папки service: docker build -t hoplab-service .  (в CI — .github/workflows/deploy.yml)
 FROM python:3.13-slim
 

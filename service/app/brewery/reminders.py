@@ -14,7 +14,7 @@ SLOW_SG в сутки — конечная выйдет выше расчётн�
 (в партии — от фактической OG; день при ней — когда напомнить замерить) или «на N-й день» — через N − 1 суток
 от начала. Этап, начатый по факту, не напоминается; как и когда уходят напоминания — ticker.py. Разлитые,
 вылитые, идущий варочный день и начатые раньше SCAN_DAYS не смотрим. Тот же расчёт — в интерфейсе
-(web/app/utils/brewlog.ts: fermentPlan, fermentAdvice, fermentCalm); общие примеры — shared/ferment-cases.json.
+(apps/web/app/utils/brewlog.ts: fermentPlan, fermentAdvice, fermentCalm); общие примеры — shared/ferment-cases.json.
 """
 from datetime import timedelta
 

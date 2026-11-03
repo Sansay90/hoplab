@@ -1,0 +1,24 @@
+{
+  "name": "hoplab",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.33.0",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "lint": "pnpm -r lint",
+    "lint:fix": "pnpm -r lint:fix",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r test",
+    "knip": "pnpm -r knip"
+  },
+  "devDependencies": {
+    "@eslint-community/eslint-plugin-eslint-comments": "4.8.1",
+    "@stylistic/eslint-plugin": "5.10.0",
+    "eslint": "10.13.0",
+    "knip": "6.44.1",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.72.1"
+  }
+}

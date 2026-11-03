@@ -13,7 +13,7 @@
 |---|---|
 | [service/](./service/README.md) | сервис: API, вход и роли, рецепты, варки, уведомления, связь с агентами |
 | [agent/](./agent/README.md) | агент у пивоварни: подключение по домашней сети, протокол с сервисом; [протокол пивоварни](./agent/PROTOCOL.md) |
-| [web/](./web/README.md) | интерфейс: Nuxt 4 + Nuxt UI |
+| [apps/web/](./apps/web/README.md) | интерфейс: Nuxt 4 + Nuxt UI |
 | [shared/](./shared/README.md) | общие примеры расчётов для сервиса и интерфейса |
 | [deploy/](./deploy/README.md) | сервер и выкатка |
 
@@ -26,4 +26,4 @@
 - [roadmap.md](./docs/roadmap.md) — куда идём; [glossary.md](./docs/glossary.md) — словарь;
 - [CLAUDE.md](./CLAUDE.md) — правила для агентов разработки.
 
-Быстрый старт для разработки — `service`: `docker compose up -d db`, `pip install -r requirements-dev.txt`, `python -m app`; `web`: `npm install`, `npm run dev` → http://localhost:3000. Подробно — [docs/development.md](./docs/development.md).
+Быстрый старт для разработки — `service`: `docker compose up -d db`, `pip install -r requirements-dev.txt`, `python -m app`; интерфейс: `pnpm install`, `pnpm --filter @hoplab/web dev` → http://localhost:3000. Подробно — [docs/development.md](./docs/development.md).

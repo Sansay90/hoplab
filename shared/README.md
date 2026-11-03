@@ -1,14 +1,14 @@
 # shared — общие примеры сервиса и интерфейса
 
-Четыре правила живут и в сервисе, и в интерфейсе: расчёт показателей рецепта (`service/app/recipes/calc.py` ≡ `web/app/utils/calc.ts`), программа пивоварни из рецепта (`service/app/recipes/program.py` ≡ `web/app/utils/recipe.ts`), пересчёт рецепта под оборудование (`service/app/recipes/scale.py` ≡ `web/app/utils/scale.ts`) и расписание брожения партии (`service/app/brewery/reminders.py`, `Ferment` ≡ `web/app/utils/brewlog.ts`, `fermentPlan` / `fermentAdvice` / `fermentCalm`). Чтобы реализации не разошлись, все проверяют себя по одним и тем же примерам:
+Четыре правила живут и в сервисе, и в интерфейсе: расчёт показателей рецепта (`service/app/recipes/calc.py` ≡ `apps/web/app/utils/calc.ts`), программа пивоварни из рецепта (`service/app/recipes/program.py` ≡ `apps/web/app/utils/recipe.ts`), пересчёт рецепта под оборудование (`service/app/recipes/scale.py` ≡ `apps/web/app/utils/scale.ts`) и расписание брожения партии (`service/app/brewery/reminders.py`, `Ferment` ≡ `apps/web/app/utils/brewlog.ts`, `fermentPlan` / `fermentAdvice` / `fermentCalm`). Чтобы реализации не разошлись, все проверяют себя по одним и тем же примерам:
 
 | Файл | Что внутри | Кто проверяет |
 |---|---|---|
-| `calc-cases.json` | рецепт → OG, FG, ABV, IBU, цвет, сбраживание | `service/tests/test_shared.py`, `web/test/unit/shared.test.ts` |
+| `calc-cases.json` | рецепт → OG, FG, ABV, IBU, цвет, сбраживание | `service/tests/test_shared.py`, `apps/web/test/unit/shared.test.ts` |
 | `program-cases.json` | рецепт → шаги программы, таймеры пивоварни, закладки по минутам | те же |
 | `scale-cases.json` | рецепт + объём и эффективность (`to`) → рецепт партии: количества и показатели | те же |
 | `ferment-cases.json` | план брожения партии, начало, записи журнала и «сейчас» → идущий этап, даты и цели этапов (от фактической OG), «пора» (цель достигнута, замедлилось, плотность встала) и «похоже, закончилось» | те же |
 
 Примеры — настоящие рецепты (их показатели совпадали с посчитанными интерфейсом) и пограничные случаи: без объёма, без дрожжей, сахар и экстракт, первое сусло и вирпул, жжёный солод, закладки вне кипячения.
 
-**Правило изменилось намеренно** — поменять обе реализации, затем пересчитать ожидания по сервису (`python ../shared/update.py` из `service`) и убедиться, что интерфейс сходится с ними сам (`npm run test` в `web`). Новый случай — добавить в файл с любым `expected` и пересчитать.
+**Правило изменилось намеренно** — поменять обе реализации, затем пересчитать ожидания по сервису (`python ../shared/update.py` из `service`) и убедиться, что интерфейс сходится с ними сам (`pnpm test` в `apps/web`). Новый случай — добавить в файл с любым `expected` и пересчитать.
