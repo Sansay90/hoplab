@@ -3,7 +3,7 @@
 import type { AdditionInput, AdditionKind, AdditionKindMeta } from '@hoplab/core'
 import { ADDITION_KINDS } from '@hoplab/core'
 
-export interface AdditionLook {
+interface AdditionLook {
   icon: string
   tint: string               // цвет иконки
   placeholder: string

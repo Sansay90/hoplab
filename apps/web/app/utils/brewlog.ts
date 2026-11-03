@@ -12,7 +12,7 @@ type Group = 'Варочный день' | 'Брожение и розлив' | 
 // short — короткая подпись (поле на шаге, журнал); transition — переход к этапу или шагу: ставится кнопками,
 // не из общего выбора, номер у записи не меняется; own — своя кнопка («Партия вылита» в меню), не из общего выбора;
 // optional — рекомендуемый замер (прибор есть не у всех): «Дальше» без него не переспрашивает
-export interface EntryKindView { label: string; short?: string; icon: string; unit?: Unit; group: Group; transition?: true; own?: true; optional?: true }
+interface EntryKindView { label: string; short?: string; icon: string; unit?: Unit; group: Group; transition?: true; own?: true; optional?: true }
 
 /** Несброженное сусло: его плотность можно мерить рефрактометром (в пиве спирт искажает показание). */
 export const UNFERMENTED = new Set<EntryKind>(['mash_gravity', 'first_wort', 'preboil_gravity', 'og'])

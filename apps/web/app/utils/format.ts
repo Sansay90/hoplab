@@ -1,4 +1,6 @@
 // Форматирование для экрана. Числа, минуты, склонение и разделитель SEP — в @hoplab/core (нужны и расчётам).
+import { wattValues } from '@hoplab/core'
+import type { Limits } from '@hoplab/core'
 
 /** Ровно digits знаков после запятой: fixed(65, 1) → «65,0». */
 export function fixed(v: number, digits: number) {
@@ -49,6 +51,9 @@ export function fmtClock(epoch: number) {
 export function fmtWatts(w: number | null | undefined) {
   return w == null ? '—' : `${w} W`
 }
+
+/** Варианты мощности для выпадающего списка: значения — правило core (wattValues), подпись — «2500 W». */
+export const wattOptions = (l: Limits | null) => wattValues(l).map(w => ({ label: fmtWatts(w), value: w }))
 
 /** Вт·ч → «850 Вт·ч» / «2,35 кВт·ч». */
 export function fmtEnergy(wh: number | null | undefined) {

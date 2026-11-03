@@ -5,7 +5,7 @@
 // и день варки (по умолчанию сегодня). Сварили — страница партии: рецепт партии, журнал, брожение.
 // На странице рецепта рецепт уже есть; из «Моих варок» — сначала выбрать.
 import type { Recipe } from '~/types'
-import { defaultHeat, defaultWatts, fmtGravity, fmtNumber, hopGrams, kettleWarnings, programOf, scaleFactors, scaleRecipe, SEP, totalKg, unitLabel, waterVolumes, wattOptions } from '@hoplab/core'
+import { defaultHeat, defaultWatts, fmtGravity, fmtNumber, hopGrams, kettleWarnings, programOf, scaleFactors, scaleRecipe, SEP, totalKg, unitLabel, waterVolumes } from '@hoplab/core'
 
 const props = defineProps<{ recipeId?: string; recipe?: Recipe | null }>()
 const open = defineModel<boolean>('open', { default: false })
@@ -71,8 +71,8 @@ const watts = ref<number[]>([])
 const heatRoom = computed(() => !!limits.value && !!program.value[0] && !program.value[0].boil && program.value.length < limits.value.maxSteps)
 const heat = ref<number | null>(null)
 watch([program, () => chosen.value?.watts, wattItems], () => {
-  watts.value = scaled.value && program.value.length ? defaultWatts(scaled.value, chosen.value?.watts, wattItems.value) : []
-  heat.value = heatRoom.value ? defaultHeat(chosen.value?.watts, wattItems.value) : null
+  watts.value = scaled.value && program.value.length ? defaultWatts(scaled.value, chosen.value?.watts, wattItems.value.map(o => o.value)) : []
+  heat.value = heatRoom.value ? defaultHeat(chosen.value?.watts, wattItems.value.map(o => o.value)) : null
 }, { immediate: true })
 const packs = (r: Recipe) => (r.yeasts ?? []).filter(y => y.amount != null)
   .map(y => `${fmtNumber(y.amount, 1)} ${unitLabel(y.unit)}`).join(' + ')

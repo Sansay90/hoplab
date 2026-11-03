@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   blankRecipe, boilGroups, boilItems, calcRecipe, DEFAULT_EFFICIENCY, defaultHeat, defaultWatts, deviceTimers, fermentationStep, mashStep,
-  newMisc, newYeast, programMinutes, programOf, recipeSchema, share, toDraft, toRecipe, totalKg, validateRecipe, wattOptions, whenInBoil,
+  newMisc, newYeast, programMinutes, programOf, recipeSchema, share, toDraft, toRecipe, totalKg, validateRecipe, wattValues, whenInBoil,
 } from '../src'
 import { draft, hop, LIMITS, malt } from './fixtures'
 
@@ -26,7 +26,7 @@ describe('новый рецепт', () => {
 
   it('мощность в «Сварить»: как в прошлой партии на пивоварне, иначе потолок; чего пивоварня не примет — потолок', () => {
     const r = draft({ mash: [mashStep(52, 15), mashStep(66, 60), mashStep(78, 10)], boil: { minutes: 60 } })
-    const opts = wattOptions({ ...LIMITS, minWatts: 1000 })
+    const opts = wattValues({ ...LIMITS, minWatts: 1000 })
     expect(defaultWatts(r, null, opts)).toEqual([2500, 2500, 2500, 2500])
     expect(defaultWatts(r, { mash: [1500, 2000], boil: 2400 }, opts)).toEqual([1500, 2000, 2000, 2400])   // пауз больше — как у последней
     expect(defaultWatts(r, { mash: [900, 2550], boil: null }, opts)).toEqual([2500, 2500, 2500, 2500])
@@ -38,9 +38,9 @@ describe('новый рецепт', () => {
   })
 
   it('варианты мощности — от потолка вниз с шагом', () => {
-    expect(wattOptions({ ...LIMITS, minWatts: 2000 }).map(o => o.value)).toEqual([2500, 2400, 2300, 2200, 2100, 2000])
-    expect(wattOptions(null)[0]).toEqual({ label: '2500 W', value: 2500 })
-    expect(wattOptions(null).at(-1)!.value).toBe(100)
+    expect(wattValues({ ...LIMITS, minWatts: 2000 })).toEqual([2500, 2400, 2300, 2200, 2100, 2000])
+    expect(wattValues(null)[0]).toBe(2500)
+    expect(wattValues(null).at(-1)).toBe(100)
   })
 })
 

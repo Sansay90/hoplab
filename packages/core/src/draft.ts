@@ -118,7 +118,7 @@ export function toDraft(r: RecipeInput): RecipeDraft {
     // «Отмена» оставит правку на странице рецепта
     mash: (r.mash ?? []).map(s => ({ name: s.name ?? '', temp: s.temp, minutes: s.minutes })),
     boil: r.boil ? { minutes: r.boil.minutes } : null,
-    fermentation: (r.fermentation ?? []).map(s => ({ ...s, name: s.name ?? '', days: s.days ?? 0, until: s.until ?? 'days', gravity: s.gravity ?? null })),
+    fermentation: (r.fermentation ?? []).map(s => ({ ...s, name: s.name ?? '', days: s.days ?? 0, until: s.until ?? 'days', gravity: s.gravity ?? null })),   // days: сервис всегда присылает (по умолчанию 0); `?? 0` нужен только для типа строки формы (number)
     notes: r.notes ?? '',
   }
 }

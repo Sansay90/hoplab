@@ -112,26 +112,26 @@ export function whenInBoil(minutes: number, boilMinutes: number | undefined) {
 /** Мощность ТЭНа на шагах программы для «Сварить» — по одной на паузу, затем на кипячение: как в прошлой партии на
  *  этой пивоварне (пауз теперь больше — как у последней из них), иначе — потолок модели; чего пивоварня не примет —
  *  тоже потолок. */
-export function defaultWatts(r: ProgramSource, last: ProgramWatts | null | undefined, options: { value: number }[]): number[] {
+export function defaultWatts(r: ProgramSource, last: ProgramWatts | null | undefined, options: number[]): number[] {
   if (!options.length) return []
   const mash = (r.mash ?? []).map((_, i) => wattOr(last?.mash[i] ?? last?.mash.at(-1), options))
   return r.boil ? [...mash, wattOr(last?.boil, options)] : mash
 }
 
 /** Мощность нагрева до первой паузы для «Сварить»: как в прошлой партии, иначе потолок модели. */
-export function defaultHeat(last: ProgramWatts | null | undefined, options: { value: number }[]) {
+export function defaultHeat(last: ProgramWatts | null | undefined, options: number[]) {
   return options.length ? wattOr(last?.heat, options) : null
 }
 
 /** w, если пивоварня такую примет, иначе потолок модели (первый вариант). */
-function wattOr(w: number | null | undefined, options: { value: number }[]) {
-  return w != null && options.some(o => o.value === w) ? w : options[0]!.value
+function wattOr(w: number | null | undefined, options: number[]) {
+  return w != null && options.includes(w) ? w : options[0]!
 }
 
-/** Варианты мощности для выпадающего списка: от потолка модели вниз с её шагом мощности. */
-export function wattOptions(l: Limits | null) {
-  const out: { label: string; value: number }[] = []
+/** Допустимая мощность ТЭНа: от потолка модели вниз с её шагом (по умолчанию 2500 / 100 / 100). Подписи — дело вида. */
+export function wattValues(l: Limits | null): number[] {
+  const out: number[] = []
   const step = l?.wattsStep ?? 100
-  for (let w = l?.maxWatts ?? 2500; w >= (l?.minWatts ?? 100); w -= step) out.push({ label: `${w} W`, value: w })
+  for (let w = l?.maxWatts ?? 2500; w >= (l?.minWatts ?? 100); w -= step) out.push(w)
   return out
 }

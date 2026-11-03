@@ -49,6 +49,11 @@ const whole = (amount: number | null | undefined, k: number) => (amount == null 
 
 /** Копия рецепта под объём (л после кипячения) и эффективность оборудования. Те же объём и эффективность —
  *  копия без изменений. Форма рецепта (с какими полями пришёл) сохраняется — тип результата тот же, что у r. */
+/**
+ *  Приведение `out as R` безопасно: out — JSON-копия r, то есть та же форма (те же поля и вложенность), а `batch` и
+ *  `targets` переписываются целиком, остальное только пересчитывает числа на месте. Звать не на всё подряд: JSON-копия
+ *  теряет поля со значением `undefined` и методы, поэтому годятся только чистые данные рецепта (JSON и реактивные
+ *  прокси над ним), не классы и не объекты с функциями. */
 export function scaleRecipe<R extends RecipeInput>(r: R, to: Target): R {
   const { kv, kg, volume, efficiency } = scaleFactors(r, to)
   const out: RecipeInput = JSON.parse(JSON.stringify(r))   // рецепт — JSON; structuredClone не берёт реактивные прокси
