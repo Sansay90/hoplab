@@ -14,6 +14,7 @@ COPY apps/api/package.json apps/api/
 COPY packages/core/package.json packages/core/
 RUN pnpm install --frozen-lockfile --filter @hoplab/web...
 COPY tsconfig.base.json ./
+COPY packages/core packages/core
 COPY apps/web apps/web
 RUN pnpm --filter @hoplab/web build
 

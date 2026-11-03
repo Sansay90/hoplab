@@ -65,4 +65,4 @@ API на Fastify (`apps/api`) с переменными Python-сервиса: `
 
 ## Выкатка
 
-Пуш в `main` → CI: линтеры, тесты, сверка схемы API → образ `ghcr.io/sansay90/hoplab` → сервер. Pull request проходит только проверки. Сервер и секреты — [deploy/README.md](../deploy/README.md).
+Пуш в `main` → CI: линтеры, тесты, сверка схемы API → образ `ghcr.io/sansay90/hoplab` → сервер. Образы собираются на каждой проверке, в том числе в pull request, но публикуются и выкатываются только из `main`. Сервер и секреты — [deploy/README.md](../deploy/README.md).

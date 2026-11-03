@@ -1,6 +1,6 @@
 # deploy — сервис в интернете
 
-Каждый пуш в `main` выкатывается сам (`.github/workflows/deploy.yml`); pull request проходит только проверку:
+Каждый пуш в `main` выкатывается сам (`.github/workflows/deploy.yml`); pull request проходит проверку и сборку образов (без публикации):
 
 1. **Проверка** — линтеры (ruff, ESLint), тесты сервиса с Postgres, агента и интерфейса, типы интерфейса, сверка схемы API с типами интерфейса.
 2. **Образы** — сервис (`service/Dockerfile` → `ghcr.io/sansay90/hoplab`) и интерфейс, сервер Nuxt (`apps/web/Dockerfile` → `ghcr.io/sansay90/hoplab-web`), каждый с тегами `latest` и `<коммит>`. Собираются в GitHub, не на сервере: сборке интерфейса нужно больше памяти, чем у сервера.
