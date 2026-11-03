@@ -2,7 +2,8 @@
 // Стор пивоварни собирает из них геттеры; компоненты только отображают.
 import type { Addition, DeviceStep, HistoryPoint, Snapshot } from '~/types'
 import { slotIcon } from '~/utils/additions'
-import { fmtMinutes, fmtTemp, plural, SEP } from '~/utils/format'
+import { fmtTemp } from '~/utils/format'
+import { fmtMinutes, plural, SEP } from '@hoplab/core'
 
 export type Tone = 'primary' | 'success' | 'warning' | 'error' | 'info' | 'neutral'
 

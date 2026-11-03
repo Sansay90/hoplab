@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { fmtMinutes, SEP } from '@hoplab/core'
+
 const brewery = useBreweryStore()
 
 const stepLabel = computed(() => {

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { fmtNumber } from '@hoplab/core'
 // Сетка SVG-графика: пунктир на делениях шкалы и подпись слева от оси (по умолчанию — градусы).
 withDefaults(defineProps<{
   ticks: number[]

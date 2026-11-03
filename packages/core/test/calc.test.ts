@@ -1,8 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import type { Recipe } from '~/types'
-import { platoFromSg } from '~/utils/beer'
-import { adjustable, calcRecipe, extractForSg, fitBase, fitEbc, fitFg, fitIbu, fitOg, preBoilSg, sgFromExtract, yieldOf } from '~/utils/calc'
-import { newYeast } from '~/utils/recipe'
+import type { RecipeInput } from '../src'
+import { adjustable, calcRecipe, extractForSg, fitBase, fitEbc, fitFg, fitIbu, fitOg, newYeast, platoFromSg, preBoilSg, sgFromExtract, yieldOf } from '../src'
 import { draft, hop, malt } from './fixtures'
 
 // Опорный рецепт: 5 кг светлого солода 5 EBC, 23 л после кипячения, эффективность 75 %, 30 г хмеля 10 % на 60 мин.
@@ -193,7 +191,7 @@ describe('плотность до кипячения — для промывки
     const recipe = {
       batch: { volume: 20, efficiency: 75 }, boil: { minutes: 60 },
       fermentables: [{ name: 'Pilsner', amount: 4, use: 'mash' }, { name: 'Сахар', kind: 'sugar', amount: 0.5, use: 'boil' }],
-    } as unknown as Recipe
+    } as unknown as RecipeInput
     const pre = preBoilSg(recipe, 23)
     const sugar = extractForSg(calcRecipe({ ...recipe, fermentables: [recipe.fermentables![1]!] }).og!, 20)
     expect(extractForSg(pre, 23) + sugar).toBeCloseTo(extractForSg(calcRecipe(recipe).og!, 20), 2)

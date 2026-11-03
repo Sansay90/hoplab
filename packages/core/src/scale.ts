@@ -8,11 +8,12 @@
 // по объёму. Дрожжи: пачки — по объёму с округлением вверх, граммы — пропорционально. Паузы, кипячение, гидромодуль,
 // профиль воды и брожение — без изменений. Показатели пересчитываются по новым количествам (calc.ts).
 // Нет объёма у рецепта или у оборудования — по объёму не пересчитывается, только по эффективности.
-import type { Equipment, Recipe } from '~/types'
-import { calcRecipe, DEFAULT_EFFICIENCY, mashed } from '~/utils/calc'
-import { fmtNumber } from '~/utils/format'
-import { totalKg } from '~/utils/recipe'
-import { waterVolumes } from '~/utils/water'
+import { calcRecipe, DEFAULT_EFFICIENCY, mashed } from './calc'
+import type { EquipmentParams } from './equipment'
+import { fmtNumber } from './format'
+import { totalKg } from './summary'
+import type { RecipeInput } from './schema'
+import { waterVolumes } from './water'
 
 const WHOLE = new Set(['pkg', 'pcs'])   // штучное: пачки дрожжей, таблетки — целое вверх
 
@@ -34,7 +35,7 @@ export interface ScaleFactors {
 
 type Target = { volume?: number | null; efficiency?: number | null }
 
-export function scaleFactors(r: Pick<Recipe, 'batch'>, to: Target): ScaleFactors {
+export function scaleFactors(r: Pick<RecipeInput, 'batch'>, to: Target): ScaleFactors {
   const v1 = r.batch?.volume ?? null
   const e1 = r.batch?.efficiency ?? null
   const volume = to.volume || v1
@@ -47,10 +48,15 @@ const scaled = (amount: number | null | undefined, k: number, digits: number) =>
 const whole = (amount: number | null | undefined, k: number) => (amount == null ? amount : amount > 0 ? wholeUp(amount * k) : 0)
 
 /** Копия рецепта под объём (л после кипячения) и эффективность оборудования. Те же объём и эффективность —
- *  копия без изменений. */
-export function scaleRecipe(r: Recipe, to: Target): Recipe {
+ *  копия без изменений. Форма рецепта (с какими полями пришёл) сохраняется — тип результата тот же, что у r.
+ *
+ *  Приведение `out as R` безопасно: out — JSON-копия r, то есть та же форма (те же поля и вложенность), а `batch` и
+ *  `targets` переписываются целиком, остальное только пересчитывает числа на месте. Звать не на всё подряд: JSON-копия
+ *  теряет поля со значением `undefined` и методы, поэтому годятся только чистые данные рецепта (JSON и реактивные
+ *  прокси над ним), не классы и не объекты с функциями. */
+export function scaleRecipe<R extends RecipeInput>(r: R, to: Target): R {
   const { kv, kg, volume, efficiency } = scaleFactors(r, to)
-  const out: Recipe = JSON.parse(JSON.stringify(r))   // рецепт — JSON; structuredClone не берёт реактивные прокси
+  const out: RecipeInput = JSON.parse(JSON.stringify(r))   // рецепт — JSON; structuredClone не берёт реактивные прокси
   out.batch = { ...r.batch, volume, efficiency }
   if (kv !== 1 || kg !== 1) {
     for (const f of out.fermentables ?? []) f.amount = scaled(f.amount, mashed(f) ? kg : kv, 3)
@@ -64,7 +70,7 @@ export function scaleRecipe(r: Recipe, to: Target): Recipe {
   }
   const c = calcRecipe(out)
   out.targets = { og: c.og, fg: c.fg, ibu: c.ibu, ebc: c.ebc, abv: c.abv }
-  return out
+  return out as R
 }
 
 /** Сколько места занимает засыпь в воде, л/кг: при полном затирании в котле вода и дробина вместе. */
@@ -72,7 +78,7 @@ export const GRAIN_DISPLACEMENT = 0.67
 
 /** Чем варка не влезает в котёл: затор (вода и засыпь) или объём перед кипячением больше котла.
  *  Пусто — влезает или объём котла не задан. */
-export function kettleWarnings(r: Recipe, e: Pick<Equipment, 'kettle' | 'evaporation'>): string[] {
+export function kettleWarnings(r: RecipeInput, e: Pick<EquipmentParams, 'kettle' | 'evaporation'>): string[] {
   if (!e.kettle) return []
   const v = waterVolumes(r, e.evaporation)
   const grain = totalKg((r.fermentables ?? []).filter(f => mashed(f)))

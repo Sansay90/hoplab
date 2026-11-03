@@ -75,6 +75,9 @@ importers:
 
   apps/web:
     dependencies:
+      '@hoplab/core':
+        specifier: workspace:*
+        version: link:../../packages/core
       '@iconify-json/lucide':
         specifier: ^1.2.147
         version: 1.2.147

@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import type { HopRow } from '~/types/recipe'
+import type { HopRow } from '@hoplab/core'
+import { newHop, SEP } from '@hoplab/core'
 
 const rows = defineModel<HopRow[]>({ required: true })
 const props = defineProps<{ boilMinutes: number | null; volume: number | null }>()

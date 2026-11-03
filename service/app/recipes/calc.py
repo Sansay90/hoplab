@@ -21,7 +21,7 @@ def _or(value, default):
     return default if value is None else value
 
 
-# ── пивные величины (apps/web/app/utils/beer.ts) ──────────────────────────────────
+# ── пивные величины (packages/core/src/beer.ts) ──────────────────────────────────
 def plato_from_sg(sg):
     return -616.868 + 1111.14 * sg - 630.272 * sg ** 2 + 135.997 * sg ** 3
 

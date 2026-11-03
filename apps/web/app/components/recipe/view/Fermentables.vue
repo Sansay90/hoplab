@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Fermentable } from '~/types'
+import { fmtNumber, share, totalKg } from '@hoplab/core'
 
 const props = defineProps<{ items: Fermentable[] }>()
 

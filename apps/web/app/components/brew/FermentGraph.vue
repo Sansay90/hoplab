@@ -6,7 +6,8 @@
 // Ось — от начала брожения до конца плана (или до розлива / «вылито» / сегодня, если позже); «сейчас», розлив и
 // «вылито» — вертикальной чертой. Между замерами ничего не достраивается.
 import type { BrewEntry } from '~/types'
-import type { DryHopView, StageView } from '~/utils/brewlog'
+import type { DryHopView, StageView } from '@hoplab/core'
+import { fmtGravity, fmtNumber, gravityIn, SEP } from '@hoplab/core'
 
 const props = defineProps<{
   entries: BrewEntry[]

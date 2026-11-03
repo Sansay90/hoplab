@@ -2,6 +2,7 @@
 // Брожение рецепта — как программа пивоварни (Program.vue): профиль ступеньками, этапы списком с условием перехода
 // («до 6,0 °P · ~5 дн.», «до FG», «2 дн.»), сухое охмеление — при своей плотности или в свой день.
 import type { FermentationStep, Hop } from '~/types'
+import { dryHopDays, fmtNumber, SEP } from '@hoplab/core'
 
 const props = defineProps<{ items: FermentationStep[]; hops?: Hop[] }>()
 const prefs = usePreferencesStore()

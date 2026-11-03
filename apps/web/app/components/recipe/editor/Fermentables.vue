@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import type { FermentableRow, KindOption } from '~/types/recipe'
+import type { KindOption } from '~/types/recipe'
+import type { FermentableRow } from '@hoplab/core'
+import { newFermentable, share, totalKg } from '@hoplab/core'
 
 const rows = defineModel<FermentableRow[]>({ required: true })
 

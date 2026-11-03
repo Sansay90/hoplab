@@ -113,7 +113,8 @@ describe('any и отключение правил', () => {
   const any = 'export const x: any = 1\n'
   it('any — ошибка', bad('api', '@typescript-eslint/no-explicit-any', 'src/recipes/service.ts', any))
   it('any в core — ошибка', bad('core', '@typescript-eslint/no-explicit-any', 'src/index.ts', any))
-  it('any в web — ошибка', bad('web', '@typescript-eslint/no-explicit-any', 'app/utils/x.ts', any))
+  // конфиг Nuxt ESLint грузится долго (см. блок apps/web ниже)
+  it('any в web — ошибка', { timeout: 60_000 }, bad('web', '@typescript-eslint/no-explicit-any', 'app/utils/x.ts', any))
   it('отключение с причиной — можно', ok('api', 'src/recipes/service.ts',
     '// eslint-disable-next-line @typescript-eslint/no-explicit-any -- ответ внешней библиотеки без типов\n' + any))
   it('отключение без причины — ошибка', bad('api', '@eslint-community/eslint-comments/require-description', 'src/recipes/service.ts',

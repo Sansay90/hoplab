@@ -6,6 +6,7 @@
 // Ссылка на рецепт — название, растянутое на всю карточку; миниатюры — кнопки поверх неё: фото открываются тут же.
 // Свой опубликованный — со значком глобуса.
 import type { RecipeSummary } from '~/types'
+import { abvOf, gravityIn } from '@hoplab/core'
 
 const props = defineProps<{ recipe: RecipeSummary; inDevice?: boolean }>()
 const prefs = usePreferencesStore()

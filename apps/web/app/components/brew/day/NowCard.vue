@@ -10,8 +10,8 @@
 // загружать незачем (программа начнётся с нагрева) — шаги рукой. Программа идёт — «Сейчас» и «Дальше» самой
 // пивоварни, шаги она ведёт сама.
 import type { BrewDetail, BrewEntry } from '~/types'
-import type { BrewDayView } from '~/utils/brewday'
-import type { EntryKind } from '~/utils/brewlog'
+import type { BrewDayView, EntryKind } from '@hoplab/core'
+import { fmtMinutes, lastMeasures, measureHint, SEP, stepRemaining } from '@hoplab/core'
 
 // controlled — партия на пивоварне, которой управляет сайт: её снимок в сторе — это она
 const props = defineProps<{ brew: BrewDetail; view: BrewDayView; connected: boolean; controlled?: boolean }>()

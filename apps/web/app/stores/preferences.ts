@@ -1,4 +1,4 @@
-import type { GravityUnit } from '~/utils/beer'
+import type { GravityUnit } from '@hoplab/core'
 
 const YEAR_S = 365 * 24 * 3600
 

@@ -1,7 +1,7 @@
 <script setup lang="ts">
+import type { FitBase, RecipeCalc, RecipeDraft } from '@hoplab/core'
+import { adjustable, fitBase, fitEbc, fitFg, fitIbu, fitOg, totalKg } from '@hoplab/core'
 // Сводка сбоку: бокал, рамки стиля с ползунками подгонки ингредиентов, итоги засыпи, хмеля и программы.
-import type { RecipeDraft } from '~/types/recipe'
-import type { FitBase, RecipeCalc } from '~/utils/calc'
 
 const draft = defineModel<RecipeDraft>({ required: true })
 defineProps<{ calc: RecipeCalc | null }>()

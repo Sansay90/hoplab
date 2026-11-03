@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { additionAmount, additionName, additionNote } from '@hoplab/core'
+
 const brewery = useBreweryStore()
 const { exec, pending } = useCommand()
 </script>
@@ -35,7 +37,7 @@ const { exec, pending } = useCommand()
         <div v-else class="w-14 shrink-0 text-sm font-semibold leading-tight text-highlighted">в конце</div>
         <ul v-if="a.items.length" class="min-w-0 flex-1 space-y-0.5">
           <li v-for="(item, k) in a.items" :key="k" class="flex min-w-0 items-center gap-2">
-            <UIcon :name="additionKind(item).icon" class="size-4 shrink-0" :class="additionKind(item).tint" />
+            <UIcon :name="additionView(item).icon" class="size-4 shrink-0" :class="additionView(item).tint" />
             <span class="truncate font-medium text-highlighted">{{ additionName(item) }}</span>
             <span v-if="additionAmount(item)" class="num shrink-0 text-sm text-muted">{{ additionAmount(item) }}</span>
             <span v-if="additionNote(item)" class="num shrink-0 text-xs text-muted">·&ensp;{{ additionNote(item) }}</span>

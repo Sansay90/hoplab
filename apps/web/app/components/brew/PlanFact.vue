@@ -2,6 +2,7 @@
 // Итог варки против плана рецепта: начальная и конечная плотность, крепость — с разницей; объём в ферментере —
 // рядом с объёмом рецепта после кипячения (это разные объёмы, разницу не считаем). Нет замера — «—».
 import type { BrewDetail } from '~/types'
+import { fmtGravity, gravityIn, SEP } from '@hoplab/core'
 
 const props = defineProps<{ brew: BrewDetail }>()
 const prefs = usePreferencesStore()

@@ -26,7 +26,7 @@ pnpm --filter @hoplab/web dev   # http://localhost:3000; /api Nuxt прокси�
 | `pnpm build` | сборка сервера Nuxt в `.output` — сервис для неё не нужен |
 | `pnpm start` | запустить сборку: `node .output/server/index.mjs` (`pnpm preview` — то же через Nuxt) |
 | `pnpm lint`, `lint:fix` | ESLint (`@nuxt/eslint`, стиль — в `nuxt.config.ts` и `eslint.config.mjs`) |
-| `pnpm test` | vitest: `test/unit` — чистые утилиты, без Nuxt |
+| `pnpm test` | vitest: `test/unit` — чистые утилиты вида, без Nuxt |
 | `pnpm typecheck` | проверка типов, вместе с тестами |
 | `pnpm api:types` | выгрузить OpenAPI сервиса в `openapi.json` и пересобрать типы — после правки схем сервиса |
 
@@ -53,12 +53,14 @@ app/
   stores/   auth · brewery · preferences
   composables/  useRecipe · useLimits · useEquipment · usePhotoUrl — данные по ключам
                 useCommand (действие с тостом ошибки) · useConfirm · useAuthDrawer · useAuthForm · usePush · useSound
-  utils/    calc.ts      показатели рецепта и подгонка под рамки стиля (≡ service/app/recipes/calc.py)
-            recipe.ts    рецепт ↔ форма, программа пивоварни и закладки (≡ service/app/recipes/program.py), проверка
-            water.ts     вода: объёмы, соли, профиль ионов
-            beer.ts      °P ↔ SG, ABV, цвет пива по EBC
+  utils/    вид и клиентская логика; расчёты и правила рецепта — в @hoplab/core (packages/core): показатели, форма
+            редактора, программа пивоварни, пересчёт, брожение, шаги варочного дня, вода, каталог оборудования
+            recipe.ts    подписи и списки для выбора, сводка программы
+            brewlog.ts   журнал варки: виды записей, единицы, показ; подписи брожения
+            brewday.ts   подписи шагов варочного дня
+            beer.ts      цвет пива в бокале по EBC
             brew.ts      экран варки: фазы, таймеры, что делать дальше — чистые функции от снимка
-            additions.ts закладки: типы, иконки, подписи · styles.ts — стили BJCP · format.ts · photo.ts · api.ts
+            additions.ts закладки: иконки и цвета · equipment.ts — иконки видов · styles.ts — стили BJCP · format.ts · photo.ts · api.ts
             seo.ts       описание рецепта для превью ссылок и поисковиков
   data/     bjcp-2021.json — стили BJCP 2021 (scripts/bjcp.py, источник — beerjson/bjcp-json, MIT)
   components/  app/ — меню, витрины, подтверждение · auth/ — панель входа
@@ -67,7 +69,7 @@ app/
   pages/    index (варка) · recipes/ (каталог, new, [id], [id]/edit) · settings · admin/users · verify · reset
 server/routes/api/[...].ts  /api → сервис (NUXT_API_SERVER): dev, рендеринг на сервере, локальный Docker
 server/utils/forwarded.ts   заголовки запроса к сервису: X-Forwarded-* и доверие к своему прокси (NUXT_TRUST_PROXY)
-test/unit/  vitest; shared.test.ts — сверка с общими примерами сервиса (../../shared)
+test/unit/  vitest; сверка с общими примерами сервиса (../../shared) — в packages/core/test/shared
 Dockerfile  образ сервера Nuxt: node:24-alpine, порт 3000, не root, HEALTHCHECK по «/» (SPA-оболочка — отвечает и без сервиса)
 ```
 

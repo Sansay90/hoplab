@@ -1,11 +1,6 @@
-/** Разделитель частей строки: «12 °C · до 6,0 °P · ~5 дн.». Пробелы вокруг точки — полукруглые, шире обычных:
- *  с обычными части сливаются (внутри частей те же пробелы). */
-export const SEP = '\u2002·\u2002'
-
-/** Число по-русски, с единицей: fmtNumber(5.25, 2, ' кг') → «5,25 кг»; нет значения — «—». */
-export function fmtNumber(v: number | null | undefined, digits = 0, unit = '') {
-  return v == null ? '—' : `${v.toLocaleString('ru-RU', { maximumFractionDigits: digits })}${unit}`
-}
+// Форматирование для экрана. Числа, минуты, склонение и разделитель SEP — в @hoplab/core (нужны и расчётам).
+import { wattValues } from '@hoplab/core'
+import type { Limits } from '@hoplab/core'
 
 /** Ровно digits знаков после запятой: fixed(65, 1) → «65,0». */
 export function fixed(v: number, digits: number) {
@@ -25,23 +20,6 @@ export function fmtDuration(sec: number | null | undefined) {
   const m = Math.floor((s % 3600) / 60)
   const ss = String(s % 60).padStart(2, '0')
   return h ? `${h}:${String(m).padStart(2, '0')}:${ss}` : `${m}:${ss}`
-}
-
-/** Слово по числу: plural(3, 'шаг', 'шага', 'шагов') → «шага». */
-export function plural(n: number, one: string, few: string, many: string) {
-  const m10 = n % 10
-  const m100 = n % 100
-  if (m10 === 1 && m100 !== 11) return one
-  if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return few
-  return many
-}
-
-/** Минуты → «1 ч 10 мин» / «45 мин». */
-export function fmtMinutes(min: number) {
-  const h = Math.floor(min / 60)
-  const m = min % 60
-  if (!h) return `${m} мин`
-  return m ? `${h} ч ${m} мин` : `${h} ч`
 }
 
 /** unix-время → «14:05». */
@@ -73,6 +51,9 @@ export function fmtClock(epoch: number) {
 export function fmtWatts(w: number | null | undefined) {
   return w == null ? '—' : `${w} W`
 }
+
+/** Варианты мощности для выпадающего списка: значения — правило core (wattValues), подпись — «2500 W». */
+export const wattOptions = (l: Limits | null) => wattValues(l).map(w => ({ label: fmtWatts(w), value: w }))
 
 /** Вт·ч → «850 Вт·ч» / «2,35 кВт·ч». */
 export function fmtEnergy(wh: number | null | undefined) {

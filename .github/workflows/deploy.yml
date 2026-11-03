@@ -1,6 +1,6 @@
-# Проверка на каждый пуш и pull request (Python: сервис и агент; Node: интерфейс, api, core; секреты); пуш в main
-# после проверки ещё собирается в образы (сервис и интерфейс)
-# и выкатывается на сервер по SSH. Сервер и его настройка — deploy/README.md. Секреты репозитория: DEPLOY_HOST, DEPLOY_SSH_KEY
+# Проверка на каждый пуш и pull request (Python: сервис и агент; Node: интерфейс, api, core; секреты).
+# Образы (сервис, интерфейс, api) собираются на каждой проверке, включая pull request, — сломанный Dockerfile
+# ловится до слияния; публикуются в ghcr и выкатываются на сервер по SSH только из main. Сервер и его настройка — deploy/README.md. Секреты репозитория: DEPLOY_HOST, DEPLOY_SSH_KEY
 # (ключ пользователя deploy на сервере), DEPLOY_KNOWN_HOSTS (отпечаток сервера), DEPLOY_URL (адрес сайта).
 name: Проверка и выкатка
 
@@ -14,9 +14,9 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
+# по умолчанию только чтение кода; публикации образов и выкатке права расширены в их job
 permissions:
   contents: read
-  packages: write
 
 jobs:
   python:
@@ -110,19 +110,23 @@ jobs:
 
   build:
     name: Образ ${{ matrix.name }}
+    permissions:
+      contents: read
+      packages: write
     needs: [python, node]
-    # образы (и тег latest) — только из main: ручной запуск с другой ветки лишь проверяет
-    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    # собирается на каждой проверке; вход в ghcr и публикация (и тег latest) — только из main
     runs-on: ubuntu-latest
     strategy:
       matrix:
         include:
           - { name: сервиса, context: service, scope: service, dockerfile: service/Dockerfile, image: ghcr.io/sansay90/hoplab }
           - { name: интерфейса, context: ., scope: web, dockerfile: apps/web/Dockerfile, image: ghcr.io/sansay90/hoplab-web }
+          - { name: api, context: ., scope: api, dockerfile: apps/api/Dockerfile, image: ghcr.io/sansay90/hoplab-api }
     steps:
       - uses: actions/checkout@v4
       - uses: docker/setup-buildx-action@v3
       - uses: docker/login-action@v3
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -131,7 +135,7 @@ jobs:
         with:
           context: ${{ matrix.context }}
           file: ${{ matrix.dockerfile }}
-          push: true
+          push: ${{ github.ref == 'refs/heads/main' && github.event_name != 'pull_request' }}
           tags: |
             ${{ matrix.image }}:latest
             ${{ matrix.image }}:${{ github.sha }}
@@ -142,7 +146,12 @@ jobs:
   deploy:
     name: Сервер
     needs: build
-    if: github.ref == 'refs/heads/main'
+    # только из main; на pull_request job не запускается
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    # сервер тянет образы из ghcr этим токеном
+    permissions:
+      contents: read
+      packages: read
     runs-on: ubuntu-latest
     concurrency:
       group: deploy

@@ -1,8 +1,8 @@
 """Пересчитать ожидания в общих примерах (calc-cases.json, program-cases.json, scale-cases.json, ferment-cases.json)
-по реализации сервиса.
+и каталог видов оборудования (kinds.json) по реализации сервиса.
 
-Запускать, только когда правило намеренно изменено в обеих реализациях: после пересчёта интерфейс должен
-сойтись с новыми ожиданиями сам (web: pnpm test), иначе реализации разошлись. Из папки hoplab/service:
+Запускать, только когда правило намеренно изменено в обеих реализациях: после пересчёта packages/core должен
+сойтись с новыми ожиданиями сам (pnpm --filter @hoplab/core test), иначе реализации разошлись. Из папки hoplab/service:
 
     python ../shared/update.py
 """
@@ -14,7 +14,11 @@ from types import SimpleNamespace
 SHARED = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(os.path.dirname(SHARED), "service"))
 
+from pydantic import TypeAdapter  # noqa: E402
+
+from app.brewery.kinds import CATEGORIES  # noqa: E402
 from app.brewery.reminders import Ferment  # noqa: E402
+from app.brewery.schemas import EquipmentCategory  # noqa: E402
 from app.models import from_unix  # noqa: E402
 from app.recipes.calc import calc_recipe  # noqa: E402
 from app.recipes.program import addition_slots, device_timers, program_steps  # noqa: E402
@@ -33,6 +37,18 @@ def ferment(case):
     return Ferment(case["plan"], from_unix(case["start"]), entries, from_unix(case["now"])).view()
 
 
+def kinds():
+    """Каталог видов оборудования — так, как его отдаёт GET /equipment/kinds (по схеме ответа)."""
+    adapter = TypeAdapter(list[EquipmentCategory])
+    return adapter.dump_python(adapter.validate_python(CATEGORIES), mode="json")
+
+
+def write(name, data):
+    with open(os.path.join(SHARED, name), "w", encoding="utf-8", newline="\n") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+        f.write("\n")
+
+
 def update(name, expected):
     path = os.path.join(SHARED, name)
     with open(path, encoding="utf-8") as f:
@@ -42,9 +58,7 @@ def update(name, expected):
             case["expected"] = expected(case)
         else:
             case["expected"] = expected(case["recipe"], case["to"]) if "to" in case else expected(case["recipe"])
-    with open(path, "w", encoding="utf-8", newline="\n") as f:
-        json.dump(cases, f, ensure_ascii=False, indent=2)
-        f.write("\n")
+    write(name, cases)
     print(f"{name}: {len(cases)}")
 
 
@@ -53,3 +67,5 @@ if __name__ == "__main__":
     update("program-cases.json", program)
     update("scale-cases.json", lambda r, to: scale_recipe(r, to["volume"], to["efficiency"]))
     update("ferment-cases.json", ferment)
+    write("kinds.json", kinds())
+    print("kinds.json")

@@ -5,6 +5,7 @@
 // и день варки (по умолчанию сегодня). Сварили — страница партии: рецепт партии, журнал, брожение.
 // На странице рецепта рецепт уже есть; из «Моих варок» — сначала выбрать.
 import type { Recipe } from '~/types'
+import { defaultHeat, defaultWatts, fmtGravity, fmtNumber, hopGrams, kettleWarnings, programOf, scaleFactors, scaleRecipe, SEP, totalKg, unitLabel, wattValues, waterVolumes } from '@hoplab/core'
 
 const props = defineProps<{ recipeId?: string; recipe?: Recipe | null }>()
 const open = defineModel<boolean>('open', { default: false })
@@ -64,14 +65,15 @@ const warnings = computed(() => (scaled.value && chosen.value ? kettleWarnings(s
 // у рецепта её нет
 const powered = computed(() => !!chosen.value?.connected && limits.value?.maxWatts != null)
 const program = computed(() => (scaled.value && powered.value ? programOf(scaled.value, limits.value?.boilTemp) : []))
+const wattList = computed(() => wattValues(limits.value ?? null))
 const wattItems = computed(() => wattOptions(limits.value ?? null))
 const watts = ref<number[]>([])
 // нагрев до первой паузы своей мощностью — отдельный шаг программы перед ней: если для него есть место
 const heatRoom = computed(() => !!limits.value && !!program.value[0] && !program.value[0].boil && program.value.length < limits.value.maxSteps)
 const heat = ref<number | null>(null)
-watch([program, () => chosen.value?.watts, wattItems], () => {
-  watts.value = scaled.value && program.value.length ? defaultWatts(scaled.value, chosen.value?.watts, wattItems.value) : []
-  heat.value = heatRoom.value ? defaultHeat(chosen.value?.watts, wattItems.value) : null
+watch([program, () => chosen.value?.watts, wattList], () => {
+  watts.value = scaled.value && program.value.length ? defaultWatts(scaled.value, chosen.value?.watts, wattList.value) : []
+  heat.value = heatRoom.value ? defaultHeat(chosen.value?.watts, wattList.value) : null
 }, { immediate: true })
 const packs = (r: Recipe) => (r.yeasts ?? []).filter(y => y.amount != null)
   .map(y => `${fmtNumber(y.amount, 1)} ${unitLabel(y.unit)}`).join(' + ')

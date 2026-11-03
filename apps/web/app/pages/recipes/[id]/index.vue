@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { calcRecipe, waterVolumes } from '@hoplab/core'
 // Рецепт: свой или опубликованный. Рендерится на сервере — для превью ссылок и поисковиков; вошедшему — по его cookie.
 // Разделы — components/recipe/view/, действия в шапке — view/Actions.vue.
 const route = useRoute()

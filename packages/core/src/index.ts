@@ -1,2 +1,15 @@
-// Пока пусто: расчёты, программа пивоварни и схема рецепта переезжают сюда на шаге 1 плана миграции.
-export {}
+// Публичный вход @hoplab/core: расчёты и правила рецепта, общие для браузера и сервера. Чистый TS: без Node и фреймворков.
+export * from './additions'
+export * from './beer'
+export * from './brewday'
+export * from './calc'
+export * from './draft'
+export * from './equipment'
+export * from './ferment'
+export * from './format'
+export * from './kinds'
+export * from './program'
+export * from './scale'
+export * from './schema'
+export * from './summary'
+export * from './water'

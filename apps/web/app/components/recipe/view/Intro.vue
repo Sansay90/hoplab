@@ -4,6 +4,7 @@
 // «в пивоварне» — в верхней строке страницы (view/Actions.vue).
 import type { RecipeDetail } from '~/types'
 import { NuxtLink } from '#components'
+import { plural } from '@hoplab/core'
 
 const props = defineProps<{ recipe: RecipeDetail; recipeId: string; ebc?: number | null }>()
 

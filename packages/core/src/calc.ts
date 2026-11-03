@@ -3,15 +3,15 @@
 // Сахар сбраживается целиком, где бы его ни добавили; добавленное на брожении в OG не входит, а в крепость — входит.
 // Объём — сусло после кипячения, эффективность — к нему же. Упрощения: выход экстракта — средний по типу
 // и цвету сырья (справочника пока нет); IBU — по OG, вирпул и сухое охмеление горечи не дают (как у Tinseth).
-import type { Fermentable, Hop, Recipe } from '~/types'
-import type { RecipeDraft } from '~/types/recipe'
-import { abvOf, platoFromSg, sgFromPlato } from '~/utils/beer'
+import { abvOf, platoFromSg, sgFromPlato } from './beer'
+import type { RecipeDraft } from './draft'
+import type { FermentableInput, HopInput, RecipeInput } from './schema'
 
 /** Выход экстракта, % массы — средние значения по типу сырья; у солода зависит от цвета (yieldOf). */
-export const YIELD: Record<NonNullable<Fermentable['kind']>, number> = { grain: 80, adjunct: 75, sugar: 100, extract: 95 }
+export const YIELD: Record<NonNullable<FermentableInput['kind']>, number> = { grain: 80, adjunct: 75, sugar: 100, extract: 95 }
 
 /** Солод: светлый ~80 %, карамельный и специальный ~75 %, жжёный ~60 % (PPG 1.037 / 1.034 / 1.028). */
-export function yieldOf(f: Fermentable) {
+export function yieldOf(f: FermentableInput) {
   const kind = f.kind ?? 'grain'
   if (kind !== 'grain') return YIELD[kind]
   const ebc = f.ebc ?? 0
@@ -20,7 +20,7 @@ export function yieldOf(f: Fermentable) {
 export const DEFAULT_EFFICIENCY = 75
 export const DEFAULT_ATTENUATION = 75
 
-type Source = Pick<Recipe, 'batch' | 'fermentables' | 'hops' | 'yeasts' | 'boil'>
+type Source = Pick<RecipeInput, 'batch' | 'fermentables' | 'hops' | 'yeasts' | 'boil'>
 
 export interface RecipeCalc {
   og: number | null
@@ -34,18 +34,18 @@ export interface RecipeCalc {
 
 // ── экстракт и плотность ─────────────────────────────────────────────────────
 /** Сырьё, которое попадает в сусло до брожения. */
-const inWort = (f: Fermentable) => f.use !== 'fermentation'
+const inWort = (f: FermentableInput) => f.use !== 'fermentation'
 /** Сахар сбраживается целиком; остальное — на степень сбраживания дрожжей. */
-const fullyFermentable = (f: Fermentable) => f.kind === 'sugar'
+const fullyFermentable = (f: FermentableInput) => f.kind === 'sugar'
 /** Затирается — тогда работает эффективность; сахар и экстракт растворяются целиком. */
-export const mashed = (f: Fermentable) => (f.use ?? 'mash') === 'mash' && (f.kind ?? 'grain') !== 'sugar' && f.kind !== 'extract'
+export const mashed = (f: FermentableInput) => (f.use ?? 'mash') === 'mash' && (f.kind ?? 'grain') !== 'sugar' && f.kind !== 'extract'
 
 function efficiencyOf(r: Source) {
   return r.batch?.efficiency ?? DEFAULT_EFFICIENCY
 }
 
 /** Экстракт, кг, который строка засыпи отдаст суслу. */
-export function extractOf(f: Fermentable, efficiency: number) {
+export function extractOf(f: FermentableInput, efficiency: number) {
   const share = (yieldOf(f) / 100) * (mashed(f) ? efficiency / 100 : 1)
   return (f.amount ?? 0) * share
 }
@@ -64,13 +64,13 @@ export function extractForSg(sg: number, litres: number) {
 
 // ── горечь и цвет ────────────────────────────────────────────────────────────
 /** Минуты кипячения, которые даёт горечь: закладка на кипячении или в первое сусло. */
-function boilTime(h: Hop, boilMinutes: number | undefined) {
+function boilTime(h: HopInput, boilMinutes: number | undefined) {
   if (h.use === 'first_wort') return boilMinutes ?? 0
   if ((h.use ?? 'boil') === 'boil') return h.minutes ?? 0
   return 0
 }
 
-function hopIbu(h: Hop, og: number, litres: number, boilMinutes: number | undefined) {
+function hopIbu(h: HopInput, og: number, litres: number, boilMinutes: number | undefined) {
   const t = boilTime(h, boilMinutes)
   if (!t || !h.alpha || !h.amount) return 0
   const utilisation = 1.65 * 0.000125 ** (og - 1) * ((1 - Math.exp(-0.04 * t)) / 4.15)
@@ -87,7 +87,7 @@ function lovibond(ebc: number) {
 }
 
 /** MCU Morey: °L × фунты / галлоны. */
-function mcuOf(f: Fermentable, litres: number) {
+function mcuOf(f: FermentableInput, litres: number) {
   return f.ebc && f.amount ? (f.amount * LB_PER_KG * lovibond(f.ebc)) / (litres / L_PER_GAL) : 0
 }
 
@@ -97,14 +97,14 @@ function ebcFromMcu(mcu: number) {
 
 // ── расчёт ───────────────────────────────────────────────────────────────────
 /** Экстракт, кг, строк засыпи, которые отбирает keep. */
-function extractWhere(r: Source, keep: (f: Fermentable) => boolean) {
+function extractWhere(r: Source, keep: (f: FermentableInput) => boolean) {
   return (r.fermentables ?? []).filter(keep).reduce((a, f) => a + extractOf(f, efficiencyOf(r)), 0)
 }
 
 /** Плотность затора при полном осахаривании (SG): весь экстракт того, что в затор (выход по типу и цвету, без
  *  эффективности — в заторе ещё ничего не потеряно), в заторной воде — гидромодуль × засыпь. Подсказка к замеру на
  *  паузах: сколько уже осахарилось. Нет гидромодуля или засыпи — null. */
-export function mashSgMax(r: Pick<Recipe, 'fermentables' | 'water'>) {
+export function mashSgMax(r: Pick<RecipeInput, 'fermentables' | 'water'>) {
   const inMash = (r.fermentables ?? []).filter(f => (f.use ?? 'mash') === 'mash')
   const grain = inMash.reduce((a, f) => a + (f.amount ?? 0), 0)
   const water = r.water?.ratio && grain ? r.water.ratio * grain : null

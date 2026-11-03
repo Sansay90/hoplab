@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import type { WaterAddition } from '~/types'
-import { additionEffect, chlorideSulfate, WATER_AGENTS, waterAmount, waterProfiles, waterVolumes } from '~/utils/water'
+import type { WaterAddition } from '../src'
+import { additionEffect, chlorideSulfate, WATER_AGENTS, waterAmount, waterProfiles, waterVolumes } from '../src'
 import { dots, malt } from './fixtures'
 
 describe('ионы солей', () => {

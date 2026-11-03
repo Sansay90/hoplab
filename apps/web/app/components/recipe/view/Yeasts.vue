@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Yeast } from '~/types'
+import { fmtNumber, SEP, unitLabel } from '@hoplab/core'
 
 defineProps<{ items: Yeast[] }>()
 </script>

@@ -1,7 +1,7 @@
 // Вода рецепта: объёмы заторной и промывочной воды, соли и кислоты, профиль ионов.
 // Ионы на 1 г соли в 1 л (мг/л) — из молярных масс; мел в заторе считается как 2 HCO₃⁻ на CaCO₃.
-import type { Batch, Boil, Fermentable, WaterAddition, WaterAgent, WaterProfile } from '~/types'
-import { SEP } from '~/utils/format'
+import { SEP } from './format'
+import type { BatchInput, BoilInput, FermentableInput, WaterAdditionInput, WaterAgent, WaterProfileInput } from './schema'
 
 export const IONS = ['ca', 'mg', 'na', 'cl', 'so4', 'hco3'] as const
 export type Ion = typeof IONS[number]
@@ -31,7 +31,7 @@ export const WATER_AGENTS: Record<WaterAgent, WaterAgentMeta> = {
 
 const zero = (): Ions => ({ ca: 0, mg: 0, na: 0, cl: 0, so4: 0, hco3: 0 })
 
-type Source = { additions?: WaterAddition[]; source?: Partial<WaterProfile> }
+type Source = { additions?: WaterAdditionInput[]; source?: WaterProfileInput }
 type Litres = Pick<WaterVolumes, 'mash' | 'sparge'>
 
 /** Сколько мг ионов даёт добавка (на весь объём). */
@@ -97,9 +97,9 @@ export interface WaterVolumes {
 const tenth = (v: number) => Math.round(v * 10) / 10
 
 type VolumeSource = {
-  batch?: Pick<Batch, 'volume'>
-  boil?: Pick<Boil, 'minutes'> | null
-  fermentables?: Pick<Fermentable, 'amount' | 'use'>[]
+  batch?: Pick<BatchInput, 'volume'>
+  boil?: Pick<BoilInput, 'minutes'> | null
+  fermentables?: Pick<FermentableInput, 'amount' | 'use'>[]
   water?: { ratio?: number | null }
 }
 

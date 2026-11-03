@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Hop } from '~/types'
+import { fmtNumber } from '@hoplab/core'
 
 const props = defineProps<{ items: Hop[] }>()
 

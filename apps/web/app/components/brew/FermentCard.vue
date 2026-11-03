@@ -9,6 +9,7 @@
 // Этапы с датами, сухое охмеление и розлив — в таймлайне партии (day/Timeline.vue). Отсчёт — от задачи дрожжей,
 // её нет — от дня варки. Нет ни плана, ни замеров — карточки нет.
 import type { BrewDetail } from '~/types'
+import { fermentAdvice, fermentCalm, fermentFinal, fermentPlan, fmtGravity, fmtNumber, lastMeasures, plural } from '@hoplab/core'
 
 const props = defineProps<{ brew: BrewDetail }>()
 const emit = defineEmits<{ changed: []; stage: [index: number] }>()
