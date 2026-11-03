@@ -14,9 +14,9 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
+# по умолчанию только чтение кода; публикации образов и выкатке права расширены в их job
 permissions:
   contents: read
-  packages: write
 
 jobs:
   python:
@@ -110,6 +110,9 @@ jobs:
 
   build:
     name: Образ ${{ matrix.name }}
+    permissions:
+      contents: read
+      packages: write
     needs: [python, node]
     # собирается на каждой проверке; вход в ghcr и публикация (и тег latest) — только из main
     runs-on: ubuntu-latest
@@ -145,6 +148,10 @@ jobs:
     needs: build
     # только из main; на pull_request job не запускается
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    # сервер тянет образы из ghcr этим токеном
+    permissions:
+      contents: read
+      packages: read
     runs-on: ubuntu-latest
     concurrency:
       group: deploy
