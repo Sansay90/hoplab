@@ -151,8 +151,9 @@ async function copyAll(tx: Tx, source: LegacySource): Promise<Record<string, num
   await copy('recipeVotes', whole('recipe_votes', ['user_id', 'recipe_id']), async (rows) => {
     await tx.insert(t.recipeVotes).values(rows.map(r => mapRow<typeof t.recipeVotes.$inferInsert>(r)))
   })
-  // комментарии: сначала корневые, потом ответы (один уровень) — ссылка parent_id на уже записанную строку;
-  // страницы и порции этот порядок не ломают
+  // комментарии: сначала корневые, потом ответы — ссылка parent_id на уже записанную строку; страницы и порции этот
+  // порядок не ломают. Глубже одного уровня старый сервис не пишет (discussion.py поднимает ответ на ответ к корню);
+  // встреться такое — ответ, чей родитель в следующей порции, упадёт на внешнем ключе, и перенос откатится целиком
   const writeComments = async (rows: Row[]) => {
     await tx.insert(t.comments).values(rows.map(r => mapRow<typeof t.comments.$inferInsert>(r)))
   }

@@ -1,5 +1,5 @@
 // Команда переноса данных из старой базы (Python-сервис) в новую: разбор аргументов и вызов src/db/legacy — SQL здесь нет.
-// Запуск — import-legacy.ts (в dev: pnpm --filter @hoplab/api import-legacy -- [--dry-run] [--verify]).
+// Запуск — import-legacy.ts (в dev: pnpm --filter @hoplab/api import-legacy [--dry-run] [--verify]).
 import { parseArgs } from 'node:util'
 import type { Config } from '../config'
 import { createDb, migrateDb } from '../db'
