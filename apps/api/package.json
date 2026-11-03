@@ -14,7 +14,8 @@
     "test": "vitest run",
     "knip": "knip",
     "db:generate": "drizzle-kit generate",
-    "db:check": "tsx scripts/db-check.ts"
+    "db:check": "tsx scripts/db-check.ts",
+    "import-legacy": "tsx src/cli/import-legacy.ts"
   },
   "dependencies": {
     "@fastify/cors": "11.4.0",

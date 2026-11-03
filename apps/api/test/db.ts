@@ -26,6 +26,11 @@ export function withDatabase(url: string, name: string) {
   return u.toString()
 }
 
+/** Адрес базы «старого сервиса» для тестов переноса: hoplab_test → hoplab_legacy_test. */
+export function legacyTestUrl(url: string) {
+  return withDatabase(url, databaseName(url).replace(/_test$/, '_legacy_test'))
+}
+
 /** Создать базу, если её нет (через служебную базу postgres того же сервера). */
 export async function ensureDatabase(url: string) {
   const name = databaseName(url)

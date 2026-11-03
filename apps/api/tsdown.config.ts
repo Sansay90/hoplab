@@ -2,7 +2,8 @@
 import { defineConfig } from 'tsdown'
 
 export default defineConfig({
-  entry: ['src/main.ts'],
+  // сервис и команда переноса данных (node dist/cli/import-legacy.mjs); общий код — в общих файлах dist
+  entry: { 'main': 'src/main.ts', 'cli/import-legacy': 'src/cli/import-legacy.ts' },
   format: 'esm',
   platform: 'node',
   target: 'node24',

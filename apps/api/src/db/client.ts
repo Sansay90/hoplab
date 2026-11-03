@@ -17,3 +17,5 @@ export function createDb(url: string, options: DbOptions = {}) {
 }
 
 export type Db = ReturnType<typeof createDb>
+/** Транзакция Drizzle: те же запросы, что у Db. */
+export type Tx = Parameters<Parameters<Db['transaction']>[0]>[0]
