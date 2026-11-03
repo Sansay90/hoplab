@@ -19,7 +19,7 @@ cd agent && pytest
 pnpm install                               # из корня: монорепа pnpm (apps/web, apps/api, packages/core)
 pnpm lint && pnpm typecheck && pnpm test   # из корня: web, api, core; тест границ — apps/api/test/boundaries.test.ts
 pnpm knip && pnpm audit --audit-level high # мёртвый код (core, api) и уязвимости — как в CI
-pnpm --filter @hoplab/api dev              # API на Fastify (:8000, настройки — те же переменные, что у service/)
+ENV_FILE=../../service/.env pnpm --filter @hoplab/api dev   # API на Fastify (:8000) с переменными сервиса; без ENV_FILE — .env в apps/api
 cd apps/web && pnpm api:types              # после правки схем API: openapi.json → типы (nuxt-open-fetch)
 cd service && alembic revision --autogenerate -m "…"   # после правки app/models.py
 python -m app [serve|agents new|agents list|vapid|openapi]   # команды сервиса (из service/)
@@ -65,11 +65,27 @@ MCP-серверы проекта (`.mcp.json`): **nuxt-ui** — компоне�
 - `process.env` вне `src/config.ts`;
 - `let`/`var` и `new Map/Set` на уровне модуля — это глобальное состояние: зависимости идут через `buildApp(deps)`;
 - `any` — только с комментарием-обоснованием: `// eslint-disable-next-line … -- причина` (без причины — ошибка);
+- обходы `process.env` (`process['env']`, `const { env } = process`, `globalThis.process.env`, импорт `process` / `node:process`) — тоже вне `config.ts` нельзя;
 - `packages/core` импортирует `apps/*`, `fastify`, `drizzle-orm`, `node:*` и встроенные модули Node (код идёт и в браузер); `apps/web` импортирует `apps/api` или `@hoplab/api`.
 
 Остальное ловит CI: `pnpm typecheck` (строгий TS, `noUncheckedIndexedAccess`), `pnpm test` (у `core` порог 90 % строк), `pnpm knip` (мёртвый код в core и api; у web не включён), `pnpm audit`, `gitleaks`.
 
 **Как добавить раздел.** Пока — по образцу `src/health/`: папка `<раздел>/` с `routes.ts`, `service.ts`, `schemas.ts`, `index.ts` (и `queries.ts`, когда появится база); регистрация в `buildApp` — `app.register(<раздел>Routes, { prefix: '/api' })`; тесты в `apps/api/test/` через `app.inject()`. С шага 3 плана (раздел «оборудование») — шаблон `pnpm new:module <имя>`.
+
+**Зависимости и слои в коде.**
+- `buildApp(deps)` кладёт зависимости в `app.deps` (`app.decorate('deps', deps)`). Тип `Deps` и расширение `FastifyInstance` — `src/deps.ts`; сейчас в нём только `config`, база, почта, хаб и т. д. добавляются по шагам. Журнал и прочие параметры сборки — второй аргумент `buildApp(deps, options)`.
+- Маршрут берёт `app.deps` и передаёт сервису нужную часть. Сервис — **функции** `(deps, viewer, input)`: `deps` — подмножество (`Pick<Deps, 'db' | 'mailer'>`), `viewer` — кто спрашивает (с шага 3 это `request.viewer`; сервис получает его аргументом, а не из запроса). Queries — функции `(db, …)`, где `db` — пул или транзакция Drizzle.
+- Классов-сервисов и синглтонов нет; тесты передают подмены в `buildApp(deps)`.
+- `index.ts` раздела экспортирует только плагин маршрутов и публичные функции и типы сервиса для других разделов — не queries и не внутренние хелперы.
+- Подпапки разделов допустимы (`src/brews/reminders/service.ts`): правила слоёв действуют и там, чужой раздел виден только через его `index.ts`.
+
+**Контракт API** (то, что пишется в `schemas.ts`; сверено с `service/app/schemas.py` и `recipes/schemas.py`):
+- ключи JSON — camelCase; время — unix-секунды числом (в Python это `float`, например `updatedAt`); id — строки;
+- действие без данных отвечает `{ ok: true }`;
+- ошибки — `{ detail }` строкой; 422 — списком `{ type, loc, msg }`, где `loc` начинается с `body` / `query` / `path` / `header`; невалидный JSON — `json_invalid` с позицией; непредвиденная 500 — простой текст `Internal Server Error`, без `detail` (интерфейс покажет свой текст);
+- плотность — SG (`og`, `fg`, `gravity`), цвет — EBC (`ebc`).
+
+**Тексты ошибок, которые видит человек, — русские**, и задаёт их сервис через `AppError`, а не встроенные ошибки Fastify (у них английский текст). Например, лимит тела — `bodyLimit` маршрута и своя ошибка с текстом, как в Python («фото больше 10 МБ», 413).
 
 **Чек-лист ревью** (то, чего линтер не видит):
 - права — только через `access.ts`, а не «if в маршруте»;

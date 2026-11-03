@@ -47,6 +47,8 @@ pnpm lint && pnpm typecheck && pnpm test # web, api, core; границы сло
 pnpm knip && pnpm audit --audit-level high
 ```
 
+API на Fastify (`apps/api`) с переменными Python-сервиса: `ENV_FILE=../../service/.env pnpm --filter @hoplab/api dev` (без `ENV_FILE` читается `.env` в `apps/api`; непустые переменные окружения важнее файла, пустые — как незаданные).
+
 - **Тесты сервиса** поднимают настоящий сервис в потоке и работают с настоящим Postgres. База — `TEST_DATABASE_URL`, а без неё — `hoplab_test` рядом с базой из `DATABASE_URL` (создаётся сама; нужна запущенная база из `service/compose.yaml`). Её имя обязано кончаться на `_test`: перед каждым тестом таблицы очищаются. Агент в сквозных тестах настоящий (`Controller`, `Link`), пивоварня — имитация (`agent/agent/fake.py`).
 - **Тесты интерфейса** (vitest) — чистые утилиты `app/utils`, без Nuxt: `apps/web/test/unit`. **Тесты api и core** (vitest) — `apps/api/test` (приложение собирается через `buildApp` и опрашивается `app.inject()`, без сети и базы), `packages/core/test` (порог покрытия 90 % строк).
 - **Автоисправления:** `ruff check --fix service agent`, `pnpm lint:fix`.
