@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "sideEffects": false,
   "description": "Чистый TS без Node и фреймворков: расчёты и правила для браузера и сервера",
   "exports": {
     ".": "./src/index.ts"

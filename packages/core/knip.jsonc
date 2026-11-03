@@ -1,7 +1,6 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
   "project": ["src/**/*.ts"],
-  // tsc, knip и eslint стоят в корне монорепо; zod core начнёт использовать на шаге 1 (схема рецепта)
-  "ignoreBinaries": ["tsc", "knip", "eslint"],
-  "ignoreDependencies": ["zod"]
+  // tsc, knip и eslint стоят в корне монорепо
+  "ignoreBinaries": ["tsc", "knip", "eslint"]
 }
