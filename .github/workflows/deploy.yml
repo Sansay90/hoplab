@@ -1,4 +1,5 @@
-# Проверка на каждый пуш и pull request; пуш в main после проверки ещё собирается в образы (сервис и интерфейс)
+# Проверка на каждый пуш и pull request (Python: сервис и агент; Node: интерфейс, api, core; секреты); пуш в main
+# после проверки ещё собирается в образы (сервис и интерфейс)
 # и выкатывается на сервер по SSH. Сервер и его настройка — deploy/README.md. Секреты репозитория: DEPLOY_HOST, DEPLOY_SSH_KEY
 # (ключ пользователя deploy на сервере), DEPLOY_KNOWN_HOSTS (отпечаток сервера), DEPLOY_URL (адрес сайта).
 name: Проверка и выкатка
@@ -56,43 +57,57 @@ jobs:
       - name: Схема API в web совпадает с сервисом
         working-directory: service
         run: |
-          python -m app openapi ../web/openapi.json
-          git diff --exit-code -- ../web/openapi.json || { echo "::error::web/openapi.json устарел — в web: npm run api:types"; exit 1; }
+          python -m app openapi ../apps/web/openapi.json
+          git diff --exit-code -- ../apps/web/openapi.json || { echo "::error::apps/web/openapi.json устарел — в apps/web: pnpm api:types"; exit 1; }
 
-  web:
-    name: Интерфейс
+  node:
+    name: Node (интерфейс, api, core)
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: web
     steps:
       - uses: actions/checkout@v4
+      # версия pnpm — из packageManager в корневом package.json
+      - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 24
-          cache: npm
-          cache-dependency-path: web/package-lock.json
-      - run: npm ci --no-audit --no-fund
-      - name: Линтер
-        run: npm run lint
-      - name: Тесты
-        run: npm run test
-      # типы API генерирует nuxt-open-fetch из openapi.json (npm ci → nuxt prepare); что openapi.json совпадает
-      # с сервисом, проверяет job «Сервис и агент»
+          cache: pnpm
+      # postinstall интерфейса (nuxt prepare) генерирует .nuxt: типы API из openapi.json и конфиг ESLint
+      - run: pnpm install --frozen-lockfile
+      - name: Линтер и границы
+        run: pnpm lint
+      # типы API генерирует nuxt-open-fetch из openapi.json; что он совпадает с сервисом, проверяет job «Сервис и агент»
       - name: Типы
-        run: npm run typecheck
+        run: pnpm typecheck
+      - name: Тесты core, api и интерфейса
+        run: pnpm test
+      - name: Мёртвый код (core и api)
+        run: pnpm knip
+      - name: Уязвимости зависимостей
+        run: pnpm audit --audit-level high
+
+  gitleaks:
+    name: Секреты в истории
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      # ложные срабатывания — в .gitleaksignore, с комментарием
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   build:
     name: Образ ${{ matrix.name }}
-    needs: [python, web]
+    needs: [python, node, gitleaks]
     # образы (и тег latest) — только из main: ручной запуск с другой ветки лишь проверяет
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     strategy:
       matrix:
         include:
-          - { name: сервиса, context: service, image: ghcr.io/sansay90/hoplab }
-          - { name: интерфейса, context: web, image: ghcr.io/sansay90/hoplab-web }
+          - { name: сервиса, context: service, scope: service, dockerfile: service/Dockerfile, image: ghcr.io/sansay90/hoplab }
+          - { name: интерфейса, context: ., scope: web, dockerfile: apps/web/Dockerfile, image: ghcr.io/sansay90/hoplab-web }
     steps:
       - uses: actions/checkout@v4
       - uses: docker/setup-buildx-action@v3
@@ -104,13 +119,14 @@ jobs:
       - uses: docker/build-push-action@v6
         with:
           context: ${{ matrix.context }}
+          file: ${{ matrix.dockerfile }}
           push: true
           tags: |
             ${{ matrix.image }}:latest
             ${{ matrix.image }}:${{ github.sha }}
           labels: org.opencontainers.image.source=https://github.com/${{ github.repository }}
-          cache-from: type=gha,scope=${{ matrix.context }}
-          cache-to: type=gha,mode=max,scope=${{ matrix.context }}
+          cache-from: type=gha,scope=${{ matrix.scope }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.scope }}
 
   deploy:
     name: Сервер
