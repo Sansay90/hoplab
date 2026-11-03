@@ -19,8 +19,11 @@ RUN pnpm --filter @hoplab/api build
 RUN pnpm --filter @hoplab/api deploy --legacy --prod /out && cp -r apps/api/dist /out/dist
 
 FROM node:24-alpine
+# tzdata — чтобы TZ действовал (в alpine часовых поясов нет)
+RUN apk add --no-cache tzdata
 WORKDIR /app
 ENV NODE_ENV=production \
+    TZ=Europe/Moscow \
     SERVICE_HOST=0.0.0.0 \
     SERVICE_PORT=8000
 COPY --from=build --chown=node:node /out/node_modules ./node_modules

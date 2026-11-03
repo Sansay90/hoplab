@@ -82,8 +82,19 @@ jobs:
         run: pnpm test
       - name: Мёртвый код (core и api)
         run: pnpm knip
-      - name: Уязвимости зависимостей
-        run: pnpm audit --audit-level high
+
+  # audit и gitleaks — отдельные отметки в PR: красные, но срочную правку в main не держат (build.needs без них)
+  audit:
+    name: Уязвимости зависимостей
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm audit --audit-level high
 
   gitleaks:
     name: Секреты в истории
@@ -99,7 +110,7 @@ jobs:
 
   build:
     name: Образ ${{ matrix.name }}
-    needs: [python, node, gitleaks]
+    needs: [python, node]
     # образы (и тег latest) — только из main: ручной запуск с другой ветки лишь проверяет
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     runs-on: ubuntu-latest
