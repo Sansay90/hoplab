@@ -10,11 +10,16 @@ const LOCAL_ORIGIN = /https?:\/\/(localhost|127\.0\.0\.1|10(\.\d{1,3}){3}|192\.1
 
 const escapeRegExp = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
+/** postgresql+psycopg://… (так пишет Python-сервис) → postgresql://… для pg. */
+const pgUrl = (url: string) => url.replace(/^(postgres(?:ql)?)\+\w+:/, '$1:')
+
 const port = z.coerce.number().int().min(1).max(65535)
 
 const schema = z.object({
-  // адрес базы; пока базы нет — не используется
+  // адрес базы; как у Python-сервиса принимается и postgresql+psycopg://… (суффикс драйвера отбрасывается)
   DATABASE_URL: z.string().default(''),
+  // старая база (Python-сервис) — только для переноса данных: pnpm import-legacy
+  LEGACY_DATABASE_URL: z.string().default(''),
   // адрес сайта: ссылки в письмах и проверка источника запросов; пусто — сервис на своём ПК
   APP_URL: z.string().default(''),
   // почты администраторов через запятую; пусто — администратор первый зарегистрировавшийся
@@ -41,6 +46,7 @@ const schema = z.object({
 
 export interface Config {
   databaseUrl: string
+  legacyDatabaseUrl: string
   appUrl: string
   /** Адрес сайта без завершающего «/». */
   siteUrl: string
@@ -71,7 +77,8 @@ export function loadConfig(env: Record<string, string | undefined>): Config {
   const siteUrl = e.APP_URL.replace(/\/+$/, '')
   const source = siteUrl ? escapeRegExp(siteUrl) : LOCAL_ORIGIN.source
   return {
-    databaseUrl: e.DATABASE_URL,
+    databaseUrl: pgUrl(e.DATABASE_URL),
+    legacyDatabaseUrl: pgUrl(e.LEGACY_DATABASE_URL),
     appUrl: e.APP_URL,
     siteUrl,
     adminEmails: new Set(e.ADMIN_EMAILS.split(',').map(x => x.trim().toLowerCase()).filter(Boolean)),

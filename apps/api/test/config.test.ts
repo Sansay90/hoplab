@@ -26,6 +26,16 @@ describe('настройки из окружения', () => {
     expect(c.host).toBe('0.0.0.0')
   })
 
+  it('адрес базы в формате Python-сервиса (postgresql+psycopg://) подходит и pg', () => {
+    const c = loadConfig({
+      DATABASE_URL: 'postgresql+psycopg://u:p@db:5432/hoplab', LEGACY_DATABASE_URL: 'postgresql+psycopg2://u:p@old/hoplab',
+    })
+    expect(c.databaseUrl).toBe('postgresql://u:p@db:5432/hoplab')
+    expect(c.legacyDatabaseUrl).toBe('postgresql://u:p@old/hoplab')
+    expect(loadConfig({ DATABASE_URL: 'postgres://u@h/x' }).databaseUrl).toBe('postgres://u@h/x')
+    expect(loadConfig({}).legacyDatabaseUrl).toBe('')
+  })
+
   it('пустая переменная — как незаданная', () => {
     expect(loadConfig({ SERVICE_PORT: '', SMTP_PORT: '' }).port).toBe(8000)
   })
